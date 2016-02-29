@@ -1,6 +1,7 @@
 import abc
 import os.path
 
+import rstcloth.rstcloth
 import libgiza.git
 import yaml
 from typing import Any, Callable, Dict, List, TypeVar, Union
@@ -19,12 +20,12 @@ def substitute(text: str, replacements: Dict[str, str]) -> str:
     return text
 
 
-def withdraw(dictionary: Dict[str, Any], key: str, checker: Callable[[Any], T]) -> T:
+def withdraw(dictionary: Dict[str, Any], key: str, checker: Callable[[Any], T], default: T=None) -> T:
     """Removes a value from a dictionary, after transforming it with a given
        checker function. Returns either the value, or None if it does
        not exist."""
-    value = dictionary.get(key, None)
-    if value is not None:
+    value = dictionary.get(key, default)
+    if value != default:
         value = checker(value)
         del dictionary[key]
     return value
@@ -39,6 +40,14 @@ def str_or_list(value: Union[List[str], str]) -> str:
         return ', '.join(value)
 
     raise TypeError(value)
+
+
+def string_list(value: Union[List[str], str]) -> List[str]:
+    """Coerces a string or list of strings into a list of strings."""
+    if isinstance(value, str):
+        return [value]
+
+    return [str(x) for x in value]
 
 
 def str_dict(value: Dict[str, str]) -> Dict[str, str]:

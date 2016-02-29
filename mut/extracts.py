@@ -14,6 +14,12 @@ PREFIXES = ['extracts']
 logger = logging.getLogger(__name__)
 
 
+class ExtractsInputError(mut.MutInputError):
+    @property
+    def plugin_name(self) -> str:
+        return 'extracts'
+
+
 class ExtractConfig:
     def __init__(self, root_config: mut.RootConfig) -> None:
         self.root_config = root_config
@@ -106,7 +112,7 @@ class Extract:
             cloth.newline()
 
         for block in self.content.split('\n\n'):
-            cloth.content(block, indent=indent)
+            cloth.content(block, indent=indent, wrap=False)
             cloth.newline()
 
         cloth.write(self.output_path)
@@ -138,24 +144,34 @@ class Extract:
 
     @classmethod
     def load(cls, value: Any, path: str, config: ExtractConfig) -> 'Extract':
-        extract = cls(value['ref'], path, config)  # type: Extract
-        inherit = value.get('inherit', {})
+        ref = mut.withdraw(value, 'ref', str)
+        if not ref:
+            raise ExtractsInputError(path, '<unknown>', 'Extract with no ref')
+
+        extract = cls(ref, path, config)  # type: Extract
+        inherit = mut.withdraw(value, 'inherit', mut.str_dict, default={})  # type: Dict[str, str]
+        if not inherit:
+            inherit = mut.withdraw(value, 'source', mut.str_dict, default={})
+
         if inherit:
             extract.inherit = (inherit['file'], inherit['ref'])
 
-        for src, dest in value.get('replacement', {}).items():
+        replacements = mut.withdraw(value, 'replacement', mut.str_dict, default={})  # type: Dict[str, str]
+        for src, dest in replacements.items():
             extract.replacements[src] = dest
 
-        extract.title = value.get('title', None)
-        extract.post = value.get('post', '')
-        extract.style = str(value.get('style', ''))
-        extract.only = str(value.get('only', ''))
-        extract._content = value.get('content', None)
+        extract.title = mut.withdraw(value, 'title', str)
+        extract.post = mut.withdraw(value, 'post', str)
+        extract.style = mut.withdraw(value, 'style', str)
+        extract.only = mut.withdraw(value, 'only', str)
+        extract._content = mut.withdraw(value, 'content', str)
+        append = mut.withdraw(value, 'append', mut.string_list)
+        if append:
+            extract.append = append
 
-        append = value.get('append', [])
-        if isinstance(append, str):
-            append = [append]
-        extract.append = [str(x) for x in append]
+        if value:
+            msg = 'Unknown fields "{}"'.format(', '.join(value.keys()))
+            raise ExtractsInputError(path, ref, msg)
 
         return extract
 

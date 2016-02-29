@@ -5,10 +5,7 @@ REQUIRES = [
     'docutils',
     'PyYAML',
     'rstcloth>0.2.5',
-    'libgiza==0.2.13',
-    'sphinx-intl',
-    'sphinx==1.2.3',
-    'sphinxcontrib-httpdomain'
+    'libgiza==0.2.13'
 ]
 
 setup(
@@ -30,7 +27,7 @@ setup(
         ],
     entry_points={
         'console_scripts': [
-            'mut-build = mut.main:main',
+            'mut-build = mut.main:main'
             ],
         }
     )

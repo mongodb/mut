@@ -67,12 +67,12 @@ class StepsConfig:
 
 
 class Action:
-    def __init__(self):
+    def __init__(self) -> None:
         self.heading = ''
         self.heading_char = None  # type: str
 
         self.pre = ''
-        self.language = None
+        self.language = None  # type: str
         self.code = ''
         self.content = ''
         self.post = ''
@@ -102,9 +102,9 @@ class Action:
             cloth.directive(name='code-block',
                             arg=self.language,
                             indent=indent,
-                            content=self.code,
                             wrap=False)
             cloth.newline()
+            cloth.content(self.code, wrap=False, indent=indent + 3)
 
         if self.content:
             cloth.content(content=self.content,

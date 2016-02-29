@@ -52,7 +52,7 @@ class ApiargsConfig:
 class ApiargsInputError(mut.MutInputError):
     @property
     def plugin_name(self) -> str:
-        return 'Apiargs'
+        return 'apiargs'
 
 
 class ApiargEntryState(mut.State):
