@@ -26,7 +26,6 @@
 
 """
 
-import binascii
 import collections
 import concurrent.futures
 import configparser
@@ -39,11 +38,9 @@ import re
 import stat
 import sys
 
-import argh
 import boto.s3.bucket
 import boto.s3.connection
 import boto.s3.key
-import boto.s3.lifecycle
 import docopt
 import libgiza.git
 
