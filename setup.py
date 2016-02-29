@@ -27,7 +27,9 @@ setup(
         ],
     entry_points={
         'console_scripts': [
-            'mut-build = mut.main:main'
+            'mut-build = mut.main:main',
+            'mut-stage = mut.stage:main',
+            'mut-publish = mut.stage:main'
             ],
         }
     )
