@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Usage: {name} <source> <bucket> --prefix=prefix
-                [--redirects=htaccess] [--destage] [--dry-run] [--verbose]
+"""Usage: {name} <source> <bucket> --prefix=prefix (--stage|--deploy)
+                 [--redirects=htaccess] [--destage] [--dry-run] [--verbose]
 
 -h --help             show this
 --prefix=prefix       The prefix under which to upload in the given bucket
+--stage               Apply staging behavior: upload under a prefix
+--deploy              Apply deploy behavior: upload into the bucket root
 --redirects=htaccess  Use the redirects from the given .htaccess file
 --destage             Remove all files
 --dry-run             Do not actually do anything
@@ -515,12 +517,13 @@ class Staging:
     def sync_redirects(self, redirects: Redirects) -> None:
         """Upload the given path->url redirect mapping to the remote bucket."""
         if not redirects.htaccess_exists:
+            logger.info('No .htaccess scanned; skipping all redirects')
             return
 
         redirect_dirs = [re.compile(pat) for pat in self.config.redirect_dirs]
         if not redirect_dirs:
             logger.warn('No "redirect_dirs" listed for this project.')
-            logger.warn('No redirects will be removed.')
+            logger.warn('Not removing any redirects.')
 
         logger.info('Finding redirects to remove')
         removed = []
@@ -641,6 +644,8 @@ def main() -> None:
     root = options['<source>']
     bucket = options['<bucket>']
     prefix = options['--prefix']
+    mode_stage = options.get('--stage', False)
+    mode_deploy = options.get('--deploy', False)
     destage = bool(options.get('--destage', False))
     dry_run = bool(options.get('--dry-run', False))
     verbose = bool(options.get('--verbose', False))
@@ -653,7 +658,11 @@ def main() -> None:
     config = Config(bucket)
     config.verbose = verbose
 
-    staging = Staging(prefix, config)
+    if mode_stage:
+        staging = Staging(prefix, config)
+    elif mode_deploy:
+        staging = DeployStaging(prefix, config)
+
     staging.s3.dry_run = dry_run
 
     if destage:
