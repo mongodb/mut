@@ -241,6 +241,12 @@ class SyncException(StagingException):
         self.errors = errors
 
 
+class Redirects(dict):
+    def __init__(self, data: List[Tuple[str, str]], exists: bool) -> None:
+        dict.__init__(self, data)
+        self.htaccess_exists = exists
+
+
 def run_pool(tasks: List[Callable[[None], None]], n_workers: int=10, retries: int=1) -> None:
     """Run a list of tasks using a pool of threads. Return non-None results or
        exceptions as a list of (task, result) pairs in an arbitrary order."""
@@ -264,13 +270,15 @@ def run_pool(tasks: List[Callable[[None], None]], n_workers: int=10, retries: in
     run_pool([r[0] for r in results], n_workers, retries-1)
 
 
-def translate_htaccess(path: str) -> Dict[str, str]:
+def translate_htaccess(path: str) -> Redirects:
     """Read a .htaccess file, and transform redirects into a mapping of redirects."""
-    with open(path, 'r') as f:
-        data = f.read()
-        return dict([(x.lstrip('/'), y) for x, y in REDIRECT_PAT.findall(data)])
-
-    return {}
+    try:
+        with open(path, 'r') as f:
+            data = f.read()
+            raw_redirects = [(x.lstrip('/'), y) for x, y in REDIRECT_PAT.findall(data)]
+            return Redirects(raw_redirects, exists=True)
+    except IOError:
+        return Redirects([], exists=False)
 
 
 class StagingCollector:
@@ -390,7 +398,6 @@ class DeployCollector(StagingCollector):
 class Staging:
     S3_OPTIONS = {'reduced_redundancy': True}
     PAGE_SUFFIX = ''
-    EXPECT_HTACCESS = False
 
     def __init__(self, prefix: str, config: Config) -> None:
         self.prefix = prefix
@@ -434,18 +441,10 @@ class Staging:
            the namespace [username]/[branch]/[edition]/"""
         tasks = []  # type: List[Callable[[None], None]]
 
-        redirects = {}  # type: Dict[str, str]
+        redirects = Redirects([], exists=False)
         htaccess_path = os.path.join(root, '.htaccess')
-        try:
-            if self.config.branch == 'master':
-                redirects = translate_htaccess(htaccess_path)
-        except IOError:
-            # Only log an error if deploying; staging doesn't use .htaccess
-            level = logging.CRITICAL if self.EXPECT_HTACCESS else logging.INFO
-            logger.log(level, 'Couldn\'t open required %s', htaccess_path)
-
-            if self.EXPECT_HTACCESS:
-                sys.exit(1)
+        if self.config.branch == 'master':
+            redirects = translate_htaccess(htaccess_path)
 
         # Ensure that the root ends with a trailing slash to make future
         # manipulations more predictable.
@@ -513,9 +512,9 @@ class Staging:
             if remove_result.errors:
                 raise SyncException(remove_result.errors)
 
-    def sync_redirects(self, redirects: Dict[str, str]) -> None:
+    def sync_redirects(self, redirects: Redirects) -> None:
         """Upload the given path->url redirect mapping to the remote bucket."""
-        if not redirects:
+        if not redirects.htaccess_exists:
             return
 
         redirect_dirs = [re.compile(pat) for pat in self.config.redirect_dirs]
@@ -591,7 +590,6 @@ class Staging:
 
 class DeployStaging(Staging):
     PAGE_SUFFIX = '/index.html'
-    EXPECT_HTACCESS = True
 
     def get_file_collector(self) -> StagingCollector:
         return DeployCollector(self.config.branch, self.config.use_branch, self.namespace)
