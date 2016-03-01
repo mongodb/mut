@@ -54,7 +54,7 @@ class OptionsConfig:
 class OptionInputError(mut.MutInputError):
     @property
     def plugin_name(self):
-        return 'Option'
+        return 'option'
 
 
 class OptionState(mut.State):
@@ -63,13 +63,13 @@ class OptionState(mut.State):
 
         self.program = program
         self.name = name
-        self.directive = None  # type: str
-        self.type = None  # type: str
-        self.default = None  # type: str
-        self.args = None  # type: str
-        self.description = None  # type: str
         self.aliases = None  # type: str
+        self.args = None  # type: str
+        self.default = None  # type: str
+        self.description = None  # type: str
+        self.directive = None  # type: str
         self.optional = False
+        self.type = None  # type: str
 
         self.pre = None  # type: str
         self.post = None  # type: str
@@ -204,20 +204,39 @@ class Option:
 
     @classmethod
     def load(cls, value: Any, path: str, config: OptionsConfig) -> 'Option':
-        option = cls(value['program'], value['name'], path, config)  # type: Option
-        option.state.description = value.get('description', '')
-        option.state.directive = value.get('directive', None)
-        option.state.args = value.get('args', '')
-        option.state.type = value.get('type', '')
-        option.state.optional = value.get('optional', False)
+        program = mut.withdraw(value, 'program', str)
+        if not program:
+            raise OptionInputError(path, '<unknown>', 'Missing field "name')
 
-        option.state.pre = value.get('pre', '')
-        option.state.post = value.get('post', '')
+        name = mut.withdraw(value, 'name', str)
+        if not name:
+            raise OptionInputError(path, 'program', 'Missing field "name')
 
-        raw_inherit = value.get('inherit', {})
+        option = cls(program, name, path, config)  # type: Option
+        option.state.aliases = mut.withdraw(value, 'aliases', str, default='')
+        option.state.args = mut.withdraw(value, 'args', str, default='')
+        option.state.default = mut.withdraw(value, 'default', str)
+        option.state.description = mut.withdraw(value, 'description', str, default='')
+        option.state.directive = mut.withdraw(value, 'directive', str)
+        option.state.optional = mut.withdraw(value, 'optional', bool, default=False)
+        option.state.type = mut.withdraw(value, 'type', str, default='')
+
+        option.state.pre = mut.withdraw(value, 'pre', str, default='')
+        option.state.post = mut.withdraw(value, 'post', str, default='')
+
+        replacements = mut.withdraw(value, 'replacement', mut.str_dict)
+        if replacements:
+            for src, dest in replacements.items():
+                option.state.replacements[src] = dest
+
+        raw_inherit = mut.withdraw(value, 'inherit', mut.str_dict, default={})  # type: Dict[str, str]
         if raw_inherit:
             option._inherit = (raw_inherit['file'],
                                '{}-{}'.format(raw_inherit['program'], raw_inherit['name']))
+
+        if value:
+            msg = 'Unknown fields "{}"'.format(', '.join(value.keys()))
+            raise OptionInputError(path, option.state.ref, msg)
 
         return option
 

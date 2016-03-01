@@ -24,11 +24,13 @@ def withdraw(dictionary: Dict[str, Any], key: str, checker: Callable[[Any], T], 
     """Removes a value from a dictionary, after transforming it with a given
        checker function. Returns either the value, or None if it does
        not exist."""
-    value = dictionary.get(key, default)
-    if value != default:
-        value = checker(value)
-        del dictionary[key]
-    return value
+    try:
+        value = dictionary[key]
+    except KeyError:
+        return default
+
+    del dictionary[key]
+    return checker(value)
 
 
 def str_or_list(value: Union[List[str], str]) -> str:
