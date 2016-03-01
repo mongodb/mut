@@ -1,11 +1,13 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 REQUIRES = [
     'docopt~=0.6',
     'docutils',
     'PyYAML',
     'rstcloth>0.2.5',
-    'libgiza==0.2.13'
+    'libgiza==0.2.13',
+    'certifi',
+    'dominate==2.1.*'
 ]
 
 setup(
@@ -15,7 +17,7 @@ setup(
     author='Andrew Aldridge',
     author_email='i80and@foxquill.com',
     license='Apache',
-    packages=['mut'],
+    packages=find_packages(),
     install_requires=REQUIRES,
     classifiers=[
         'Programming Language :: Python',
@@ -28,7 +30,8 @@ setup(
     entry_points={
         'console_scripts': [
             'mut-build = mut.main:main',
-            'mut-publish = mut.stage:main'
+            'mut-publish = mut.stage:main',
+            'mut-lint = mut.lint:main'
             ],
         }
     )
