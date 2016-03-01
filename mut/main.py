@@ -20,6 +20,7 @@ from typing import Any, Callable, Dict, List, Tuple, TypeVar, Union
 
 import mut
 import mut.apiargs
+import mut.exercise
 import mut.extracts
 import mut.options
 import mut.release
@@ -75,7 +76,7 @@ class FileCollector:
 class PluginSet:
     """Tracks a set of transformation plugins."""
     PLUGINS = [mut.apiargs, mut.extracts, mut.options, mut.release, mut.steps,
-               mut.tables, mut.toc]  # type: List[Any]
+               mut.tables, mut.toc, mut.exercise]  # type: List[Any]
 
     @property
     def prefixes(self) -> List[str]:
@@ -93,7 +94,7 @@ def migrate(config: mut.RootConfig, paths: List[str]):
     """Copy plain restructured text files to our output directory."""
     logger.info('Migrating')
     for path in paths:
-        dest_path = config.get_absolute_path(path.replace(config.source_path, '', 1))
+        dest_path = config.get_output_source_path(path.replace(config.source_path, '', 1))
         src_mtime = os.path.getmtime(path)
         dest_mtime = -1
         try:
@@ -164,6 +165,9 @@ def main():
     for warning in warnings:
         logger.warning('Warning in plugin "%s": %s', warning.plugin_name, str(warning))
         logger.warning('    %s: %s', warning.path, warning.ref)
+
+        if warning.verbose:
+            logger.warning(warning.verbose)
 
     # Call sphinx-build
     if use_sphinx:

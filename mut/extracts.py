@@ -120,7 +120,7 @@ class Extract:
         relative_path = self.output_path.replace(self.config.root_config.output_source_path, '', 1)
         include_line = '.. include:: {}'.format(relative_path)
         for append_path in self.append:
-            append_path = self.config.root_config.get_absolute_path(append_path)
+            append_path = self.config.root_config.get_output_source_path(append_path)
             with open(append_path, 'a+') as f:
                 found = False
                 f.seek(0)

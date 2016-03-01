@@ -99,10 +99,11 @@ class State(metaclass=abc.ABCMeta):
 
 class MutInputError(Exception, metaclass=abc.ABCMeta):
     """Base class for reporting malformed input files."""
-    def __init__(self, path: str, ref: str, message: str) -> None:
+    def __init__(self, path: str, ref: str, message: str, verbose: str='') -> None:
         self._path = path
         self._ref = ref
         self._message = message
+        self.verbose = verbose
 
     @abc.abstractproperty
     def plugin_name(self) -> str:
@@ -137,13 +138,23 @@ class RootConfig:
 
         self.warnings = []  # type: List[MutInputError]
 
-    def get_absolute_path(self, relative_path: str) -> str:
-        """Transform a path rooted at the start of the source directory
-           into a real filesystem path."""
+    def get_absolute_path(self, root: str, relative_path: str) -> str:
+        """Transform a path rooted at the start of a directory into a
+           real filesystem path."""
         if relative_path.startswith('/'):
             relative_path = relative_path[1:]
 
-        return os.path.join(self.output_source_path, relative_path)
+        return os.path.join(root, relative_path)
+
+    def get_root_path(self, relative_path: str) -> str:
+        """Transform a path rooted at the start of the project root
+           directory into a real filesystem path."""
+        return self.get_absolute_path(self.root_path, relative_path)
+
+    def get_output_source_path(self, relative_path: str) -> str:
+        """Transform a path rooted at the start of the output source
+           directory into a real filesystem path."""
+        return self.get_absolute_path(self.output_source_path, relative_path)
 
     def warn(self, warning: MutInputError) -> None:
         """Report a non-fatal warning."""
