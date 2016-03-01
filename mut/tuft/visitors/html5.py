@@ -193,6 +193,7 @@ class HTML5Visitor(mut.tuft.visitors.WriterDriver):
         self.pop_stack()
 
     def visit_literal_block(self, node):
+        # XXX: Not good enough: also need to check for node['language']
         try:
             language = node['classes'][1] if node['classes'][0] == 'code' else None
         except (IndexError, KeyError):

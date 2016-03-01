@@ -5,6 +5,12 @@ import concurrent.futures
 import logging
 import urllib.parse
 
+# For Code linting
+import json
+import shlex
+import subprocess
+import tempfile
+
 import docutils.nodes
 import requests
 import requests.exceptions
@@ -56,7 +62,7 @@ class LinkLinter(Visitor):
         self.urls = {}  # type: Dict[str, List[str]]
 
     def dispatch_visit(self, node):
-        if not isinstance(node, docutils.nodes.reference):
+        if not isinstance(node, docutils.nodes.literal_block):
             return
 
         if not node.hasattr('refuri'):
@@ -106,6 +112,35 @@ class LinkLinter(Visitor):
             return url, False, references
 
         return url, True, references
+
+
+class CodeLinter(Visitor):
+    def __init__(self):
+        self.blocks = []  # type: List[Tuple[str, str, str]]
+
+    def dispatch_visit(self, node):
+        if not isinstance(node, docutils.nodes.literal_block):
+            return
+
+        try:
+            language = node['language']
+        except KeyError:
+            try:
+                language = node['classes'][1] if node['classes'][0] == 'code' else None
+            except (IndexError, KeyError):
+                return
+
+        path = node.document.settings.env.current_input_path
+        if language == 'javascript':
+            self.blocks.append((node.rawsource, language, path))
+
+    def dispatch_departure(self, node): pass
+
+    def test_code(self) -> None:
+        with tempfile.NamedTemporaryFile(mode='wb', prefix='mut', delete=True) as f:
+            for code, language, path in self.blocks:
+                # Test code
+                pass
 
 
 class MessageVisitor(Visitor):

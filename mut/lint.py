@@ -87,9 +87,11 @@ def main() -> None:
     driver = mut.tuft.driver.Driver(src_path=root, config=config)
 
     link_linter = mut.tuft.visitors.LinkLinter()
-    driver.crawl([link_linter])
+    code_linter = mut.tuft.visitors.CodeLinter()
+    driver.crawl([link_linter, code_linter])
 
-    report_links(link_linter, verbose)
+    #report_links(link_linter, verbose)
+    code_linter.test_code()
 
 
 if __name__ == '__main__':
