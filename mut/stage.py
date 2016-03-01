@@ -638,11 +638,11 @@ def main() -> None:
     app = os.path.basename(sys.argv[0])
     options = docopt.docopt(__doc__.format(name=app))
 
-    root = options['<source>']
-    bucket = options['<bucket>']
-    prefix = options['--prefix']
-    mode_stage = options.get('--stage', False)
-    mode_deploy = options.get('--deploy', False)
+    root = str(options['<source>'])
+    bucket = str(options['<bucket>'])
+    prefix = str(options['--prefix'])
+    mode_stage = bool(options.get('--stage', False))
+    mode_deploy = bool(options.get('--deploy', False))
     destage = bool(options.get('--destage', False))
     dry_run = bool(options.get('--dry-run', False))
     verbose = bool(options.get('--verbose', False))
