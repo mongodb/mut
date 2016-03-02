@@ -12,14 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Usage: mut-lint <builddir> [--verbose]
+"""Usage: mut-lint <builddir> (--linters=<linter>|--all) [--verbose]
 
--h --help             show this
---verbose             print more verbose debugging information
+-h --help           - show this
+--all               - run all linter passes
+--linters=<linter>  - comma-separated list of linter passes to run
+--verbose           - print more verbose debugging information
+
+Available Linters:
+  links
+  code
 
 """
 
 import logging
+import sys
 
 import docopt
 import libgiza.git
@@ -69,16 +76,24 @@ def report_links(linter: mut.tuft.visitors.LinkLinter, verbose: bool) -> None:
             logger.warn('FAIL: %s', url)
             logger.warn('      %s', ', '.join(references))
 
+
 def main() -> None:
     options = docopt.docopt(__doc__)
 
     root = str(options['<builddir>'])
     verbose = bool(options.get('--verbose', False))
+    all_linters = bool(options.get('--all', False))
+    linters = str(options.get('--linters', '')).split(',')
 
     if verbose:
         logging.basicConfig(level=logging.INFO)
     else:
         logging.basicConfig(level=logging.WARNING)
+
+    unknown_linters = [l for l in linters if l not in ['links', 'code']]
+    if unknown_linters:
+        logger.error('Unknown linters: %s', ','.join(unknown_linters))
+        sys.exit(1)
 
     for name, pattern in EXTLINKS.items():
         mut.tuft.exts.register_extlink(name, pattern)
@@ -88,10 +103,16 @@ def main() -> None:
 
     link_linter = mut.tuft.visitors.LinkLinter()
     code_linter = mut.tuft.visitors.CodeLinter()
+
+    logger.info('Starting analysis...')
     driver.crawl([link_linter, code_linter])
 
-    #report_links(link_linter, verbose)
-    code_linter.test_code()
+    if all_linters or 'links' in linters:
+        report_links(link_linter, verbose)
+
+    if all_linters or 'code' in linters:
+        logger.info('Testing code')
+        code_linter.test_code()
 
 
 if __name__ == '__main__':

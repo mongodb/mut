@@ -11,6 +11,7 @@ import docutils.parsers.rst.directives.misc
 import docutils.parsers.rst.directives.admonitions
 
 import sphinx.addnodes
+import sphinx.directives.code
 import sphinx.directives.other
 import sphinx.roles
 
@@ -113,7 +114,7 @@ def indexmarkup_role(role, rawsource, text, lineno, inliner):
 
 
 @role('rfc')
-def indexmarkup_role(role, rawsource, text, lineno, inliner):
+def rfc_role(role, rawsource, text, lineno, inliner):
     return [], []
 
 
@@ -233,7 +234,6 @@ class OnlyDirective(BaseDirective):
     required_arguments = 1
     optional_arguments = 0
     final_argument_whitespace = True
-    option_spec = {}
 
     def handle(self, expr):
         node = sphinx.addnodes.only()

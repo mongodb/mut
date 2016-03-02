@@ -1,10 +1,11 @@
+from typing import Any, Dict, List
 import yaml
 
 try:
     with open('mongodb-domain.yaml', 'r') as f:
-        conf = yaml.safe_load_all(f).next()
+        conf = yaml.safe_load_all(f).pop()
 except IOError:
-    conf = {'composites': [], 'suppress-prefix': []}  # type: Dict[str, List[str]]
+    conf = {'composites': [], 'suppress-prefix': []}  # type: Dict[str, List[Dict[str, Any]]]
 
 conf['directives'] = [
     {

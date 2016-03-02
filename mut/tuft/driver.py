@@ -29,6 +29,7 @@ class Driver:
     def parse(self, path: str, handlers: List[mut.tuft.visitors.Visitor]) -> None:
         """Translate a single file into HTML."""
         document = self.env.get_document(path)
+        self.env.current_input_path = path
 
         writer = self.get_writer(path, document, self.links)
         visitors = handlers[:]

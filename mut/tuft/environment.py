@@ -32,6 +32,8 @@ class Environment:
         self.config.update(config)
         self.toc = {}  # type: Dict[str, Any]
 
+        self.docname = ''
+
     @property
     def current_input_page(self):
         return '/' + os.path.normpath(os.path.splitext(self.current_input_path)[0])
@@ -85,8 +87,6 @@ class Environment:
             return self.document_cache[path]
         except KeyError:
             pass
-
-        self.current_input_path = path
 
         settings = docutils.frontend.OptionParser(
             components=(docutils.parsers.rst.Parser,)

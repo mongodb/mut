@@ -7,7 +7,7 @@ import re
 import sys
 
 import docutils.nodes
-from typing import List
+from typing import Dict, List, Set
 
 DIRECTIVE_PAT = re.compile(r'\s*\.\. (\S+)::\s*([^\n]*)\n?$')
 REF_DEF_PAT = re.compile(r'\s*\.\. _([^:\s]+):')
@@ -80,10 +80,10 @@ class LinkCache:
 
         # Used for quick link resolution
         self.paths = {}  # type: Dict[str, List[RefDef]]
-        self.node_ids = {}  # type: Dict[str, List[RefDef]]
+        self.node_ids = {}  # type: Dict[str, RefDef]
 
         # Used for incremental builds
-        self.dependencies = {}
+        self.dependencies = {}  # type: Dict[str, List[str]]
 
     def update(self, env):
         for root, _, files in os.walk(self.root):
@@ -127,7 +127,7 @@ class LinkCache:
         if path not in self.paths:
             return []
 
-        closed_list = set()
+        closed_list = set()  # type: Set[str]
         open_list = self.paths[path][:]
 
         while open_list:
