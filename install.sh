@@ -3,6 +3,28 @@ set -e
 
 MUT_PATH=~/.local/mut
 
+# Ask the user for permission to do something
+# ask(description)
+ask() {
+    local ok
+    while true
+    do
+        read -rp "$1 (y/n) " ok
+
+        case "${ok}" in
+        y | yes)
+          return 0
+          ;;
+        '')
+            continue
+            ;;
+        *)
+          return 1
+          ;;
+        esac
+    done
+}
+
 # Ask the user for permission before running a command
 # prompt(description, args...)
 prompt() {
@@ -98,9 +120,25 @@ create_venv() {
     install_helper mut-lint
 
     if ! echo "${PATH}" | grep -q "${MUT_PATH}/bin"; then
-        echo ''
-        echo "Add ${MUT_PATH}/bin to your PATH environment variable"
+        local rc=''
+        if [ -r ~/.bash_profile ]; then
+            rc=~/.bash_profile
+        elif [ -r ~/.bashrc ]; then
+            rc=~/.bashrc
+        fi
+
+        if [ ! -z "${rc}" ] && ask 'Add PATH environment variable?'; then
+            printf '\nPATH=$PATH:%s/bin\n' "${MUT_PATH}" >> "${rc}"
+            echo "Open a new terminal to use the changes"
+        else
+            echo "Add \"export PATH=$PATH:${MUT_PATH}/bin\" to your PATH environment variable"
+        fi
     fi
+
+    echo "Installed:"
+    echo "  mut-build"
+    echo "  mut-lint"
+    echo "  mut-publish"
 }
 
 case "$(uname -s)" in
