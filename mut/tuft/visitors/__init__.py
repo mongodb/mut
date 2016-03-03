@@ -10,6 +10,7 @@ import re
 import shlex
 import subprocess
 import tempfile
+import yaml
 
 import docutils.nodes
 import requests
@@ -128,10 +129,11 @@ class CodeLinterDispatcher:
         self.tempfile = tmp
 
         self.linters = {
-            'sh': self.lint_sh,
             'bash': self.lint_sh,
-            'json': self.lint_javascript,
             'javascript': self.lint_javascript,
+            'json': self.lint_javascript,
+            'sh': self.lint_sh,
+            'yaml': self.lint_yaml
         }
 
     def lint_sh(self, code: str) -> None:
@@ -151,6 +153,9 @@ class CodeLinterDispatcher:
                                     stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError as err:
             raise ValueError(str(err.output, 'utf-8'))
+
+    def lint_yaml(self, code: str) -> None:
+        yaml.safe_load_all(code)
 
     def lint(self, code: str, language: str) -> None:
         try:
