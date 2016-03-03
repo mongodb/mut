@@ -1,14 +1,22 @@
+import sys
 from setuptools import setup, find_packages
 
 REQUIRES = [
-    'docopt~=0.6',
-    'docutils',
-    'PyYAML',
-    'rstcloth>0.2.5',
-    'libgiza==0.2.13',
+    'boto==2.39.*',
     'certifi',
-    'dominate==2.1.*'
+    'docopt==0.6.*',
+    'docutils',
+    'dominate==2.1.*',
+    'libgiza==0.2.13',
+    'PyYAML',
+    'requests==2.9.*',
+    'rstcloth>0.2.5',
+    'sphinx==1.2.*',
 ]
+
+# Need a fallback for the typing module
+if sys.version < '3.5':
+    REQUIRES.append('mypy-lang')
 
 setup(
     name='mut',
