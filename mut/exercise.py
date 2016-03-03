@@ -137,7 +137,7 @@ def load_exercises(value: Dict[str, Any], path: str, config: ExerciseConfig) -> 
         raise ExerciseInputError(path, ref, 'Missing "ref"')
 
     languages = mut.withdraw(value, 'languages', str_dict_dict)
-    return [Exercise.load(ref, language, value, path, config) for
+    return [Exercise.load('{}-{}'.format(ref, language), language, value, path, config) for
                          (language, value) in languages.items()]
 
 
