@@ -30,6 +30,9 @@ def withdraw(dictionary: Dict[str, Any], key: str, checker: Callable[[Any], T], 
         return default
 
     del dictionary[key]
+    if value is None:
+        return None
+
     return checker(value)
 
 
@@ -54,7 +57,7 @@ def string_list(value: Union[List[str], str]) -> List[str]:
 
 def str_dict(value: Dict[str, str]) -> Dict[str, str]:
     """Transforms a dictionary into a dictionary mapping strings to strings."""
-    return dict([(str(v[0]), str(v[1])) for v in value.items()])
+    return dict([(str(v[0]), str(v[1]) if v[1] is not None else None) for v in value.items()])
 
 
 def load_yaml(path: str) -> List[Dict[str, Any]]:

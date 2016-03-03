@@ -1,3 +1,8 @@
+"""A source transformation that renders and tests blocks of source code for
+   various languages.
+
+   Takes YAML files with the 'exercise' prefix, and outputs codeblocks into
+   files at source/includes/exercise/<ref>-<language>.rst."""
 import logging
 import os
 import os.path
@@ -73,8 +78,12 @@ class Exercise:
             warning.verbose = str(err.output, 'utf-8')
             self.config.root_config.warn(warning)
 
-        with open(self.src_path) as f:
-            code = f.read().strip()
+        try:
+            with open(self.src_path) as f:
+                code = f.read().strip()
+        except OSError as err:
+            msg = 'Could not open ' + self.src_path
+            raise ExerciseInputError(self.path, self.ref, msg)
 
         cloth = rstcloth.rstcloth.RstCloth()
         cloth.directive(name='code-block',
@@ -90,19 +99,22 @@ class Exercise:
         return os.path.join(self.config.output_path, self.ref) + '.rst'
 
     @classmethod
-    def load(cls, value: Dict[str, Any], path: str, config: ExerciseConfig) -> 'Exercise':
-        ref = mut.withdraw(value, 'ref', str)
+    def load(cls,
+             ref: str,
+             language: str,
+             value: Dict[str, Any],
+             path: str,
+             config: ExerciseConfig) -> 'Exercise':
         exercise = cls(ref, path, config)  # type: Exercise
 
-        exercise.language = mut.withdraw(value, 'language', str)
-        exercise.src_path = config.root_config.get_root_path(mut.withdraw(value, 'src', str))
+        exercise.language = language
+        src_path = mut.withdraw(value, 'src', str)
         exercise.test_command = mut.withdraw(value, 'test-command', str)
 
-        if not exercise.language:
-            raise ExerciseInputError(path, ref, 'Missing "language"')
-
-        if not exercise.src_path:
+        if not src_path:
             raise ExerciseInputError(path, ref, 'Missing "src"')
+
+        exercise.src_path = config.root_config.get_root_path(src_path)
 
         if value:
             msg = 'Unknown fields "{}"'.format(', '.join(value.keys()))
@@ -114,13 +126,28 @@ class Exercise:
         return '{}({})'.format(self.__class__.__name__, repr(self.ref))
 
 
+def str_dict_dict(value: Dict[str, Dict[str, str]]) -> Dict[str, Dict[str, str]]:
+    """Verifies dictionaries of string dictionaries."""
+    return dict([(str(v[0]), mut.str_dict(v[1])) for v in value.items()])
+
+
+def load_exercises(value: Dict[str, Any], path: str, config: ExerciseConfig) -> List['Exercise']:
+    ref = mut.withdraw(value, 'ref', str)
+    if not ref:
+        raise ExerciseInputError(path, ref, 'Missing "ref"')
+
+    languages = mut.withdraw(value, 'languages', str_dict_dict)
+    return [Exercise.load(ref, language, value, path, config) for
+                         (language, value) in languages.items()]
+
+
 def run(root_config: mut.RootConfig, paths: List[str]) -> List[mut.MutInputError]:
     logger.info('Exercises')
     config = ExerciseConfig(root_config)
     for path in paths:
         with open(path, 'r') as f:
             raw_exercises = mut.load_yaml(path)
-            [Exercise.load(raw, path, config) for raw in raw_exercises]
+            [load_exercises(raw, path, config) for raw in raw_exercises]
 
     config.output()
     return root_config.warnings
