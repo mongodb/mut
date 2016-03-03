@@ -407,3 +407,22 @@ docutils.parsers.rst.directives.register_directive('example', ExampleDirective)
 docutils.parsers.rst.directives.register_directive('see', SeeDirective)
 docutils.parsers.rst.directives.register_directive('related', RelatedDirective)
 docutils.parsers.rst.directives.register_directive('todo', TodoDirective)
+
+EXTLINKS = {
+    'hardlink': 'http://docs.mongodb.org/master/{0}',
+    'issue': 'https://jira.mongodb.org/browse/{0}',
+    'wiki': 'http://www.mongodb.org/display/DOCS/{0}',
+    'api': 'https://api.mongodb.org/{0}',
+    'manual': 'https://docs.mongodb.org/manual{0}',
+    'gettingstarted': 'https://docs.mongodb.org/getting-started{0}',
+    'ecosystem': 'https://docs.mongodb.org/ecosystem{0}',
+    'meta-driver': 'http://docs.mongodb.org/meta-driver/latest{0}',
+    'mms-docs': 'https://docs.cloud.mongodb.com{0}',
+    'mms-home': 'https://cloud.mongodb.com{0}',
+    'opsmgr': 'https://docs.opsmanager.mongodb.com{0}',
+    'about': 'https://www.mongodb.org/about{0}',
+    'products': 'https://www.mongodb.com/products{0}'
+}
+
+for name, pattern in EXTLINKS.items():
+    register_extlink(name, pattern)

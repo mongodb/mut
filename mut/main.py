@@ -1,9 +1,9 @@
-"""Usage: mut-build [--use-sphinx] [--serial] [--verbose]
+"""Usage: mut-build [--use-builder=(sphinx|tuft)] [--serial] [--verbose]
 
--h --help     show this
---use-sphinx  call sphinx-build
---serial      only execute one transform stage at a time
---verbose     print more verbose error information
+-h --help                    show this
+--use-builder=(sphinx|tuft)  call sphinx-build
+--serial                     only execute one transform stage at a time
+--verbose                    print more verbose error information
 
 """
 
@@ -28,6 +28,7 @@ import mut.release
 import mut.steps
 import mut.tables
 import mut.toc
+import mut.tuft
 
 logger = logging.getLogger(__name__)
 
@@ -118,7 +119,7 @@ def migrate(config: mut.RootConfig, paths: List[str]):
 def main():
     """Main program entry point."""
     options = docopt.docopt(__doc__)
-    use_sphinx = bool(options.get('--use-sphinx', False))
+    builder = str(options.get('--use-builder', ''))
     verbose = bool(options['--verbose'])
     serial = bool(options['--serial'])
 
@@ -171,12 +172,17 @@ def main():
             logger.warning(warning.verbose)
 
     # Call sphinx-build
-    if use_sphinx:
+    output_path = os.path.join(config.output_path, 'html')
+    if builder == 'sphinx':
         subprocess.check_call(['sphinx-build',
                                '-j{}'.format(n_workers),
                                '-c', config.root_path,
                                config.output_source_path,
-                               os.path.join(config.output_path, 'html')])
+                               output_path])
+    elif builder == 'tuft':
+        mut.tuft.build(config.output_source_path, [], output_path)
+    elif builder:
+        logger.error('Unknown builder: %s', builder)
 
 if __name__ == '__main__':
     main()

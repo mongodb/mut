@@ -6,6 +6,7 @@ import os.path
 import logging
 
 from typing import Any, Dict, List
+import yaml
 
 import mut.tuft.visitors
 import mut.tuft.visitors.html5
@@ -68,9 +69,9 @@ class Driver:
         return None
 
 
-class HTMLDriver(Driver):
+class HTML5Driver(Driver):
     def __init__(self, src_path: str, output_path: str, config: Dict[str, Any]) -> None:
-        super(HTMLDriver, self).__init__(src_path, config)
+        super(HTML5Driver, self).__init__(src_path, config)
         self.output_path = output_path
 
     def write(self, writer: mut.tuft.visitors.WriterDriver, path: str) -> None:
@@ -94,3 +95,30 @@ class HTMLDriver(Driver):
     @staticmethod
     def get_writer(path: str, document, links) -> mut.tuft.visitors.WriterDriver:
         return mut.tuft.visitors.html5.HTML5Visitor(path, document, links)
+
+
+def load_config(path: str) -> Dict[str, Any]:
+        config = {}  # type: Dict[str, Any]
+        try:
+            with open('conf.yaml') as f:
+                config = dict(yaml.load(f))
+        except FileNotFoundError:
+            pass
+
+        return config
+
+
+def build(src_path: str,
+          handlers: List[mut.tuft.visitors.Visitor],
+          output_path: str) -> None:
+    config = load_config('conf.yaml')
+
+    driver = None  # type: mut.tuft.driver.Driver
+    if output_path:
+        driver = mut.tuft.driver.HTML5Driver(src_path=src_path,
+                                             output_path=output_path,
+                                             config=config)
+    else:
+        driver = mut.tuft.driver.Driver(src_path=src_path, config=config)
+
+    driver.crawl(handlers)

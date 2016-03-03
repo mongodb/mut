@@ -33,38 +33,10 @@ import libgiza.git
 
 from typing import Any, Dict
 
-import mut.tuft.driver
-import mut.tuft.exts
+import mut.tuft
 import mut.tuft.visitors
 
 logger = logging.getLogger(__name__)
-
-EXTLINKS = {
-    'hardlink': 'http://docs.mongodb.org/master/{0}',
-    'issue': 'https://jira.mongodb.org/browse/{0}',
-    'wiki': 'http://www.mongodb.org/display/DOCS/{0}',
-    'api': 'https://api.mongodb.org/{0}',
-    'manual': 'https://docs.mongodb.org/manual{0}',
-    'gettingstarted': 'https://docs.mongodb.org/getting-started{0}',
-    'ecosystem': 'https://docs.mongodb.org/ecosystem{0}',
-    'meta-driver': 'http://docs.mongodb.org/meta-driver/latest{0}',
-    'mms-docs': 'https://docs.cloud.mongodb.com{0}',
-    'mms-home': 'https://cloud.mongodb.com{0}',
-    'opsmgr': 'https://docs.opsmanager.mongodb.com{0}',
-    'about': 'https://www.mongodb.org/about{0}',
-    'products': 'https://www.mongodb.com/products{0}'
-}
-
-
-def load_config(path: str) -> Dict[str, Any]:
-        config = {}  # type: Dict[str, Any]
-        try:
-            with open('conf.yaml') as f:
-                config = dict(yaml.load(f))
-        except FileNotFoundError:
-            pass
-
-        return config
 
 
 def report_links(linter: mut.tuft.visitors.LinkLinter, verbose: bool) -> None:
@@ -95,17 +67,11 @@ def main() -> None:
         logger.error('Unknown linters: %s', ','.join(unknown_linters))
         sys.exit(1)
 
-    for name, pattern in EXTLINKS.items():
-        mut.tuft.exts.register_extlink(name, pattern)
-
-    config = load_config('conf.yaml')
-    driver = mut.tuft.driver.Driver(src_path=root, config=config)
-
     link_linter = mut.tuft.visitors.LinkLinter()
     code_linter = mut.tuft.visitors.CodeLinter()
 
     logger.info('Starting analysis...')
-    driver.crawl([link_linter, code_linter])
+    mut.tuft.build(root, [link_linter, code_linter], None)
 
     if all_linters or 'links' in linters:
         report_links(link_linter, verbose)
