@@ -146,7 +146,7 @@ Darwin)
   dependencies_osx
   ;;
 Linux)
-  if [ ! -x /usr/bin/apt-get ]; then
+  if [ -x /usr/bin/apt-get ]; then
     dependencies_debian
   else
     dependencies_unknown
