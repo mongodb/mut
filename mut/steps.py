@@ -26,6 +26,20 @@ PREFIXES = ['steps']
 logger = logging.getLogger(__name__)
 
 
+def str_or_str_dict(value: Union[str, Dict[str, str]]) -> Union[str, Dict[str, str]]:
+    if isinstance(value, str):
+        return value
+
+    return mut.str_dict(value)
+
+
+def str_or_unmangled_list(items: Union[str, List[Any]]) -> Union[str, List[Any]]:
+    if isinstance(items, str):
+        return items
+
+    return list(items)
+
+
 class StepsConfig:
     def __init__(self, root_config: mut.RootConfig) -> None:
         self.root_config = root_config
@@ -64,6 +78,12 @@ class StepsConfig:
             raise ValueError('Already registered')
 
         self.steps[step_id] = step
+
+
+class StepsInputError(mut.MutInputError):
+    @property
+    def plugin_name(self) -> str:
+        return 'steps'
 
 
 class Action:
@@ -183,36 +203,49 @@ class Step:
 
     @classmethod
     def load(cls, value: Any, path: str, config: StepsConfig) -> 'Step':
-        inherit = value.get('inherit', None) or value.get('source', None)
+        inherit = mut.withdraw(value, 'inherit', mut.str_dict) or \
+                  mut.withdraw(value, 'source', mut.str_dict)
 
-        ref = value.get('ref', None)
+        ref = mut.withdraw(value, 'ref', str)
         if ref is None:
             ref = inherit.get('ref') if inherit else None
         if ref is None:
             raise KeyError('ref: {}'.format(path))
 
         step = cls(ref, path, config)  # type: Step
-        step.pre = value.get('pre', '')
-        step.post = value.get('post', '')
+        step.pre = mut.withdraw(value, 'pre', str)
+        step.post = mut.withdraw(value, 'post', str)
 
-        title = value.get('title', '')
+        title = mut.withdraw(value, 'title', str_or_str_dict)
         if isinstance(title, str):
             step.title = title
-        else:
-            step.title = str(title['text'])
+        elif title:
+            step.title = title['text']
             if 'character' in title:
                 step.level = LEVEL_CHARACTERS[title['character']]
 
-        step.level = int(value.get('level', step.level))
-        step.orig_content = value.get('content', '')
-        raw_actions = value.get('action', [])
+        step.level = mut.withdraw(value, 'level', int, default=step.level)
+        step.orig_content = mut.withdraw(value, 'content', str)
+        raw_actions = mut.withdraw(value, 'action', str_or_unmangled_list)
         if isinstance(raw_actions, str) or isinstance(raw_actions, dict):
             step.actions = [Action.load(raw_actions)]
-        else:
+        elif raw_actions:
             step.actions = [Action.load(raw_action) for raw_action in raw_actions]
+
+        if raw_actions and step.orig_content:
+            msg = '"action" will replace "content"'
+            config.root_config.warn(StepsInputError(path, ref, msg))
 
         if inherit:
             step.inherit = (inherit['file'], inherit['ref'])
+
+        if mut.withdraw(value, 'stepnum', int):
+            msg = 'Deprecated field: "stepnum"'
+            config.root_config.warn(StepsInputError(path, ref, msg))
+
+        if value:
+            msg = 'Unknown fields "{}"'.format(', '.join(value.keys()))
+            config.root_config.warn(StepsInputError(path, ref, msg))
 
         return step
 
@@ -297,7 +330,7 @@ class StepsList:
         return '{}({})'.format(self.__class__.__name__, repr(self.ref))
 
 
-def run(root_config: mut.RootConfig, paths: List[str]):
+def run(root_config: mut.RootConfig, paths: List[str]) -> List[StepsInputError]:
     logger.info('Steps')
     config = StepsConfig(root_config)
     for path in paths:
@@ -305,3 +338,5 @@ def run(root_config: mut.RootConfig, paths: List[str]):
         StepsList.load(raw_steps, path, config)
 
     config.output()
+
+    return config.root_config.warnings

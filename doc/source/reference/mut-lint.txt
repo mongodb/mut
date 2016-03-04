@@ -28,5 +28,4 @@ Linters
 - ``links``
   - Checks all HTTP and FTP links for validity.
 - ``code``
-  - Checks the syntax of ``code`` directives with the ``:class: lint``
-    option.
+  - Checks the syntax of ``code`` directives with the ``:class: lint`` option.
