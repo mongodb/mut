@@ -132,11 +132,11 @@ class MutInputError(Exception, metaclass=abc.ABCMeta):
 
 class RootConfig:
     """The root configuration giving project-wide configuration details."""
-    def __init__(self) -> None:
+    def __init__(self, root: str) -> None:
         self.repo = libgiza.git.GitRepo()
-        self.root_path = self.repo.top_level()
         self.commit = self.repo.sha()
 
+        self.root_path = os.path.abspath(root)
         self.source_path = os.path.join(self.root_path, 'source')
         self.includes_path = os.path.join(self.source_path, 'includes')
 

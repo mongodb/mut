@@ -1,7 +1,9 @@
-"""Usage: mut-build [--use-builder=(sphinx|tuft)] [--serial] [--verbose]
+"""Usage: mut-build [--use-builder=(sphinx|tuft)] [--source=<path>]
+                    [--serial] [--verbose]
 
 -h --help                    show this
---use-builder=(sphinx|tuft)  call sphinx-build
+--use-builder=(sphinx|tuft)  call sphinx-build [default: none]
+--source=<path>              specify the project root path. [default: .]
 --serial                     only execute one transform stage at a time
 --verbose                    print more verbose error information
 
@@ -119,7 +121,9 @@ def migrate(config: mut.RootConfig, paths: List[str]):
 def main():
     """Main program entry point."""
     options = docopt.docopt(__doc__)
-    builder = str(options.get('--use-builder', ''))
+
+    builder = str(options['--use-builder'])
+    source_path = str(options['--source'])
     verbose = bool(options['--verbose'])
     serial = bool(options['--serial'])
 
@@ -134,7 +138,7 @@ def main():
     except ImportError:
         logging.warning('PyYAML is missing libyaml')
 
-    config = mut.RootConfig()
+    config = mut.RootConfig(source_path)
     plugins = PluginSet()
     collected = FileCollector()
     collected.walk(config.source_path, plugins.prefixes)
@@ -181,7 +185,7 @@ def main():
                                output_path])
     elif builder == 'tuft':
         mut.tuft.build(config.output_source_path, [], output_path)
-    elif builder:
+    elif builder != 'none':
         logger.error('Unknown builder: %s', builder)
 
 if __name__ == '__main__':
