@@ -17,8 +17,6 @@ YAML Format
 
 .. code-block:: yaml
 
-   ref: <string>
-
    title: <string>
    stepnum: <integer>
    content: <string>
