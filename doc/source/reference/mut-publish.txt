@@ -1,0 +1,30 @@
+===========
+mut-publish
+===========
+
+Synopsis
+--------
+
+``mut-publish`` is a publication tool that synchronizes a filesystem directory
+with an Amazon S3 bucket.
+
+Usage
+-----
+
+.. code-block:: sh
+
+   mut-publish <source> <bucket> --prefix=prefix (--stage|--deploy)
+               [--redirects=htaccess] [--destage] [--dry-run] [--verbose]
+
+Options
+-------
+
+.. include:: /includes/option/option-mut-publish-<source>.rst
+.. include:: /includes/option/option-mut-publish-<bucket>.rst
+.. include:: /includes/option/option-mut-publish-prefix.rst
+.. include:: /includes/option/option-mut-publish-stage.rst
+.. include:: /includes/option/option-mut-publish-deploy.rst
+.. include:: /includes/option/option-mut-publish-redirects.rst
+.. include:: /includes/option/option-mut-publish-destage.rst
+.. include:: /includes/option/option-mut-publish-dry-run.rst
+.. include:: /includes/option/option-mut-publish-verbose.rst

@@ -1,0 +1,40 @@
+==============
+The Mut Manual
+==============
+
+Welcome to the Mut Manual! Mut is a free software documentation toolkit
+built for the MongoDB documentation project.
+
+Installation
+============
+
+.. toctree::
+   :maxdepth: 1
+
+   /tutorial/installation
+
+Usage
+=====
+
+.. toctree::
+   :maxdepth: 1
+
+   /reference/mut-build
+   /reference/mut-lint
+   /reference/mut-publish
+
+Transformation Reference
+========================
+
+.. toctree::
+   :maxdepth: 1
+
+   /reference/apiargs
+   /reference/exercise
+   /reference/extracts
+   /reference/hash
+   /reference/options
+   /reference/release
+   /reference/steps
+   /reference/tables
+   /reference/toc

@@ -1,0 +1,13 @@
+=======
+Release
+=======
+
+.. list-table::
+
+   * - Input
+
+     - Output
+
+   * - ``release-<filename>.yaml``
+
+     - ``source/includes/release/<ref>.rst``

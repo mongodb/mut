@@ -1,0 +1,39 @@
+=======
+Options
+=======
+
+.. list-table::
+
+   * - Input
+
+     - Output
+
+   * - ``options-<filename>.yaml``
+
+     - ``source/includes/option/<directive>-<ref>.rst``
+
+YAML Format
+-----------
+
+.. code-block:: yaml
+
+   program: <string>
+   name: <string>
+
+   aliases: <string>
+   args: <string>
+   default: <string>
+   description: <string>
+   directive: <"option"|string>
+   optional: <boolean>
+   post: <string>
+   pre: <string>
+   type: <string>
+
+   replacement:
+     <old>: <new>
+
+   inherit:
+     file: <path>
+     program: <string>
+     name: <string>

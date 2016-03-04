@@ -1,0 +1,8 @@
+program: _shared
+name: verbose
+directive: option
+description: |
+  Print more verbose error information.
+optional: true
+default: false
+...

@@ -1,0 +1,39 @@
+=====
+Steps
+=====
+
+.. list-table::
+
+   * - Input
+
+     - Output
+
+   * - ``steps-<filename>.yaml``
+
+     - ``source/includes/steps/<filename>.rst``
+
+YAML Format
+-----------
+
+.. code-block:: yaml
+
+   ref: <string>
+
+   title: <string>
+   stepnum: <integer>
+   content: <string>
+   post: <string>
+   pre: <string>
+   level: <integer>
+
+   action:
+     code: <string>
+     content: <string>
+     heading: <string>
+     language: <string>
+     post: <string>
+     pre: <string>
+
+   inherit:
+     file: <path>
+     ref: <string>

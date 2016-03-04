@@ -1,0 +1,29 @@
+=========
+mut-build
+=========
+
+Synopsis
+--------
+
+``mut-build`` is a `giza <https://pypi.python.org/pypi/giza/>`_-compatible
+preprocessor for `Sphinx <http://www.sphinx-doc.org>`_ documentation projects.
+
+``mut-build`` copies the ``source`` directory in a project root into a build
+directory, and runs a sequence of transformation functions over it that
+transforms `YAML <http://yaml.org/>`_ files into restructured text.
+
+Usage
+-----
+
+.. code-block:: sh
+
+   mut-build [--use-builder=(sphinx|tuft)] [--source=<path>]
+             [--serial] [--verbose]
+
+Options
+-------
+
+.. include:: /includes/option/option-mut-build-use-builder.rst
+.. include:: /includes/option/option-mut-build-source.rst
+.. include:: /includes/option/option-mut-build-serial.rst
+.. include:: /includes/option/option-mut-build-verbose.rst

@@ -1,0 +1,35 @@
+========
+Extracts
+========
+
+.. list-table::
+
+   * - Input
+
+     - Output
+
+   * - ``extracts-<filename>.yaml``
+
+     - ``source/includes/extracts/<ref>.rst``
+
+YAML Format
+-----------
+
+.. code-block:: yaml
+
+   ref: <string>
+   append: <path>
+   title: <string>
+   style: <string>
+   content: <string>
+   only: <string>
+
+   post: <string>
+   content: <string>
+
+   replacement:
+     <old>: <new>
+
+   inherit:
+     file: <path>
+     ref: <string>

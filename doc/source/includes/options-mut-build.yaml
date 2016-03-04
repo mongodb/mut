@@ -1,0 +1,34 @@
+program: mut-build
+name: source
+args: <path>
+directive: option
+description: |
+  Specify the project root path. This path should contain a ``source``
+  directory.
+optional: true
+default: .
+---
+program: mut-build
+name: use-builder
+args: sphinx | tuft
+directive: option
+description: |
+  Specify the restructured text builder to use, if any.
+optional: true
+default: none
+---
+program: mut-build
+name: serial
+directive: option
+description: |
+  Only execute one transform stage at a time.
+optional: true
+default: false
+---
+program: mut-build
+name: verbose
+inherit:
+  name: verbose
+  program: _shared
+  file: options-shared.yaml
+...

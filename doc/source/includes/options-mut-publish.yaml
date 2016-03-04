@@ -1,0 +1,69 @@
+program: mut-publish
+name: <source>
+directive: option
+description: |
+  The path from which ``mut-publish`` should upload.
+optional: false
+---
+program: mut-publish
+name: <bucket>
+directive: option
+description: |
+  The Amazon S3 bucket into which ``mut-publish`` should upload.
+optional: false
+---
+program: mut-publish
+name: prefix
+directive: option
+args: <prefix>
+description: |
+  The prefix under which to upload in the given bucket
+optional: true
+default: ''
+---
+program: mut-publish
+name: stage
+directive: option
+description: |
+  Apply staging behavior: upload under a prefix.
+optional: true
+---
+program: mut-publish
+name: deploy
+directive: option
+description: |
+  Apply deploy behavior: upload into the bucket root.
+optional: true
+---
+program: mut-publish
+name: redirects
+directive: option
+args: <path>
+description: |
+  Use the redirects from the given .htaccess file
+optional: true
+default: null
+---
+program: mut-publish
+name: destage
+directive: option
+description: |
+  Remove all files.
+optional: true
+default: false
+---
+program: mut-publish
+name: dry-run
+directive: option
+description: |
+  Do not actually do anything. Most useful in combination with ``--verbose``.
+optional: true
+default: false
+---
+program: mut-publish
+name: verbose
+inherit:
+  name: verbose
+  program: _shared
+  file: options-shared.yaml
+...

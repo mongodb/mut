@@ -1,0 +1,24 @@
+program: mut-lint
+name: <builddir>
+directive: option
+description: |
+  The path containing generated restructured text which ``mut-lint``
+  should operate on.
+optional: false
+---
+program: mut-lint
+name: linters
+args: <linter> | --all
+directive: option
+description: |
+  Specify the specific linter passes to run.
+optional: true
+default: all
+---
+program: mut-lint
+name: verbose
+inherit:
+  name: verbose
+  program: _shared
+  file: options-shared.yaml
+...

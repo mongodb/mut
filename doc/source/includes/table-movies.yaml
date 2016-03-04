@@ -1,0 +1,25 @@
+# table layout information, available as layout.<key>
+section: layout
+header: [ meta.title, meta.rating ]
+rows:
+  - 1: [ content.lazerteam.title, content.lazerteam.score ]
+  - 1: [ content.pulpfiction.title, content.pulpfiction.score ]
+  - 1: [ content.zootopia.title, content.zootopia.score ]
+---
+# table metadata, available as meta.<key>
+section: meta
+title: "Movie"
+rating: "Rotten Tomatoes Score"
+---
+# table content, available as content.<key>
+section: content
+lazerteam:
+  title: "Lazer Team"
+  score: "79%"
+pulpfiction:
+  title: "Pulp Fiction"
+  score: "96%"
+zootopia:
+  title: "Zootopia"
+  score: "94%"
+...

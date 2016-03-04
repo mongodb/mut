@@ -1,0 +1,63 @@
+=======
+Apiargs
+=======
+
+.. list-table::
+
+   * - Input
+
+     - Output
+
+   * - ``apiargs-<filename>.yaml``
+
+     - ``source/includes/apiargs/<filename>.rst``
+
+YAML Format
+-----------
+
+.. code-block:: yaml
+
+   name: <string>
+   arg_name: <"field"|"param"|"option">
+   description: <string>
+   interface: <"command"|"method">
+   operation: <string>
+   optional: <boolean>
+   position: <integer>
+   type: <string>
+   pre: <string>
+
+   replacement:
+     <old>: <new>
+
+   source:
+     file: <path>
+     ref: <string>
+
+The ``source.ref`` value refers to a ``name`` key in the given
+``path``.
+
+Example
+-------
+
+Create the following file at
+``source/includes/apiargs-command-group-field.yaml``:
+
+.. code-block:: yaml
+
+   arg_name: field
+   description: |
+     An aggregation function that operates on the documents during the
+     grouping operation. These functions may return a sum or a count.
+     The function takes two arguments: the current document and an
+     aggregation result document for that group.
+   interface: command
+   name: $reduce
+   operation: group
+   optional: false
+   position: 3
+   type: function
+   ...
+
+Mut will then create an output file at
+``source/includes/apiargs/command-group-field.rst``.

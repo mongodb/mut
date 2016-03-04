@@ -1,0 +1,53 @@
+========
+Exercise
+========
+
+.. list-table::
+
+   * - Input
+
+     - Output
+
+   * - ``exercise-<filename>.yaml``
+
+     - ``source/includes/exercise/<ref>-<language>.rst``
+
+YAML Format
+-----------
+
+.. code-block:: yaml
+
+   ref: <string>
+   languages:
+     <string>:
+       src: <path>
+       test-command: <shell command>
+
+Mut will run the given ``test-command`` in the system shell within the
+directory containing ``src``. If ``test-command`` returns a non-zero
+exit code, Mut will log a warning.
+
+``test-command`` may be ``null`` to indicate that there is no test.
+
+Example
+-------
+
+Create the following file at
+``source/includes/exercise-tutorial.yaml``:
+
+.. code-block:: yaml
+
+   ref: foo
+   languages:
+     javascript:
+       src: /source/exercises/foo.js
+       test-command: "node test-foo.js"
+     python:
+       src: /source/exercises/foo.py
+       test-command: null
+   ...
+
+Mut will then create the following output files:
+
+- ``source/includes/exercise/foo-javascript.rst``
+- ``source/includes/exercise/foo-python.rst``

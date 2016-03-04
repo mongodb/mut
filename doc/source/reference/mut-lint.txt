@@ -1,0 +1,32 @@
+========
+mut-lint
+========
+
+Synopsis
+--------
+
+``mut-lint`` is a tool for running more time-consuming quality checks that are
+not appropriate to run during a normal build.
+
+Usage
+-----
+
+.. code-block:: sh
+
+   mut-lint <builddir> (--linters=<linter>|--all) [--verbose]
+
+Options
+-------
+
+.. include:: /includes/option/option-mut-lint-<builddir>.rst
+.. include:: /includes/option/option-mut-lint-linters.rst
+.. include:: /includes/option/option-mut-lint-verbose.rst
+
+Linters
+-------
+
+- ``links``
+  - Checks all HTTP and FTP links for validity.
+- ``code``
+  - Checks the syntax of ``code`` directives with the ``:class: lint``
+    option.

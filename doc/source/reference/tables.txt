@@ -1,0 +1,74 @@
+======
+Tables
+======
+
+.. list-table::
+
+   * - Input
+
+     - Output
+
+   * - ``table-<filename>.yaml``
+
+     - ``source/includes/table/<filename>.rst``
+
+YAML Format
+-----------
+
+.. code-block:: yaml
+
+   # table layout information, available as layout.<key>
+   section: layout
+   header: [ <reference> ]
+   rows: [ <reference> ]
+   ---
+   # table metadata, available as meta.<key>
+   section: meta
+   ---
+   # table content, available as content.<key>
+   section: content
+
+Example
+-------
+
+Source
+~~~~~~
+
+Create the following file at ``/source/includes/table-movies.yaml``:
+
+.. Taken from table-movies.yaml
+.. code-block:: yaml
+
+   # table layout information, available as layout.<key>
+   section: layout
+   header: [ meta.title, meta.rating ]
+   rows:
+     - 1: [ content.lazerteam.title, content.lazerteam.score ]
+     - 1: [ content.pulpfiction.title, content.pulpfiction.score ]
+     - 1: [ content.zootopia.title, content.zootopia.score ]
+   ---
+   # table metadata, available as meta.<key>
+   section: meta
+   title: "Movie"
+   rating: "Rotten Tomatoes Score"
+   ---
+   # table content, available as content.<key>
+   section: content
+   lazerteam:
+     title: "Lazer Team"
+     score: "79%"
+   pulpfiction:
+     title: "Pulp Fiction"
+     score: "96%"
+   Zootopia:
+     title: "Zootopia"
+     score: "94%"
+   ...
+
+Output
+~~~~~~
+
+The previous source file will produce the following table at
+``/source/includes/table/movies.rst``:
+
+.. include:: /includes/table/movies.rst

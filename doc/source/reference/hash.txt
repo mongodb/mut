@@ -1,0 +1,13 @@
+====
+Hash
+====
+
+.. list-table::
+
+   * - Input
+
+     - Output
+
+   * - None
+
+     - ``source/includes/hash.rst``
