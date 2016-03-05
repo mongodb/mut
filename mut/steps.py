@@ -330,7 +330,7 @@ class StepsList:
         return '{}({})'.format(self.__class__.__name__, repr(self.ref))
 
 
-def run(root_config: mut.RootConfig, paths: List[str]) -> List[StepsInputError]:
+def run(root_config: mut.RootConfig, paths: List[str]) -> List[mut.MutInputError]:
     logger.info('Steps')
     config = StepsConfig(root_config)
     for path in paths:
