@@ -220,8 +220,9 @@ class StagingException(Exception):
     pass
 
 
-class NoSuchEdition(StagingException):
-    """An exception indicating that the requested edition does not exist."""
+class MissingSource(StagingException):
+    """An exception indicating that the requested source directory does
+       not exist."""
     pass
 
 
@@ -400,7 +401,6 @@ class Staging:
 
     def __init__(self, prefix: str, config: Config) -> None:
         self.prefix = prefix
-        self.edition = ''
         self.config = config
 
         self.s3 = BulletProofS3(config.authentication.access_key,
@@ -415,16 +415,15 @@ class Staging:
     @property
     def namespace(self) -> str:
         """Staging places each stage under a unique namespace computed from an
-           arbitrary username, branch, and edition. This helper returns such
-           a namespace, appropriate for constructing a new Staging instance."""
+           arbitrary username and branch This helper returns such a
+           namespace, appropriate for constructing a new Staging instance."""
         # The S3 prefix for this staging site
         return '/'.join([x for x in (self.prefix,
                                      self.config.authentication.username,
-                                     self.config.branch,
-                                     self.edition) if x])
+                                     self.config.branch) if x])
 
     def purge(self) -> None:
-        """Remove all files associated with this branch and edition."""
+        """Remove all files associated with this prefix."""
         # Remove files from the index first; if the system dies in an
         # inconsistent state, we want to err on the side of reuploading too much
         prefix = '' if not self.namespace else '/'.join((self.namespace, ''))
@@ -437,7 +436,7 @@ class Staging:
 
     def stage(self, root: str) -> None:
         """Synchronize the build directory with the staging bucket under
-           the namespace [username]/[branch]/[edition]/"""
+           the namespace [username]/[branch]/"""
         tasks = []  # type: List[Callable[[None], None]]
 
         redirects = Redirects([], exists=False)
@@ -451,7 +450,7 @@ class Staging:
             root += '/'
 
         if not os.path.isdir(root):
-            raise NoSuchEdition(root)
+            raise MissingSource(root)
 
         # If a redirect is masking a file, we can run into an invalid 404
         # when the redirect is deleted but the file isn't republished.
@@ -600,8 +599,8 @@ class DeployStaging(Staging):
 
 
 def do_stage(root: str, staging: Staging) -> None:
-    """Drive the main staging process for a single edition, and print nicer
-       error messages for exceptions."""
+    """Drive the main staging process, and print nicer error messages
+       for exceptions."""
     try:
         staging.stage(root)
     except SyncException as err:
@@ -611,9 +610,8 @@ def do_stage(root: str, staging: Staging) -> None:
                 raise sub_err
             except SyncFileException as sync_err:
                 logger.error('%s: %s', sync_err.path, sync_err.reason)
-    except NoSuchEdition as err:
-        logger.error('No edition found at %s', err.message)
-        logger.info('Try specifying the -e [edition] option')
+    except MissingSource as err:
+        logger.error('No source directory found at %s', err.message)
 
 
 def create_config_framework(path: str) -> None:
