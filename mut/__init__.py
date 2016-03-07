@@ -20,6 +20,11 @@ def substitute(text: str, replacements: Dict[str, str]) -> str:
     return text
 
 
+def substitute_rstcloth(cloth: rstcloth.rstcloth.RstCloth,
+                        replacements: Dict[str, str]) -> str:
+    return substitute('\n'.join(cloth.data), replacements)
+
+
 def withdraw(dictionary: Dict[str, Any], key: str, checker: Callable[[Any], T], default: T=None) -> T:
     """Removes a value from a dictionary, after transforming it with a given
        checker function. Returns either the value, or None if it does
