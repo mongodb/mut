@@ -1,3 +1,54 @@
 ===
 Toc
 ===
+
+.. list-table::
+
+   * - Input
+
+     - Output
+
+   * - ``ref-toc-<filename>.yaml``
+
+     - | ``source/includes/toc/table-<filename>.rst``
+       | ``source/includes/toc/<filename>.rst``
+
+   * - ``toc-<filename>.yaml``
+
+     - | ``source/includes/toc/dfn-list-<filename>.rst``
+       | ``source/includes/toc/<filename>.rst``
+
+   * - ``ref-spec-<filename>.yaml``
+
+     - ``source/includes/toc/table-spec-<filename>.rst``
+
+   * - ``toc-spec-<filename>.yaml``
+
+     - ``source/includes/toc/dfn-list-<filename>.rst``
+
+YAML Format
+-----------
+
+Spec
+~~~~
+
+.. code-block:: yaml
+
+   name: <string>
+   file: <path>
+   description: <string>
+   ...
+
+The ``name`` value should be a link to a relevant section within the given
+``file``.
+
+Non-Spec
+~~~~~~~~
+
+.. code-block:: yaml
+
+   level: <int>
+   source:
+     file: <path>
+     ref: <string>
+   ...
