@@ -62,7 +62,7 @@ Create the following file at ``/source/includes/table-movies.yaml``:
      score: "96%"
    Zootopia:
      title: "Zootopia"
-     score: "94%"
+     score: "96%"
    ...
 
 Output
