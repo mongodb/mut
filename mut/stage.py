@@ -13,16 +13,21 @@
 # limitations under the License.
 
 """Usage: {name} <source> <bucket> --prefix=prefix (--stage|--deploy)
-                 [--redirects=htaccess] [--destage] [--dry-run] [--verbose]
+                 [--redirects=htaccess]
+                 [--redirect-prefixes=prefixes]...
+                 [--destage] [--dry-run] [--verbose]
 
--h --help             show this
---prefix=prefix       The prefix under which to upload in the given bucket
---stage               Apply staging behavior: upload under a prefix
---deploy              Apply deploy behavior: upload into the bucket root
---redirects=htaccess  Use the redirects from the given .htaccess file
---destage             Remove all files
---dry-run             Do not actually do anything
---verbose             print more verbose debugging information
+-h --help               show this
+--prefix=prefix         the prefix under which to upload in the given bucket
+--stage                 apply staging behavior: upload under a prefix
+--deploy                apply deploy behavior: upload into the bucket root
+--redirects=htaccess    use the redirects from the given .htaccess file
+--redirect-prefix=<re>  regular expression specifying a prefix under which
+                        mut-publish may remove redirects. You may provide this
+                        option multiple times.
+--destage               remove all files
+--dry-run               do not actually do anything
+--verbose               print more verbose debugging information
 
 """
 
@@ -44,7 +49,7 @@ import boto.s3.key
 import docopt
 import libgiza.git
 
-from typing import cast, Callable, Dict, List, Set, Tuple
+from typing import cast, Callable, Dict, List, Set, Tuple, Pattern
 
 logger = logging.getLogger(__name__)
 REDIRECT_PAT = re.compile('^Redirect 30[1|2|3] (\S+)\s+(\S+)', re.M)
@@ -67,16 +72,20 @@ class AuthenticationInfo:
 
 class Config:
     """Staging and deployment runtime configuration."""
-    def __init__(self, bucket: str) -> None:
+    def __init__(self, bucket: str, prefix: str) -> None:
         repo = libgiza.git.GitRepo()
         self.builder = 'html'
         self.branch = repo.current_branch()
         self.bucket = bucket
+        self.prefix = prefix
 
         self.root_path = repo.top_level()
         self.build_path = os.path.join(self.root_path, 'build', self.branch, self.builder)
         self.use_branch = False
-        self.redirect_dirs = []  # type: List[str]
+        self.redirect_dirs = []  # type: List[Pattern]
+
+        if prefix:
+            self.redirect_dirs.append(re.compile(prefix))
 
         self.verbose = False
 
@@ -399,8 +408,7 @@ class Staging:
     S3_OPTIONS = {'reduced_redundancy': True}
     PAGE_SUFFIX = ''
 
-    def __init__(self, prefix: str, config: Config) -> None:
-        self.prefix = prefix
+    def __init__(self, config: Config) -> None:
         self.config = config
 
         self.s3 = BulletProofS3(config.authentication.access_key,
@@ -418,7 +426,7 @@ class Staging:
            arbitrary username and branch This helper returns such a
            namespace, appropriate for constructing a new Staging instance."""
         # The S3 prefix for this staging site
-        return '/'.join([x for x in (self.prefix,
+        return '/'.join([x for x in (self.config.prefix,
                                      self.config.authentication.username,
                                      self.config.branch) if x])
 
@@ -516,8 +524,7 @@ class Staging:
             logger.info('No .htaccess scanned; skipping all redirects')
             return
 
-        redirect_dirs = [re.compile(pat) for pat in self.config.redirect_dirs]
-        if not redirect_dirs:
+        if not self.config.redirect_dirs:
             logger.warn('No "redirect_dirs" listed for this project.')
             logger.warn('Not removing any redirects.')
 
@@ -537,7 +544,7 @@ class Staging:
                 continue
 
             # If it doesn't match one of our "owned" directories, ignore it
-            if not [True for pat in redirect_dirs if pat.match(redirect_key)]:
+            if not [True for pat in self.config.redirect_dirs if pat.match(redirect_key)]:
                 continue
 
             if redirect_key not in redirects:
@@ -595,7 +602,7 @@ class DeployStaging(Staging):
 
     @property
     def namespace(self) -> str:
-        return self.prefix
+        return self.config.prefix
 
 
 def do_stage(root: str, staging: Staging) -> None:
@@ -639,6 +646,7 @@ def main() -> None:
     root = str(options['<source>'])
     bucket = str(options['<bucket>'])
     prefix = str(options['--prefix'])
+    redirect_prefixes = options['--redirect-prefixes']
     mode_stage = bool(options.get('--stage', False))
     mode_deploy = bool(options.get('--deploy', False))
     destage = bool(options.get('--destage', False))
@@ -650,13 +658,19 @@ def main() -> None:
     else:
         logging.basicConfig(level=logging.WARNING)
 
-    config = Config(bucket)
+    config = Config(bucket, prefix)
     config.verbose = verbose
 
+    try:
+        config.redirect_dirs += [re.compile(pat) for pat in redirect_prefixes]
+    except re.error as err:
+        logger.error('Error compiling regular expression: %s', err.message)
+        sys.exit(1)
+
     if mode_stage:
-        staging = Staging(prefix, config)
+        staging = Staging(config)
     elif mode_deploy:
-        staging = DeployStaging(prefix, config)
+        staging = DeployStaging(config)
 
     staging.s3.dry_run = dry_run
 

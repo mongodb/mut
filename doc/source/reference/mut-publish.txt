@@ -13,8 +13,10 @@ Usage
 
 .. code-block:: sh
 
-   mut-publish <source> <bucket> --prefix=prefix (--stage|--deploy)
-               [--redirects=htaccess] [--destage] [--dry-run] [--verbose]
+   Usage: {name} <source> <bucket> --prefix=prefix (--stage|--deploy)
+                    [--redirects=htaccess]
+                    [--redirect-prefixes=prefixes]...
+                    [--destage] [--dry-run] [--verbose]
 
 Options
 -------
@@ -25,6 +27,7 @@ Options
 .. include:: /includes/option/option-mut-publish-stage.rst
 .. include:: /includes/option/option-mut-publish-deploy.rst
 .. include:: /includes/option/option-mut-publish-redirects.rst
+.. include:: /includes/option/option-mut-publish-redirect-prefixes.rst
 .. include:: /includes/option/option-mut-publish-destage.rst
 .. include:: /includes/option/option-mut-publish-dry-run.rst
 .. include:: /includes/option/option-mut-publish-verbose.rst

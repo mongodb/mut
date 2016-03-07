@@ -40,7 +40,20 @@ name: redirects
 directive: option
 args: <path>
 description: |
-  Use the redirects from the given .htaccess file
+  Use the redirects from the given .htaccess file.
+optional: true
+default: null
+---
+program: mut-publish
+name: redirect-prefixes
+directive: option
+args: <regular expression>
+description: |
+  A regular expression specifying a prefix under which ``mut-publish``
+  may remove redirects.
+
+  You may provide this option multiple times. This option implicitly
+  includes the ``prefix``.
 optional: true
 default: null
 ---
