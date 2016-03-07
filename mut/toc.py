@@ -123,10 +123,6 @@ class TocEntry:
         self._inherit = None
 
     @property
-    def inherits(self) -> bool:
-        return self._inherit is not None
-
-    @property
     def ref(self) -> str:
         return self.path + '#' + self.target
 
@@ -191,10 +187,7 @@ class Toc:
 
     @property
     def is_spec(self) -> bool:
-        if not self.entries:
-            return False
-
-        return not self.entries[0].inherits
+        return self.ref.startswith('toc-spec') or self.ref.startswith('ref-spec')
 
     def output(self) -> None:
         if self.is_ref:
