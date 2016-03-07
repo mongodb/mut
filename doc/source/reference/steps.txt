@@ -32,6 +32,9 @@ YAML Format
      post: <string>
      pre: <string>
 
+   replacement:
+     <old>: <new>
+
    inherit:
      file: <path>
      ref: <string>

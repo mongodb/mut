@@ -73,7 +73,7 @@ class StepsConfig:
         return '{}#{}'.format(path, ref)
 
     def _register_step(self, step: 'Step') -> None:
-        step_id = self.step_global_id(step.path, step.ref)
+        step_id = self.step_global_id(step.path, step.state.ref)
         if step_id in self.steps:
             raise ValueError('Already registered')
 
@@ -161,44 +161,130 @@ class Action:
         return action
 
 
+class StepState(mut.State):
+    DEFAULT_LEVEL = 3
+
+    def __init__(self, ref: str) -> None:
+        self._replacements = {}  # type: Dict[str, str]
+        self._ref = ref
+
+        self._content = None  # type: str
+        self._level = None  # type: int
+        self._post = None  # type: str
+        self._pre = None  # type: str
+        self._title = None  # type: str
+
+        self._actions = None  # type: List[Action]
+
+    @property
+    def content(self) -> str:
+        return self._content or ''
+
+    @content.setter
+    def content(self, content: str) -> None:
+        self._content = content
+
+    @property
+    def level(self) -> int:
+        return self._level or self.DEFAULT_LEVEL
+
+    @level.setter
+    def level(self, level: int) -> None:
+        self._level = level
+
+    @property
+    def post(self) -> str:
+        return self._post or ''
+
+    @post.setter
+    def post(self, post: str) -> None:
+        self._post = post
+
+    @property
+    def pre(self) -> str:
+        return self._pre or ''
+
+    @pre.setter
+    def pre(self, pre: str) -> None:
+        self._pre = pre
+
+    @property
+    def title(self) -> str:
+        return self._title or ''
+
+    @title.setter
+    def title(self, title: str) -> None:
+        self._title = title
+
+    @property
+    def actions(self) -> List[Action]:
+        return self._actions or []
+
+    @actions.setter
+    def actions(self, actions: List[Action]) -> None:
+        self._actions = actions
+
+    @property
+    def replacements(self) -> Dict[str, str]:
+        return self._replacements
+
+    @property
+    def ref(self) -> str:
+        return self._ref
+
+    @property
+    def keys(self):
+        return ['_actions', '_content', '_level', '_post', '_pre', '_title']
+
+
 class Step:
     def __init__(self, ref: str, path: str, config: StepsConfig) -> None:
-        self.ref = ref
         self.path = path
         self.config = config
 
-        self.pre = ''
-        self.orig_content = ''
-        self.actions = []  # type: List[Action]
-        self.post = ''
+        self.state = StepState(ref)
 
-        self.inherit = None  # type: Tuple[str, str]
-        self.title = ''
-        self.level = 2
+        self._inherit = None  # type: Tuple[str, str]
+
+    @property
+    def parent(self) -> 'Step':
+        if self._inherit is None:
+            return None
+
+        parent_path, parent_ref = self._inherit
+        try:
+            return self.config.get_step(parent_path, parent_ref)
+        except KeyError:
+            msg = 'Could not find Step "{}" to inherit from in "{}"'.format(parent_ref, parent_path)
+            raise StepsInputError(self.path, self.state.ref, msg)
+
+    def inherit(self) -> None:
+        parent = self.parent
+        if parent is None:
+            return
+
+        parent.inherit()
+        self.state.inherit(parent.state)
+        self._inherit = None
 
     def render(self, indent: int, cloth: rstcloth.rstcloth.RstCloth) -> None:
         """Render this step's contents into the given RstCloth instance."""
         # Apply pre
-        if self.pre:
-            cloth.content(self.pre, indent=indent, wrap=False)
+        if self.state.pre:
+            cloth.content(self.state.pre, indent=indent, wrap=False)
             cloth.newline()
 
-        if self.inherit is not None:
-            source_path, source_id = self.inherit
-            source = self.config.get_step(source_path, source_id)
-            source.render(indent, cloth)
-
-        for action in self.actions:
-            action.render(indent, self.level + 1, cloth)
+        for action in self.state.actions:
+            action.render(indent, self.state.level + 1, cloth)
             cloth.newline()
 
-        if self.orig_content:
-            cloth.content(self.orig_content, indent=indent, wrap=False)
+        if self.state.content:
+            cloth.content(self.state.content, indent=indent, wrap=False)
             cloth.newline()
 
         # Apply post
-        if self.post:
-            cloth.content(self.post, indent=indent, wrap=False)
+        if self.state.post:
+            cloth.content(self.state.post, indent=indent, wrap=False)
             cloth.newline()
 
     @classmethod
@@ -213,31 +299,36 @@ class Step:
             raise KeyError('ref: {}'.format(path))
 
         step = cls(ref, path, config)  # type: Step
-        step.pre = mut.withdraw(value, 'pre', str)
-        step.post = mut.withdraw(value, 'post', str)
+        step.state.pre = mut.withdraw(value, 'pre', str)
+        step.state.post = mut.withdraw(value, 'post', str)
 
         title = mut.withdraw(value, 'title', str_or_str_dict)
         if isinstance(title, str):
-            step.title = title
+            step.state.title = title
         elif title:
-            step.title = title['text']
+            step.state.title = title['text']
             if 'character' in title:
-                step.level = LEVEL_CHARACTERS[title['character']]
+                step.state.level = LEVEL_CHARACTERS[title['character']]
 
-        step.level = mut.withdraw(value, 'level', int, default=step.level)
-        step.orig_content = mut.withdraw(value, 'content', str)
+        step.state.level = mut.withdraw(value, 'level', int, default=step.state.level)
+        step.state.content = mut.withdraw(value, 'content', str)
         raw_actions = mut.withdraw(value, 'action', str_or_unmangled_list)
         if isinstance(raw_actions, str) or isinstance(raw_actions, dict):
-            step.actions = [Action.load(raw_actions)]
+            step.state.actions = [Action.load(raw_actions)]
         elif raw_actions:
-            step.actions = [Action.load(raw_action) for raw_action in raw_actions]
+            step.state.actions = [Action.load(raw_action) for raw_action in raw_actions]
 
-        if raw_actions and step.orig_content:
+        if raw_actions and step.state.content:
             msg = '"action" will replace "content"'
             config.root_config.warn(StepsInputError(path, ref, msg))
 
+        replacements = mut.withdraw(value, 'replacement', mut.str_dict)
+        if replacements:
+            for src, dest in replacements.items():
+                step.state.replacements[src] = dest
+
         if inherit:
-            step.inherit = (inherit['file'], inherit['ref'])
+            step._inherit = (inherit['file'], inherit['ref'])
 
         if mut.withdraw(value, 'stepnum', int):
             msg = 'Deprecated field: "stepnum"'
@@ -263,7 +354,7 @@ class StepsList:
         config.register_step_list(self)
 
     def output(self) -> None:
-        cloth = rstcloth.rstcloth.RstCloth()
+        chunks = []  # type: List[str]
         header_html = ('<div class="sequence-block">'
                        '<div class="bullet-block">'
                        '<div class="sequence-step">'
@@ -272,8 +363,10 @@ class StepsList:
                        '</div>')
 
         for step_number, step in enumerate(self.steps):
+            step.inherit()
             step_number += 1
 
+            cloth = rstcloth.rstcloth.RstCloth()
             cloth.directive('only', 'html or dirhtml or singlehtml')
             cloth.newline()
 
@@ -283,9 +376,9 @@ class StepsList:
                             indent=3)
             cloth.newline()
 
-            if step.title:
-                cloth.heading(text=step.title,
-                              char=CHARACTER_LEVELS[step.level],
+            if step.state.title:
+                cloth.heading(text=step.state.title,
+                              char=CHARACTER_LEVELS[step.state.level],
                               indent=3)
                 cloth.newline()
 
@@ -300,20 +393,26 @@ class StepsList:
             cloth.directive('only', 'latex or epub')
             cloth.newline()
 
-            if step.title:
-                cloth.heading(text='Step {0}: {1}'.format(step_number, step.title),
-                              char=CHARACTER_LEVELS[step.level],
+            if step.state.title:
+                cloth.heading(text='Step {0}: {1}'.format(step_number, step.state.title),
+                              char=CHARACTER_LEVELS[step.state.level],
                               indent=3)
                 cloth.newline()
             else:
                 cloth.heading(text='Step {0}'.format(step_number),
-                              char=CHARACTER_LEVELS[step.level],
+                              char=CHARACTER_LEVELS[step.state.level],
                               indent=3)
                 cloth.newline()
 
             step.render(3, cloth)
 
-        cloth.write(self.output_path)
+            # XXX This is not the right place to apply substitutions
+            chunk = '\n'.join(cloth.data)
+            chunk = mut.substitute(chunk, step.state.replacements)
+            chunks.append(chunk)
+
+        with open(self.output_path, 'w') as f:
+            f.write('\n'.join(chunks))
 
     @property
     def output_path(self) -> str:
