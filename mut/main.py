@@ -25,6 +25,7 @@ import mut.apiargs
 import mut.exercise
 import mut.extracts
 import mut.hash
+import mut.images
 import mut.options
 import mut.release
 import mut.steps
@@ -80,7 +81,7 @@ class FileCollector:
 class PluginSet:
     """Tracks a set of transformation plugins."""
     PLUGINS = [mut.apiargs, mut.extracts, mut.options, mut.release, mut.steps,
-               mut.tables, mut.toc, mut.exercise, mut.hash]  # type: List[Any]
+               mut.tables, mut.toc, mut.exercise, mut.hash, mut.images]  # type: List[Any]
 
     @property
     def prefixes(self) -> List[str]:

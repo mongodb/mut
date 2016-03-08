@@ -65,6 +65,17 @@ def str_dict(value: Dict[str, str]) -> Dict[str, str]:
     return dict([(str(v[0]), str(v[1]) if v[1] is not None else None) for v in value.items()])
 
 
+def str_any_dict(value: Dict[str, Any]) -> Dict[str, Any]:
+    """Transforms a dictionary into a dictionary mapping strings to anything."""
+    return dict([(str(v[0]), v[1] if v[1] is not None else None) for v in value.items()])
+
+
+def list_str_any_dict(values: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Transforms a list of dictionaries into a list of dictionaries
+       mapping strings to anything."""
+    return [str_any_dict(x) for x in values]
+
+
 def load_yaml(path: str) -> List[Dict[str, Any]]:
     """Open a file and parse the YAML within."""
     with open(path, 'r') as f:
@@ -139,6 +150,7 @@ class RootConfig:
     """The root configuration giving project-wide configuration details."""
     def __init__(self, root: str) -> None:
         self.repo = libgiza.git.GitRepo()
+        self.branch = self.repo.current_branch()
         self.commit = self.repo.sha()
 
         self.root_path = os.path.abspath(root)

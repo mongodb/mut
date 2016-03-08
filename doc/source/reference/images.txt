@@ -1,0 +1,27 @@
+======
+Images
+======
+
+.. list-table::
+
+   * - Input
+
+     - Output
+
+   * - ``images-<filename>.yaml``
+
+     - ``source/includes/images/<name>.png``
+
+YAML Format
+-----------
+
+.. code-block:: yaml
+
+   name: <string>
+   alt: <string>
+   output:
+     - type: "web"|"print"|"offset"|"target"
+       tag: <string>
+       dpi: <int>
+       width: <int>
+   ...

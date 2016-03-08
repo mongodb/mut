@@ -33,6 +33,7 @@ Transformation Reference
    /reference/exercise
    /reference/extracts
    /reference/hash
+   /reference/images
    /reference/options
    /reference/release
    /reference/steps
