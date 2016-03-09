@@ -48,6 +48,13 @@ class Output:
         self.width = width
         self.target = target
 
+    @property
+    def build_type(self) -> str:
+        if self.type == 'offset':
+            return 'eps'
+
+        return 'png'
+
     @classmethod
     def load(cls, value: Dict[str, Any], name: str, path: str,
              config: ImagesConfig) -> 'Output':
@@ -84,9 +91,9 @@ class Image:
             cloth.newline()
 
             if output.tag:
-                tag = ''.join(['-', output.tag, '.', output.type])
+                tag = ''.join(['-', output.tag, '.', output.build_type])
             else:
-                tag = '.' + output.type
+                tag = '.' + output.build_type
 
             options = [('alt', self.alt),
                        ('align', 'center'),
