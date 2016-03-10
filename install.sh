@@ -124,15 +124,15 @@ create_venv() {
         cd dev
 
         git clone https://github.com/cyborginstitute/rstcloth.git
-        git clone https://github.com/i80and/mut.git
+        git clone --depth=1 https://github.com/i80and/mut.git
+        git clone https://github.com/i80and/docs-tools.git
+        git clone --depth=1 https://github.com/i80and/libgiza.git
 
         ( cd rstcloth && git checkout 2334986073f884d7dd51a8a52d381cf05859bb46 && pip install . )
+        ( cd libgiza && pip install . )
+        ( cd docs-tools/giza && git checkout giza3 && pip install . )
         ( cd mut && pip install -r requirements.txt . )
     )
-
-    # We do NOT want to call our built-in version of sphinx; giza is
-    # incompatible with Py3
-    rm -f "${MUT_PATH}/venv/bin/sphinx-build"
 
     install_helper mut-build
     install_helper mut-publish
