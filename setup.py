@@ -11,7 +11,7 @@ REQUIRES = [
     'PyYAML',
     'requests==2.9.*',
     'rstcloth>0.2.5',
-    'sphinx==1.2.*',
+    'sphinx==1.4b1',
 ]
 
 # Need a fallback for the typing module
