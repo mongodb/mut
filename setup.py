@@ -7,7 +7,7 @@ REQUIRES = [
     'docopt==0.6.*',
     'docutils',
     'dominate==2.1.*',
-    'libgiza==0.2.13',
+    'libgiza==0.2.*',
     'PyYAML',
     'requests==2.9.*',
     'rstcloth>0.2.5',
