@@ -13,7 +13,6 @@ dominate==2.1.17
 future==0.15.2
 imagesize==0.7.0
 libgiza==0.2.13
-mut==0.0.0
 mypy-lang==0.3.1
 pytz==2015.7
 requests==2.9.1
