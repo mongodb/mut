@@ -3,6 +3,25 @@ set -e
 
 MUT_PATH=~/.local/mut
 
+_try_venv() {
+    local name=$1
+    if which "${name}" > /dev/null; then
+        shift 1
+        "${name}" $@
+        return $!
+    fi
+
+    return 1
+}
+
+# Automatically choose an available pyvenv program
+# venv(path)
+venv() {
+    if _try_venv pyvenv "$@"; then return; fi
+    if _try_venv pyvenv-3.5 "$@"; then return; fi
+    pyvenv-3.4 $@
+}
+
 # Ask the user for permission to do something
 # ask(description)
 ask() {
@@ -94,7 +113,7 @@ dependencies_osx() {
 create_venv() {
     mkdir -p "${MUT_PATH}/bin"
     rm -rf "${MUT_PATH}/venv"
-    pyvenv "${MUT_PATH}/venv"
+    venv "${MUT_PATH}/venv"
     . "${MUT_PATH}/venv/bin/activate"
 
     pip3 install --upgrade pip
@@ -129,9 +148,10 @@ create_venv() {
 
         if [ ! -z "${rc}" ] && ask 'Add PATH environment variable?'; then
             printf '\nPATH=$PATH:%s/bin\n' "${MUT_PATH}" >> "${rc}"
-            echo "Open a new terminal to use the changes"
+            echo 'Open a new terminal to use the changes'
         else
-            echo "Add \"export PATH=$PATH:${MUT_PATH}/bin\" to your PATH environment variable"
+            echo ''
+            echo "Add \"export PATH=\$PATH:${MUT_PATH}/bin\" to your PATH environment variable"
         fi
     fi
 
