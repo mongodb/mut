@@ -7,7 +7,7 @@ _try_venv() {
     local name=$1
     if which "${name}" > /dev/null; then
         shift 1
-        "${name}" $@
+        "${name}" "$@"
         return $!
     fi
 
@@ -19,7 +19,7 @@ _try_venv() {
 venv() {
     if _try_venv pyvenv "$@"; then return; fi
     if _try_venv pyvenv-3.5 "$@"; then return; fi
-    pyvenv-3.4 $@
+    pyvenv-3.4 "$@"
 }
 
 # Ask the user for permission to do something
@@ -147,7 +147,7 @@ create_venv() {
         fi
 
         if [ ! -z "${rc}" ] && ask 'Add PATH environment variable?'; then
-            printf '\nPATH=$PATH:%s/bin\n' "${MUT_PATH}" >> "${rc}"
+            printf "\nPATH=\$PATH:%s/bin\n" "${MUT_PATH}" >> "${rc}"
             echo 'Open a new terminal to use the changes'
         else
             echo ''
