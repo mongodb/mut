@@ -195,7 +195,7 @@ class Toc:
         else:
             bare_ref = self.ref.replace('toc-', '', 1) + '.rst'
 
-        if self.is_spec:
+        if not self.is_spec:
             out_path = os.path.join(self.config.output_path, bare_ref)
             self.output_toctree(out_path)
 
