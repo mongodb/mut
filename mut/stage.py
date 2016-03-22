@@ -12,20 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Usage: {name} <source> <bucket> --prefix=prefix (--stage|--deploy)
+"""Usage: {name} <source> <bucket> --prefix=prefix (--stage|--deploy|--destage)
                  [--redirects=htaccess]
                  [--redirect-prefixes=prefixes]...
-                 [--destage] [--dry-run] [--verbose]
+                 [--dry-run] [--verbose]
 
 -h --help               show this
 --prefix=prefix         the prefix under which to upload in the given bucket
 --stage                 apply staging behavior: upload under a prefix
 --deploy                apply deploy behavior: upload into the bucket root
+--destage               remove all staged files
 --redirects=htaccess    use the redirects from the given .htaccess file
 --redirect-prefix=<re>  regular expression specifying a prefix under which
                         mut-publish may remove redirects. You may provide this
                         option multiple times.
---destage               remove all files
 --dry-run               do not actually do anything
 --verbose               print more verbose debugging information
 
@@ -646,10 +646,10 @@ def main() -> None:
     root = str(options['<source>'])
     bucket = str(options['<bucket>'])
     prefix = str(options['--prefix'])
-    redirect_prefixes = options['--redirect-prefixes']
+    redirect_prefixes = cast(List[str], options['--redirect-prefixes'])
     mode_stage = bool(options.get('--stage', False))
     mode_deploy = bool(options.get('--deploy', False))
-    destage = bool(options.get('--destage', False))
+    mode_destage = bool(options.get('--destage', False))
     dry_run = bool(options.get('--dry-run', False))
     verbose = bool(options.get('--verbose', False))
 
@@ -667,6 +667,10 @@ def main() -> None:
         logger.error('Error compiling regular expression: %s', err.message)
         sys.exit(1)
 
+    # --destage requires that we create a Staging context
+    if mode_destage:
+        mode_stage = True
+
     if mode_stage:
         staging = Staging(config)
     elif mode_deploy:
@@ -674,7 +678,7 @@ def main() -> None:
 
     staging.s3.dry_run = dry_run
 
-    if destage:
+    if mode_destage:
         staging.purge()
         return
 
