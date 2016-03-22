@@ -12,6 +12,18 @@ __all__ = ['substitute', 'withdraw', 'str_or_list', 'str_dict', 'load_yaml',
 T = TypeVar('T')
 
 
+def compare_mtimes(target: str, dependencies: List[str]) -> bool:
+    """Return True if any of the dependency paths are newer than the target
+       path. Otherwise returns False."""
+    try:
+        target_mtime = os.path.getmtime(target)
+    except FileNotFoundError:
+        return True
+
+    dependencies_mtime = max([os.path.getmtime(dep) for dep in dependencies])
+    return dependencies_mtime > target_mtime
+
+
 def substitute(text: str, replacements: Dict[str, str]) -> str:
     """Quick-and-dirty template substitution function."""
     for src, dest in replacements.items():
@@ -161,6 +173,7 @@ class RootConfig:
         self.output_source_path = os.path.join(self.output_path, 'source')
 
         self.warnings = []  # type: List[MutInputError]
+        self.n_workers = 1
 
     def get_absolute_path(self, root: str, relative_path: str) -> str:
         """Transform a path rooted at the start of a directory into a

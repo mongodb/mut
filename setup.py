@@ -39,7 +39,8 @@ setup(
         'console_scripts': [
             'mut-build = mut.main:main',
             'mut-publish = mut.stage:main',
-            'mut-lint = mut.lint:main'
+            'mut-lint = mut.lint:main',
+            'mut-images = mut.build_images:main'
             ],
         }
     )

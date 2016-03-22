@@ -71,6 +71,7 @@ install_helper() {
 
 dependencies_unknown() {
     echo "Unable to setup dependencies automatically on this system"
+    echo "Depends on: python 3.3+, pip3, git"
 
     if ! which pyvenv > /dev/null ; then
         echo "Could not find pyvenv; please install Python 3.3 or later"
@@ -85,6 +86,18 @@ dependencies_unknown() {
     if ! which git > /dev/null ; then
         echo "Could not find git; please install it"
         exit 1
+    fi
+
+    if ! which inkscape > /dev/null ; then
+        echo "Could not find inkscape; you will not be able to run mut-images"
+    fi
+
+    if ! which pngcrush > /dev/null ; then
+        echo "Could not find pngcrush; you will not be able to run mut-images"
+    fi
+
+    if ! which scour > /dev/null ; then
+        echo "Could not find scour; you will not be able to run mut-images"
     fi
 }
 
@@ -159,6 +172,7 @@ create_venv() {
     echo "  mut-build"
     echo "  mut-lint"
     echo "  mut-publish"
+    echo "  mut-images"
 }
 
 case "$(uname -s)" in

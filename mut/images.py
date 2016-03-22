@@ -1,5 +1,11 @@
+import concurrent.futures
 import logging
+import math
 import os
+import shlex
+import shutil
+import subprocess
+import tempfile
 
 from typing import *
 import rstcloth.rstcloth
@@ -39,61 +45,39 @@ class ImagesInputError(mut.MutInputError):
         return 'images'
 
 
-class Output:
-    def __init__(self, output_type: str, tag: str,
-                 dpi: int, width: int, target: str) -> None:
-        self.type = output_type
-        self.tag = tag
-        self.dpi = dpi
-        self.width = width
-        self.target = target
-
-    @property
-    def build_type(self) -> str:
-        if self.type == 'offset':
-            return 'eps'
-
-        return 'png'
-
-    @classmethod
-    def load(cls, value: Dict[str, Any], name: str, path: str,
-             config: ImagesConfig) -> 'Output':
-        output_type = mut.withdraw(value, 'type', str)
-        tag = mut.withdraw(value, 'tag', str)
-        dpi = mut.withdraw(value, 'dpi', int)
-        width = mut.withdraw(value, 'width', int)
-        target = mut.withdraw(value, 'target', str)
-
-        if value:
-            msg = 'Unknown fields "{}"'.format(', '.join(value.keys()))
-            config.root_config.warn(ImagesInputError(path, name, msg))
-
-        return cls(output_type, tag, dpi, width, target)
-
-
 class Image:
-    def __init__(self, name: str, path: str, config: ImagesConfig) -> None:
+    def __init__(self, name: str, config_path: str, config: ImagesConfig) -> None:
         self.name = name
-        self.path = path
+        self.config_path = config_path
+        self.path = config.root_config.get_root_path('/source/images/{}.svg'.format(name))
+        self.rendered_path = config.root_config.get_root_path('/source/images/{}-output.svg'.format(name))
         self.config = config
 
         self.alt = ''
-        self.outputs = []  # type: List[Output]
+        self.width = 0
 
         config.register(self)
 
     def output(self) -> None:
         cloth = rstcloth.rstcloth.RstCloth()
 
+        cloth.directive('only', '(website and slides) or (website and html)', wrap=False)
+        cloth.newline()
+        cloth.directive(name='figure',
+                        arg='/images/' + self.name + '.svg',
+                        fields=[('figwidth', '{0}px'.format(self.width))],
+                        indent=3)
+        output_path_suffix = '/images/{}.svg'.format(self.name)
+        shutil.copyfile(self.rendered_path,
+                        self.config.root_config.get_output_source_path(output_path_suffix))
+        cloth.write(self.output_path)
+
+        return
+
         for output in self.outputs:
             width = str(output.width) + 'px'
 
             cloth.newline()
-
-            if output.tag:
-                tag = ''.join(['-', output.tag, '.', output.build_type])
-            else:
-                tag = '.' + output.build_type
 
             options = [('alt', self.alt),
                        ('align', 'center'),
@@ -104,46 +88,48 @@ class Image:
 
             if output.type == 'target':
                 continue
-            elif output.type == 'print':
-                cloth.directive('only', 'latex and not offset', wrap=False)
-                cloth.newline()
-
-                cloth.directive(name='figure',
-                                arg='/images/{0}{1}'.format(self.name, tag),
-                                fields=options,
-                                indent=3)
-            elif output.type == 'offset':
-                tex_figure = [
-                    r'\begin{figure}[h!]',
-                    r'\centering',
-                    ''.join([r'\includegraphics[width=', width,
-                             ']{', self.name, tag, '}']),
-                    r'\end{figure}'
-                ]
-
-                cloth.directive('only', 'latex and offset', wrap=False)
-                cloth.newline()
-                cloth.directive('raw', 'latex', content=tex_figure, indent=3)
             else:
-                cloth.directive('only', 'website and slides', wrap=False)
+                cloth.directive('only', '(website and slides) or (website and html)', wrap=False)
                 cloth.newline()
                 cloth.directive(name='figure',
-                                arg='/images/{0}{1}'.format(self.name, tag),
-                                fields=options,
-                                indent=3)
-
-                cloth.newline()
-
-                cloth.directive('only', 'website and html', wrap=False)
-                cloth.newline()
-                cloth.directive(name='figure',
-                                arg='/images/{0}{1}'.format(self.name, tag),
+                                arg=output.filename(self.name),
                                 fields=options,
                                 indent=3)
 
             cloth.newline()
 
-        cloth.write(self.output_path)
+    def generate_svg(self, output_path: str):
+        """Clean up and minify this SVG file."""
+        logger.info('Generating %s', output_path)
+        inkscape = None
+
+        for path in ('/usr/bin/inkscape', '/usr/local/bin/inkscape',
+                     '/Applications/Inkscape.app/Contents/Resources/bin/inkscape'):
+            if os.path.exists(path):
+                inkscape = path
+                break
+
+        if not inkscape:
+            logger.error("dependency INKSCAPE not installed. not building images.")
+            return
+
+        cmd = '{cmd} {source} --vacuum-defs --export-text-to-path --export-plain-svg {target}'
+        with tempfile.NamedTemporaryFile() as tmp:
+            cmd = cmd.format(cmd=inkscape, target=tmp.name, source=self.path)
+            r = subprocess.call(shlex.split(cmd), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+            if r != 0:
+                logger.warning('error generating image: ' + output_path)
+                logger.error(cmd)
+
+            subprocess.check_call(['scour',
+                                   '--enable-comment-stripping',
+                                   '--enable-id-stripping',
+                                   '--shorten-ids',
+                                   '--no-line-breaks',
+                                   '-q',
+                                   '-i', tmp.name,
+                                   '-o', output_path])
 
     @property
     def output_path(self) -> str:
@@ -161,7 +147,12 @@ class Image:
         image.alt = mut.withdraw(value, 'alt', str)
 
         raw_outputs = mut.withdraw(value, 'output', mut.list_str_any_dict)
-        image.outputs = [Output.load(raw, name, path, config) for raw in raw_outputs]
+
+        try:
+            web_output = [int(raw['width']) for raw in raw_outputs if raw['type'] == 'web']
+            image.width = web_output[0]
+        except (ValueError, IndexError) as err:
+            raise ImagesInputError(filename, name, 'No "web" output') from err
 
         if value:
             msg = 'Unknown fields "{}"'.format(', '.join(value.keys()))
@@ -181,5 +172,30 @@ def run(root_config: mut.RootConfig, paths: List[str]) -> List[mut.MutInputError
         [Image.load(raw_image, path, config) for raw_image in raw_images]
 
     config.output()
+
+    return config.root_config.warnings
+
+
+def run_build_images(root_config: mut.RootConfig, paths: List[str]) -> List[mut.MutInputError]:
+    logger.info('Build Images: %d', len(paths))
+    config = ImagesConfig(root_config)
+    for path in paths:
+        raw_images = mut.load_yaml(path)
+        [Image.load(raw_image, path, config) for raw_image in raw_images]
+
+    with concurrent.futures.ProcessPoolExecutor(max_workers=root_config.n_workers) as pool:
+        futures = []
+
+        for image in config.images:
+            output_filename = os.path.join(os.path.dirname(image.path),
+                                           image.name + '-output.svg')
+            if not mut.compare_mtimes(output_filename, [image.path] + paths):
+                continue
+
+            futures.append(pool.submit(
+                image.generate_svg,
+                output_filename))
+
+        [f.result() for f in futures]
 
     return config.root_config.warnings

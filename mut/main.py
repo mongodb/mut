@@ -38,6 +38,9 @@ logger = logging.getLogger(__name__)
 
 class FileCollector:
     """Collects and indexes source files."""
+
+    MIGRATE = ('.txt', '.rst', '.png')
+
     def __init__(self) -> None:
         self.files = {}  # type: Dict[str, List[str]]
 
@@ -49,7 +52,8 @@ class FileCollector:
                 path = os.path.join(root, filename)
 
                 # Hack to copy over plain source files
-                if filename.endswith('.txt') or filename.endswith('.rst'):
+                splitext = os.path.splitext(filename)
+                if len(splitext) == 2 and splitext[1] in self.MIGRATE:
                     self.files['migrate'] = self.files.get('migrate', []) + [path]
 
                 if not filename.endswith('.yaml'):
@@ -80,8 +84,9 @@ class FileCollector:
 
 class PluginSet:
     """Tracks a set of transformation plugins."""
-    PLUGINS = [mut.apiargs, mut.extracts, mut.options, mut.release, mut.steps,
-               mut.tables, mut.toc, mut.exercise, mut.hash, mut.images]  # type: List[Any]
+    PLUGINS = [mut.apiargs, mut.extracts, mut.options, mut.release,
+               mut.steps, mut.tables, mut.toc, mut.exercise, mut.hash,
+               mut.images]  # type: List[Any]
 
     @property
     def prefixes(self) -> List[str]:
@@ -144,23 +149,23 @@ def main():
     collected = FileCollector()
     collected.walk(config.source_path, plugins.prefixes)
 
-    warnings = []
+    warnings = []  # type: List[mut.MutInputError]
     try:
-        n_workers = 1 if serial else multiprocessing.cpu_count()
-        logger.info('Using %s workers', n_workers)
+        config.n_workers = 1 if serial else multiprocessing.cpu_count()
+        logger.info('Using %s workers', config.n_workers)
 
         # Migration needs to happen first, because some transformations
         # might depend on the output files.
         migrate(config, collected.get_prefixes(['migrate']))
-        with concurrent.futures.ProcessPoolExecutor(max_workers=n_workers) as pool:
+        with concurrent.futures.ProcessPoolExecutor(max_workers=config.n_workers) as pool:
             futures = []
 
             for plugin in plugins.plugins:
                 futures.append(pool.submit(plugin.run, config, collected.get_prefixes(plugin.PREFIXES)))
 
             # Collect warnings together into one list
-            warnings = [r for r in [f.result() for f in futures] if r is not None]
-            warnings = [item for s in warnings for item in s]
+            warnings_lists = [r for r in [f.result() for f in futures] if r is not None]
+            warnings = [item for s in warnings_lists for item in s]
     except mut.MutInputError as err:
         if not verbose:
             logger.error('Error in plugin "%s": %s', err.plugin_name, str(err))
@@ -179,11 +184,15 @@ def main():
     # Call sphinx-build
     output_path = os.path.join(config.output_path, 'html')
     if builder == 'sphinx':
-        subprocess.check_call(['sphinx-build',
-                               '-j{}'.format(n_workers),
-                               '-c', config.root_path,
-                               config.output_source_path,
-                               output_path])
+        cmd = ['sphinx-build',
+               '-j{}'.format(config.n_workers),
+               '-c', config.root_path,
+               '-d', os.path.join(config.output_path, '.doctree'),
+               '-t', 'html', '-t', 'website',
+               config.output_source_path,
+               output_path]
+        logger.info('%s', ' '.join(cmd))
+        subprocess.check_call(cmd)
     elif builder == 'tuft':
         mut.tuft.build(config.output_source_path, [], output_path)
     elif builder != 'none':

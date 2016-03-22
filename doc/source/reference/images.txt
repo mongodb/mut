@@ -20,7 +20,7 @@ YAML Format
    name: <string>
    alt: <string>
    output:
-     - type: "web"|"print"|"offset"|"target"
+     - type: "web"|"target"
        tag: <string>
        dpi: <int>
        width: <int>
