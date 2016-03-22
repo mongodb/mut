@@ -12,23 +12,38 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Usage: {name} <source> <bucket> --prefix=prefix (--stage|--deploy|--destage)
+"""Usage: mut-publish <source> <bucket>
+                 --prefix=prefix
+                 (--stage|--deploy|--destage)
+                 [--all-subdirectories]
                  [--redirects=htaccess]
                  [--redirect-prefixes=prefixes]...
                  [--dry-run] [--verbose]
 
--h --help               show this
+-h --help               show this help message
+
 --prefix=prefix         the prefix under which to upload in the given bucket
+
 --stage                 apply staging behavior: upload under a prefix
+
 --deploy                apply deploy behavior: upload into the bucket root
+
 --destage               remove all staged files
+
+--all-subdirectories    recurse into all subdirectories under <source>.
+                        By default, mut-publish will only sync the top-level
+                        files, as well as the subdirectory given by the current
+                        git branch.
+
 --redirects=htaccess    use the redirects from the given .htaccess file
+
 --redirect-prefix=<re>  regular expression specifying a prefix under which
                         mut-publish may remove redirects. You may provide this
                         option multiple times.
---dry-run               do not actually do anything
---verbose               print more verbose debugging information
 
+--dry-run               do not actually do anything
+
+--verbose               print more verbose debugging information
 """
 
 import collections
@@ -81,7 +96,7 @@ class Config:
 
         self.root_path = repo.top_level()
         self.build_path = os.path.join(self.root_path, 'build', self.branch, self.builder)
-        self.use_branch = False
+        self.all_subdirectories = False
         self.redirect_dirs = []  # type: List[Pattern]
 
         if prefix:
@@ -294,12 +309,12 @@ class StagingCollector:
     """A dummy file collector interface that always reports files as having
        changed. Yields files and all symlinks.
 
-       Obtain use_branch from StagingTargetConfig. If it is True,
+       Obtain all_subdirectories from StagingTargetConfig. If it is True,
        StagingCollector will only recurse into the directory given by branch."""
-    def __init__(self, branch: str, use_branch: bool, namespace: str) -> None:
+    def __init__(self, branch: str, all_subdirectories: bool, namespace: str) -> None:
         self.removed_files = []  # type: List[str]
         self.branch = branch
-        self.use_branch = use_branch
+        self.all_subdirectories = all_subdirectories
         self.namespace = namespace
 
     def get_upload_set(self, root: str) -> Set[str]:
@@ -377,7 +392,7 @@ class StagingCollector:
 
 class DeployCollector(StagingCollector):
     def get_upload_set(self, root):
-        if not self.use_branch:
+        if not self.all_subdirectories:
             return set(os.listdir(root))
 
         # Special-case the root directory, because we want to publish only:
@@ -418,7 +433,7 @@ class Staging:
 
     def get_file_collector(self) -> StagingCollector:
         """Return the file collector to use for instances of this Staging object."""
-        return StagingCollector(self.config.branch, self.config.use_branch, self.namespace)
+        return StagingCollector(self.config.branch, self.config.all_subdirectories, self.namespace)
 
     @property
     def namespace(self) -> str:
@@ -598,7 +613,7 @@ class DeployStaging(Staging):
     PAGE_SUFFIX = '/index.html'
 
     def get_file_collector(self) -> StagingCollector:
-        return DeployCollector(self.config.branch, self.config.use_branch, self.namespace)
+        return DeployCollector(self.config.branch, self.config.all_subdirectories, self.namespace)
 
     @property
     def namespace(self) -> str:
@@ -650,6 +665,7 @@ def main() -> None:
     mode_stage = bool(options.get('--stage', False))
     mode_deploy = bool(options.get('--deploy', False))
     mode_destage = bool(options.get('--destage', False))
+    all_subdirectories = bool(options.get('--all-subdirectories', False))
     dry_run = bool(options.get('--dry-run', False))
     verbose = bool(options.get('--verbose', False))
 
@@ -660,6 +676,7 @@ def main() -> None:
 
     config = Config(bucket, prefix)
     config.verbose = verbose
+    config.all_subdirectories = all_subdirectories
 
     try:
         config.redirect_dirs += [re.compile(pat) for pat in redirect_prefixes]
@@ -681,6 +698,8 @@ def main() -> None:
     if mode_destage:
         staging.purge()
         return
+
+    staging.s3.dry_run = dry_run
 
     try:
         do_stage(root, staging)
