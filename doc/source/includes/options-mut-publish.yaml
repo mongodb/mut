@@ -61,7 +61,17 @@ program: mut-publish
 name: destage
 directive: option
 description: |
-  Remove all files.
+  Remove all staged files.
+optional: true
+default: false
+---
+program: mut-publish
+name: all-subdirectories
+directive: option
+description: |
+  Recurse into all subdirectories under ``<source>``. By default,
+  ``mut-publish`` will only sync the top-level files, as well as the
+  subdirectory given by the current git branch.
 optional: true
 default: false
 ---

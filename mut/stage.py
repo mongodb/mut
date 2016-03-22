@@ -13,11 +13,11 @@
 # limitations under the License.
 
 """Usage: mut-publish <source> <bucket> --prefix=prefix
-                 (--stage|--deploy|--destage)
-                 [--all-subdirectories]
-                 [--redirects=htaccess]
-                 [--redirect-prefix=prefix]...
-                 [--dry-run] [--verbose]
+                      (--stage|--deploy|--destage)
+                      [--all-subdirectories]
+                      [--redirects=htaccess]
+                      [--redirect-prefix=prefix]...
+                      [--dry-run] [--verbose]
 
 -h --help               show this help message
 
@@ -656,8 +656,7 @@ def create_config_framework(path: str) -> None:
 
 
 def main() -> None:
-    app = os.path.basename(sys.argv[0])
-    options = docopt.docopt(__doc__.format(name=app))
+    options = docopt.docopt(__doc__)
 
     root = str(options['<source>'])
     bucket = str(options['<bucket>'])
