@@ -12,12 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Usage: mut-publish <source> <bucket>
-                 --prefix=prefix
+"""Usage: mut-publish <source> <bucket> --prefix=prefix
                  (--stage|--deploy|--destage)
                  [--all-subdirectories]
                  [--redirects=htaccess]
-                 [--redirect-prefixes=prefixes]...
+                 [--redirect-prefix=prefix]...
                  [--dry-run] [--verbose]
 
 -h --help               show this help message
@@ -328,6 +327,7 @@ class StagingCollector:
         logger.info('Publishing %s', ', '.join(whitelist))
 
         # List all current redirects
+        remote_keys = list(remote_keys)
         for key in remote_keys:
             local_key = key.key.replace(self.namespace, '', 1)
             local_key = local_key.lstrip('/')
@@ -337,14 +337,15 @@ class StagingCollector:
                 continue
 
             # Check if we want to skip this path
-            if local_key.split('/', 1)[0] not in whitelist:
+            local_path = os.path.join(root, local_key)
+            if os.path.isdir(local_path) and local_key.split('/', 1)[0] not in whitelist:
                 continue
 
             # Store its MD5 hash. Might be useless if encryption or multi-part
             # uploads are used.
             remote_hashes[local_key] = key.etag.strip('"')
 
-            if not os.path.exists(os.path.join(root, local_key)):
+            if not os.path.exists(local_path):
                 logger.warn('Removing %s', os.path.join(root, local_key))
                 self.removed_files.append(key.key)
 
@@ -392,7 +393,7 @@ class StagingCollector:
 
 class DeployCollector(StagingCollector):
     def get_upload_set(self, root):
-        if not self.all_subdirectories:
+        if self.all_subdirectories:
             return set(os.listdir(root))
 
         # Special-case the root directory, because we want to publish only:
@@ -661,7 +662,7 @@ def main() -> None:
     root = str(options['<source>'])
     bucket = str(options['<bucket>'])
     prefix = str(options['--prefix'])
-    redirect_prefixes = cast(List[str], options['--redirect-prefixes'])
+    redirect_prefixes = cast(List[str], options['--redirect-prefix'])
     mode_stage = bool(options.get('--stage', False))
     mode_deploy = bool(options.get('--deploy', False))
     mode_destage = bool(options.get('--destage', False))
