@@ -68,8 +68,13 @@ class Image:
                         fields=[('figwidth', '{0}px'.format(self.width))],
                         indent=3)
         output_path_suffix = '/images/{}.svg'.format(self.name)
-        shutil.copyfile(self.rendered_path,
-                        self.config.root_config.get_output_source_path(output_path_suffix))
+        try:
+            shutil.copyfile(self.rendered_path,
+                            self.config.root_config.get_output_source_path(output_path_suffix))
+        except FileNotFoundError:
+            msg = 'Could not find input SVG file.'
+            raise ImagesInputError(self.config_path, self.name, msg)
+
         cloth.write(self.output_path)
 
         return
