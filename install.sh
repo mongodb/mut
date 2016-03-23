@@ -150,6 +150,7 @@ create_venv() {
     install_helper mut-build
     install_helper mut-publish
     install_helper mut-lint
+    install_helper mut-images
 
     if ! echo "${PATH}" | grep -q "${MUT_PATH}/bin"; then
         local rc=''
