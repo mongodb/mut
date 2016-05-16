@@ -53,6 +53,7 @@ import hashlib
 import logging
 import os
 import os.path
+import pwd
 import re
 import stat
 import sys
@@ -139,7 +140,7 @@ class Config:
         try:
             username = cfg.get('personal', 'username')
         except (configparser.NoSectionError, configparser.NoOptionError):
-            username = os.getlogin()
+            username = pwd.getpwuid(os.getuid())[0]
 
         self._authentication = AuthenticationInfo(access_key, secret_key, username)
         return self._authentication
