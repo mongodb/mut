@@ -1,0 +1,36 @@
+===============
+mut-intersphinx
+===============
+
+Synopsis
+--------
+
+``mut-intersphinx`` is a tool for updating a project's intersphinx
+inventories.
+
+It consumes a YAML file such as the following:
+
+.. code-block:: yaml
+
+   name: mongodb
+   url: https://docs.mongodb.com/manual/objects.inv
+   ---
+   name: python2
+   url: https://docs.python.org/2/objects.inv
+   ...
+
+It will save each inventory file into the ``build/`` directory,
+as ``<name>-<base64(dirname(url))>.inv`` only if it has not changed.
+
+Usage
+-----
+
+.. code-block:: sh
+
+   mut-intersphinx --update=<configpath> [--verbose]
+
+Options
+-------
+
+.. include:: /includes/option/option-mut-intersphinx-update.rst
+.. include:: /includes/option/option-mut-intersphinx-verbose.rst

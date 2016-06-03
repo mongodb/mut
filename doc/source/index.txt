@@ -20,6 +20,7 @@ Usage
    :maxdepth: 1
 
    /reference/mut-build
+   /reference/mut-intersphinx
    /reference/mut-lint
    /reference/mut-publish
 

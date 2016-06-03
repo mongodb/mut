@@ -1,0 +1,15 @@
+program: mut-intersphinx
+name: update
+args: <configpath>
+directive: option
+description: |
+  Specify the path to a YAML configuration file.
+optional: false
+---
+program: mut-intersphinx
+name: verbose
+inherit:
+  name: verbose
+  program: _shared
+  file: options-shared.yaml
+...

@@ -148,9 +148,10 @@ create_venv() {
     )
 
     install_helper mut-build
-    install_helper mut-publish
-    install_helper mut-lint
     install_helper mut-images
+    install_helper mut-intersphinx
+    install_helper mut-lint
+    install_helper mut-publish
 
     if ! echo "${PATH}" | grep -q "${MUT_PATH}/bin"; then
         local rc=''
@@ -171,9 +172,10 @@ create_venv() {
 
     echo "Installed:"
     echo "  mut-build"
+    echo "  mut-images"
+    echo "  mut-intersphinx"
     echo "  mut-lint"
     echo "  mut-publish"
-    echo "  mut-images"
 }
 
 case "$(uname -s)" in

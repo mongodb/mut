@@ -38,9 +38,10 @@ setup(
     entry_points={
         'console_scripts': [
             'mut-build = mut.main:main',
-            'mut-publish = mut.stage:main',
+            'mut-images = mut.build_images:main',
+            'mut-intersphinx = mut.intersphinx:main',
             'mut-lint = mut.lint:main',
-            'mut-images = mut.build_images:main'
+            'mut-publish = mut.stage:main',
             ],
         }
     )
