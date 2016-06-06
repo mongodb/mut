@@ -1,7 +1,9 @@
-"""Usage: mut-intersphinx --update=<configpath> [-v|--verbose]
+"""Usage: mut-intersphinx --update=<configpath>
+                          [--timeout=<timeout>] [-v|--verbose]
 
 -h --help               show this
 --update=<configpath>   update
+--timeout=<timeout>     wait <timeout> seconds before giving up [default: 5]
 -v --verbose            turn on additional debugging messages
 
 """
@@ -30,7 +32,7 @@ def resolve_path(name: str, url: str) -> str:
         'inv'))
 
 
-def update(name: str, url: str) -> None:
+def update(name: str, url: str, timeout: float) -> None:
     """Update the intersphinx inventory at the given URL, and download
        it into build/<filename>.inv"""
     path = os.path.join('./build', resolve_path(name, url))
@@ -50,7 +52,7 @@ def update(name: str, url: str) -> None:
     })
 
     try:
-        response = urllib.request.urlopen(request)
+        response = urllib.request.urlopen(request, timeout=timeout)
         with open(path, 'wb') as f:
             f.write(response.read())
     except urllib.error.HTTPError as err:
@@ -67,6 +69,7 @@ def main():
     """Main program entry point."""
     options = docopt.docopt(__doc__)
     update_path = str(options['--update'])
+    timeout = float(options['--timeout'])
     verbose = options.get('--verbose', False)
 
     if verbose:
@@ -79,7 +82,7 @@ def main():
             try:
                 name = str(stanza['name'])
                 url = str(stanza['url'])
-                update(name.strip(), url.strip())
+                update(name.strip(), url.strip(), timeout=timeout)
             except KeyError:
                 logger.error('Error reading %s: Need both a "name" field and a "url" field',
                              update_path)

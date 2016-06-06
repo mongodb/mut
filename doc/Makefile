@@ -1,3 +1,5 @@
+.PHONY: build stage fake-deploy
+
 build:
 	mut-build --use-builder=sphinx
 

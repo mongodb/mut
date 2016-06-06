@@ -7,6 +7,16 @@ description: |
 optional: false
 ---
 program: mut-intersphinx
+name: timeout
+args: <seconds>
+directive: option
+description: |
+  Specify the maximum time to wait for any given intersphinx inventory
+  to download.
+optional: true
+default: 5
+---
+program: mut-intersphinx
 name: verbose
 inherit:
   name: verbose

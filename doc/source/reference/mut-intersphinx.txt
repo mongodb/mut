@@ -27,10 +27,12 @@ Usage
 
 .. code-block:: sh
 
-   mut-intersphinx --update=<configpath> [--verbose]
+   mut-intersphinx --update=<configpath>
+                  [--timeout=<timeout>] [-v|--verbose]
 
 Options
 -------
 
 .. include:: /includes/option/option-mut-intersphinx-update.rst
+.. include:: /includes/option/option-mut-intersphinx-timeout.rst
 .. include:: /includes/option/option-mut-intersphinx-verbose.rst
