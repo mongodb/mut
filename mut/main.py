@@ -1,9 +1,12 @@
 """Usage: mut-build [--use-builder=(sphinx|tuft)] [--source=<path>]
-                    [--serial] [--no-update-submodules] [--verbose]
+                    [--tags=<tags>] [--serial] [--no-update-submodules]
+                    [--verbose]
 
 -h --help                    show this
 --use-builder=(sphinx|tuft)  call sphinx-build [default: sphinx]
 --source=<path>              specify the project root path. [default: .]
+-t --tags=<tags>             specify a list of comma-delimited sphinx
+                             tags to use. [default: website]
 --serial                     only execute one transform stage at a time
 --no-update-submodules       do not update submodules in the current repository
 --verbose                    print more verbose error information
@@ -134,12 +137,13 @@ def migrate(config: mut.RootConfig, paths: List[str]) -> None:
         shutil.copyfile(path, dest_path)
 
 
-def main():
+def main() -> None:
     """Main program entry point."""
     options = docopt.docopt(__doc__)
 
     builder = str(options['--use-builder'])
     source_path = str(options['--source'])
+    tags = [t.strip() for t in str(options['--tags']).split(',')]
     verbose = bool(options['--verbose'])
     serial = bool(options['--serial'])
     no_update_submodules = bool(options['--no-update-submodules'])
@@ -202,10 +206,14 @@ def main():
         cmd = ['sphinx-build',
                '-j{}'.format(config.n_workers),
                '-c', config.root_path,
-               '-d', os.path.join(config.output_path, '.doctree'),
-               '-t', 'html', '-t', 'website',
-               config.output_source_path,
-               output_path]
+               '-d', os.path.join(config.output_path, '.doctree')]
+
+        # Create tag flags
+        cmd.extend([item for sublist in [('-t', tag) for tag in tags]
+                    for item in sublist])
+
+        cmd.append(config.output_source_path)
+        cmd.append(output_path)
         logger.info('%s', ' '.join(cmd))
         subprocess.check_call(cmd)
     elif builder == 'tuft':

@@ -9,6 +9,16 @@ optional: true
 default: .
 ---
 program: mut-build
+name: tags
+args: <tags>
+directive: option
+description: |
+  Specify a list of comma-delimited sphinx tags to use, specifying the
+  content within ``.. only::`` blocks to build.
+optional: true
+default: website
+---
+program: mut-build
 name: use-builder
 args: sphinx | tuft
 directive: option
