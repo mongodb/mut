@@ -18,7 +18,7 @@ Usage
 .. code-block:: sh
 
    mut-build [--use-builder=(sphinx|tuft)] [--source=<path>]
-             [--serial] [--verbose]
+             [--serial] [--no-update-submodules] [--verbose]
 
 Options
 -------
@@ -26,4 +26,5 @@ Options
 .. include:: /includes/option/option-mut-build-use-builder.rst
 .. include:: /includes/option/option-mut-build-source.rst
 .. include:: /includes/option/option-mut-build-serial.rst
+.. include:: /includes/option/option-mut-build-no-update-submodules.rst
 .. include:: /includes/option/option-mut-build-verbose.rst

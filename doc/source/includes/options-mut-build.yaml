@@ -26,6 +26,18 @@ optional: true
 default: false
 ---
 program: mut-build
+name: no-update-submodules
+directive: option
+description: |
+  Mut will, by default, update any submodules present in the repository
+  while building.
+
+  In some circumstances, such as while developing within a submodule,
+  you may prefer to leave submodules alone using this flag.
+optional: true
+default: false
+---
+program: mut-build
 name: verbose
 inherit:
   name: verbose

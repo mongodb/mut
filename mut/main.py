@@ -1,10 +1,11 @@
 """Usage: mut-build [--use-builder=(sphinx|tuft)] [--source=<path>]
-                    [--serial] [--verbose]
+                    [--serial] [--no-update-submodules] [--verbose]
 
 -h --help                    show this
 --use-builder=(sphinx|tuft)  call sphinx-build [default: sphinx]
 --source=<path>              specify the project root path. [default: .]
 --serial                     only execute one transform stage at a time
+--no-update-submodules       do not update submodules in the current repository
 --verbose                    print more verbose error information
 
 """
@@ -15,10 +16,10 @@ import multiprocessing
 import os
 import shutil
 import subprocess
+from typing import Any, Callable, Dict, List, Tuple, TypeVar, Union
 
 import docopt
-
-from typing import Any, Callable, Dict, List, Tuple, TypeVar, Union
+import libgiza.git
 
 import mut
 import mut.apiargs
@@ -100,7 +101,16 @@ class PluginSet:
         return [p for p in self.PLUGINS]
 
 
-def migrate(config: mut.RootConfig, paths: List[str]):
+def update_submodules() -> None:
+    """Update any submodules in this repository."""
+    repo = libgiza.git.GitRepo()
+    try:
+        repo.cmd('submodule', 'update', '--remote')
+    except libgiza.git.GitError as err:
+        logger.error('Failed to update submodules: %s', str(err))
+
+
+def migrate(config: mut.RootConfig, paths: List[str]) -> None:
     """Copy plain restructured text files to our output directory."""
     logger.info('Migrating')
     for path in paths:
@@ -132,6 +142,7 @@ def main():
     source_path = str(options['--source'])
     verbose = bool(options['--verbose'])
     serial = bool(options['--serial'])
+    no_update_submodules = bool(options['--no-update-submodules'])
 
     if verbose:
         logging.basicConfig(level=logging.INFO)
@@ -162,6 +173,10 @@ def main():
 
             for plugin in plugins.plugins:
                 futures.append(pool.submit(plugin.run, config, collected.get_prefixes(plugin.PREFIXES)))
+
+            if not no_update_submodules:
+                pull = pool.submit(update_submodules)
+                pull.result()
 
             # Collect warnings together into one list
             warnings_lists = [r for r in [f.result() for f in futures] if r is not None]
