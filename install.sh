@@ -154,15 +154,24 @@ create_venv() {
     install_helper mut-publish
 
     if ! echo "${PATH}" | grep -q "${MUT_PATH}/bin"; then
-        local rc=''
+        local rc_files=()
         if [ -r ~/.bash_profile ]; then
-            rc=~/.bash_profile
+            rc_files+=(~/.bash_profile)
         elif [ -r ~/.bashrc ]; then
-            rc=~/.bashrc
+            rc_files+=(~/.bashrc)
         fi
 
-        if [ ! -z "${rc}" ] && ask 'Add PATH environment variable?'; then
-            printf "\nPATH=\$PATH:%s/bin\n" "${MUT_PATH}" >> "${rc}"
+        if [ -r ~/.zshenv ]; then
+            rc_files+=(~/.zshenv)
+        elif [ -r ~/.zshrc ]; then
+            rc_files+=(~/.zshrc)
+        fi
+
+        if [ ! -z "${rc_files[0]}" ] && ask 'Add PATH environment variable?'; then
+            for rc in "${rc_files[@]}"; do
+                printf "\nPATH=\$PATH:%s/bin\n" "${MUT_PATH}" >> "${rc}"
+            done
+
             echo 'Open a new terminal to use the changes'
         else
             echo ''
