@@ -169,7 +169,7 @@ class RootConfig:
         self.source_path = os.path.join(self.root_path, 'source')
         self.includes_path = os.path.join(self.source_path, 'includes')
 
-        self.output_path = os.path.join(self.root_path, 'build', 'output')
+        self.output_path = os.path.join(self.root_path, 'build', self.branch)
         self.output_source_path = os.path.join(self.output_path, 'source')
 
         self.warnings = []  # type: List[MutInputError]

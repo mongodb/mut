@@ -2,7 +2,7 @@
                     [--serial] [--verbose]
 
 -h --help                    show this
---use-builder=(sphinx|tuft)  call sphinx-build [default: none]
+--use-builder=(sphinx|tuft)  call sphinx-build [default: sphinx]
 --source=<path>              specify the project root path. [default: .]
 --serial                     only execute one transform stage at a time
 --verbose                    print more verbose error information
