@@ -77,6 +77,12 @@ def main():
     else:
         logging.basicConfig(level=logging.INFO)
 
+    # Ensure our output directory exists
+    try:
+        os.mkdir('build')
+    except FileExistsError:
+        pass
+
     with open(update_path, 'r') as f:
         for stanza in yaml.safe_load_all(f):
             try:
