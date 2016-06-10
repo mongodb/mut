@@ -7,6 +7,7 @@ import os.path
 from typing import Any, Dict, List
 import yaml
 
+import mut.tuft
 import mut.tuft.config
 import mut.tuft.visitors
 import mut.tuft.visitors.html5

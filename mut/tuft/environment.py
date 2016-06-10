@@ -7,6 +7,7 @@ import docutils.utils
 import docutils.nodes
 from typing import *
 
+import mut.tuft
 import mut.tuft.config
 import mut.tuft.linkcache
 

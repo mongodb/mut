@@ -217,4 +217,4 @@ class MessageVisitor(Visitor):
     def dispatch_departure(self, node): pass
 
 
-__all__ = [Visitor, VisitorDriver, LinkLinter, MessageVisitor]
+__all__ = ['Visitor', 'VisitorDriver', 'LinkLinter', 'MessageVisitor']

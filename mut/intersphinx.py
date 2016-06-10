@@ -14,6 +14,7 @@ import email.utils
 import logging
 import os
 import posixpath
+import urllib.error
 import urllib.request
 import yaml
 

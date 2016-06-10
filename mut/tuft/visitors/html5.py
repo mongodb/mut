@@ -14,6 +14,7 @@ import pygments.formatters
 
 from typing import Any, List
 
+import mut.tuft
 import mut.tuft.visitors
 import mut.tuft.condition
 import mut.tuft.linkcache
