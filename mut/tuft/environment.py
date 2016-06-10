@@ -7,19 +7,15 @@ import docutils.utils
 import docutils.nodes
 from typing import *
 
+import mut.tuft.config
 import mut.tuft.linkcache
 
 
 class Environment:
-    DEFAULT_CONFIG = {
-        'source_suffix': '.txt',
-        'rst_epilog': ''
-    }
-
     def __init__(self,
                  srcdir: str,
                  links: mut.tuft.linkcache.LinkCache,
-                 config: Dict[str, Any]) -> None:
+                 config: mut.tuft.config.Config) -> None:
         self.srcdir = srcdir
         self.links = links
 
@@ -28,8 +24,7 @@ class Environment:
         self.parser = docutils.parsers.rst.Parser()
 
         self.temp_data = {}  # type: Dict[str, Any]
-        self.config = self.DEFAULT_CONFIG.copy()
-        self.config.update(config)
+        self.config = config
         self.toc = {}  # type: Dict[str, Any]
 
         self.docname = ''
@@ -71,7 +66,7 @@ class Environment:
         If *suffix* is not None, add it instead of config.source_suffix.
         """
         docname = docname.replace('/', os.path.sep)
-        suffix = suffix or self.config['source_suffix']
+        suffix = suffix or self.config.source_suffix
         if base is True:
             return os.path.join(self.srcdir, docname) + suffix
         elif base is None:
@@ -101,7 +96,7 @@ class Environment:
         document.source = path
 
         with open(path, 'r') as input_file:
-            text = '\n'.join((input_file.read(), self.config['rst_epilog']))
+            text = '\n'.join((input_file.read(), self.config.rst_epilog))
             self.parser.parse(text, document)
 
         self.document_cache[path] = document

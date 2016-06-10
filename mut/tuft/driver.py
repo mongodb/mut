@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
-import abc
+import logging
 import os
 import os.path
-import logging
 
 from typing import Any, Dict, List
 import yaml
 
+import mut.tuft.config
 import mut.tuft.visitors
 import mut.tuft.visitors.html5
 import mut.tuft.condition
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 class Driver:
-    def __init__(self, src_path: str, config: Dict[str, Any]) -> None:
+    def __init__(self, src_path: str, config: mut.tuft.config.Config) -> None:
         self.src_path = src_path
         self.links = mut.tuft.linkcache.LinkCache(src_path)
         self.env = mut.tuft.environment.Environment(self.src_path, self.links, config)
@@ -50,7 +50,7 @@ class Driver:
             for filename in files:
                 filename = os.path.join(root, filename)
 
-                if not filename.endswith(self.env.config['source_suffix']):
+                if not filename.endswith(self.env.config.source_suffix):
                     continue
 
                 logger.debug('Processing %s', filename)
@@ -70,7 +70,7 @@ class Driver:
 
 
 class HTML5Driver(Driver):
-    def __init__(self, src_path: str, output_path: str, config: Dict[str, Any]) -> None:
+    def __init__(self, src_path: str, output_path: str, config: mut.tuft.config.Config) -> None:
         super(HTML5Driver, self).__init__(src_path, config)
         self.output_path = output_path
 
@@ -99,21 +99,10 @@ class HTML5Driver(Driver):
         return mut.tuft.visitors.html5.HTML5Visitor(path, document, links)
 
 
-def load_config(path: str) -> Dict[str, Any]:
-        config = {}  # type: Dict[str, Any]
-        try:
-            with open('conf.yaml') as f:
-                config = dict(yaml.load(f))
-        except FileNotFoundError:
-            pass
-
-        return config
-
-
 def build(src_path: str,
           handlers: List[mut.tuft.visitors.Visitor],
           output_path: str) -> None:
-    config = load_config('conf.yaml')
+    config = mut.tuft.config.Config('conf.py')
 
     driver = None  # type: mut.tuft.driver.Driver
     if output_path:
