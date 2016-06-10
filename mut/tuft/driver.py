@@ -75,14 +75,16 @@ class HTML5Driver(Driver):
         self.output_path = output_path
 
     def write(self, writer: mut.tuft.visitors.WriterDriver, path: str) -> None:
+        rel_path = os.path.splitext(path.replace(self.src_path, '', 1))[0]
+        rel_path = rel_path.strip('/\\')
         output_path = os.path.join(self.output_path,
-                                   os.path.splitext(path.replace(self.src_path, '', 1))[0],
+                                   rel_path,
                                    'index.html')
 
         # Create containing directory
         try:
             os.makedirs(os.path.dirname(output_path))
-        except OSError:
+        except FileExistsError:
             pass
 
         with open(output_path, 'w') as f:
