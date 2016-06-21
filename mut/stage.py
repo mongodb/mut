@@ -52,7 +52,6 @@ import functools
 import hashlib
 import logging
 import os
-import posixpath
 import pwd
 import re
 import stat
@@ -629,7 +628,7 @@ class DeployStaging(Staging):
 
     @property
     def namespace(self) -> str:
-        return posixpath.join(self.config.prefix, self.config.branch)
+        return self.config.prefix
 
 
 def do_stage(root: str, staging: Staging) -> None:
