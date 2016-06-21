@@ -98,9 +98,12 @@ class Config:
         self.build_path = os.path.join(self.root_path, 'build', self.branch, self.builder)
         self.all_subdirectories = False
         self.redirect_dirs = []  # type: List[Pattern]
-
         if prefix:
             self.redirect_dirs.append(re.compile(prefix))
+
+        # Path to find the .htaccess file. None indicates to find it under
+        # the build root.
+        self.redirect_path = None
 
         self.verbose = False
 
@@ -302,6 +305,7 @@ def translate_htaccess(path: str) -> Redirects:
             raw_redirects = [(x.lstrip('/'), y) for x, y in REDIRECT_PAT.findall(data)]
             return Redirects(raw_redirects, exists=True)
     except IOError:
+        logger.error('Failed to open %s', path)
         return Redirects([], exists=False)
 
 
@@ -464,8 +468,11 @@ class Staging:
            the namespace [username]/[branch]/"""
         tasks = []  # type: List[Callable[[None], None]]
 
+        htaccess_path = self.config.redirect_path
+        if htaccess_path is None:
+            htaccess_path = os.path.join(root, '.htaccess')
+
         redirects = Redirects([], exists=False)
-        htaccess_path = os.path.join(root, '.htaccess')
         if self.config.branch == 'master':
             redirects = translate_htaccess(htaccess_path)
 
@@ -659,9 +666,10 @@ def create_config_framework(path: str) -> None:
 def main() -> None:
     options = docopt.docopt(__doc__)
 
-    root = str(options['<source>'])
-    bucket = str(options['<bucket>'])
-    prefix = str(options['--prefix'])
+    root = options['<source>']
+    bucket = options['<bucket>']
+    prefix = options['--prefix']
+    redirect_path = options.get('--redirects', None)
     redirect_prefixes = cast(List[str], options['--redirect-prefix'])
     mode_stage = bool(options.get('--stage', False))
     mode_deploy = bool(options.get('--deploy', False))
@@ -678,6 +686,7 @@ def main() -> None:
     config = Config(bucket, prefix)
     config.verbose = verbose
     config.all_subdirectories = all_subdirectories
+    config.redirect_path = redirect_path
 
     try:
         config.redirect_dirs += [re.compile(pat) for pat in redirect_prefixes]
