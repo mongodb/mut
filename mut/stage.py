@@ -52,7 +52,7 @@ import functools
 import hashlib
 import logging
 import os
-import os.path
+import posixpath
 import pwd
 import re
 import stat
@@ -103,7 +103,7 @@ class Config:
 
         # Path to find the .htaccess file. None indicates to find it under
         # the build root.
-        self.redirect_path = None
+        self.redirect_path = None  # type: str
 
         self.verbose = False
 
@@ -324,12 +324,12 @@ class StagingCollector:
     def get_upload_set(self, root: str) -> Set[str]:
         return set(os.listdir(root))
 
-    def collect(self, root: str, remote_keys):
+    def collect(self, top_root: str, remote_keys):
         self.removed_files = []
         remote_hashes = {}
-        whitelist = self.get_upload_set(root)
+        roots = self.get_upload_set(top_root)
 
-        logger.info('Publishing %s', ', '.join(whitelist))
+        logger.info('Publishing %s', ', '.join(roots))
 
         # List all current redirects
         remote_keys = list(remote_keys)
@@ -342,8 +342,8 @@ class StagingCollector:
                 continue
 
             # Check if we want to skip this path
-            local_path = os.path.join(root, local_key)
-            if os.path.isdir(local_path) and local_key.split('/', 1)[0] not in whitelist:
+            local_path = os.path.join(top_root, local_key)
+            if os.path.isdir(local_path) and local_key.split('/', 1)[0] not in roots:
                 continue
 
             # Store its MD5 hash. Might be useless if encryption or multi-part
@@ -351,15 +351,16 @@ class StagingCollector:
             remote_hashes[local_key] = key.etag.strip('"')
 
             if not os.path.exists(local_path):
-                logger.warn('Removing %s', os.path.join(root, local_key))
+                logger.warn('Removing %s because %s does not exist',
+                            key.key, local_path)
                 self.removed_files.append(key.key)
 
         logger.info('Done. Scanning local filesystem')
 
-        for basedir, dirs, files in os.walk(root, followlinks=True):
+        for basedir, dirs, files in os.walk(top_root, followlinks=True):
             # Skip branches we wish not to publish
-            if basedir == root:
-                dirs[:] = [d for d in dirs if d in whitelist]
+            if basedir == top_root:
+                dirs[:] = [d for d in dirs if d in roots]
 
             for filename in files:
                 # Skip dotfiles
@@ -373,7 +374,7 @@ class StagingCollector:
                 except IOError:
                     continue
 
-                remote_path = path.replace(root, '')
+                remote_path = path.replace(top_root, '')
                 if remote_hashes.get(remote_path, None) == local_hash:
                     continue
 
@@ -597,7 +598,7 @@ class Staging:
             logger.info('Uploading %s to %s', src_path, full_name)
             self.s3.upload_path(src_path, full_name, **self.S3_OPTIONS)
         except boto.exception.S3ResponseError as err:
-            raise SyncFileException(local_path, err.message)
+            raise SyncFileException(local_path, str(err))
         except IOError as err:
             logger.exception('IOError while uploading file "%s": %s', local_path, err)
 
@@ -622,11 +623,13 @@ class DeployStaging(Staging):
     PAGE_SUFFIX = '/index.html'
 
     def get_file_collector(self) -> StagingCollector:
-        return DeployCollector(self.config.branch, self.config.all_subdirectories, self.namespace)
+        return DeployCollector(self.config.branch,
+                               self.config.all_subdirectories,
+                               self.namespace)
 
     @property
     def namespace(self) -> str:
-        return self.config.prefix
+        return posixpath.join(self.config.prefix, self.config.branch)
 
 
 def do_stage(root: str, staging: Staging) -> None:
@@ -642,7 +645,7 @@ def do_stage(root: str, staging: Staging) -> None:
             except SyncFileException as sync_err:
                 logger.error('%s: %s', sync_err.path, sync_err.reason)
     except MissingSource as err:
-        logger.error('No source directory found at %s', err.message)
+        logger.error('No source directory found at %s', str(err))
 
 
 def create_config_framework(path: str) -> None:
@@ -691,7 +694,7 @@ def main() -> None:
     try:
         config.redirect_dirs += [re.compile(pat) for pat in redirect_prefixes]
     except re.error as err:
-        logger.error('Error compiling regular expression: %s', err.message)
+        logger.error('Error compiling regular expression: %s', str(err))
         sys.exit(1)
 
     # --destage requires that we create a Staging context
