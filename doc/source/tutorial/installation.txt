@@ -20,4 +20,4 @@ Mut provides an automatic installation script requiring only ``bash`` and
 
 .. code-block:: sh
 
-   bash -c "$(curl -fsSL https://raw.githubusercontent.com/i80and/mut/master/install.sh)"
+   bash -c "$(curl -fsSL https://raw.githubusercontent.com/mongodb/mut/master/install.sh)"
