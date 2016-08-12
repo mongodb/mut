@@ -137,7 +137,7 @@ create_venv() {
         cd dev
 
         git clone https://github.com/cyborginstitute/rstcloth.git
-        git clone --depth=1 https://github.com/i80and/mut.git
+        git clone --depth=1 https://github.com/mongodb/mut.git
         git clone https://github.com/i80and/docs-tools.git
         git clone --depth=1 https://github.com/i80and/libgiza.git
 
