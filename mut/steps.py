@@ -33,9 +33,9 @@ def str_or_str_dict(value: Union[str, Dict[str, str]]) -> Union[str, Dict[str, s
     return mut.str_dict(value)
 
 
-def str_or_unmangled_list(items: Union[str, List[Any]]) -> Union[str, List[Any]]:
-    if isinstance(items, str):
-        return items
+def str_or_dict_to_list(items) -> List[Any]:
+    if isinstance(items, str) or isinstance(items, dict):
+        return [items]
 
     return list(items)
 
@@ -66,7 +66,10 @@ class StepsConfig:
 
     @property
     def output_path(self) -> str:
-        return os.path.join(self.root_config.output_path, 'source', 'includes', 'steps')
+        return os.path.join(self.root_config.output_path,
+                            'source',
+                            'includes',
+                            'steps')
 
     @staticmethod
     def step_global_id(path: str, ref: str) -> str:
@@ -318,15 +321,13 @@ class Step:
 
         step.state.level = mut.withdraw(value, 'level', int, default=step.state.level)
         step.state.content = mut.withdraw(value, 'content', str)
-        raw_actions = mut.withdraw(value, 'action', str_or_unmangled_list)
+        raw_actions = mut.withdraw(value, 'action', str_or_dict_to_list)
 
-        try:
-            if isinstance(raw_actions, str) or isinstance(raw_actions, dict):
-                step.state.actions = [Action.load(raw_actions)]
-            elif raw_actions:
+        if raw_actions:
+            try:
                 step.state.actions = [Action.load(raw_action) for raw_action in raw_actions]
-        except ValueError as err:
-            raise StepsInputError(path, ref, str(err)) from err
+            except ValueError as err:
+                raise StepsInputError(path, ref, str(err)) from err
 
         if raw_actions and step.state.content:
             msg = '"action" will replace "content"'

@@ -38,3 +38,7 @@ YAML Format
    inherit:
      file: <path>
      ref: <string>
+
+``action`` may also be either a string or a list. If it is a string, this is
+shorthand for filling out the ``content`` field. If it is a list, then a
+sequence of actions are made.
