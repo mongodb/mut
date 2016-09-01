@@ -158,6 +158,12 @@ class Action:
         action.code = value.get('code', '')
         action.content = value.get('content', '')
         action.post = value.get('post', '')
+
+        # Code and language only make sense when together
+        if bool(action.code) != bool(action.language):
+            raise ValueError('Step action must have either both "code" and ' +
+                             '"language", or neither.')
+
         return action
 
 
@@ -313,10 +319,14 @@ class Step:
         step.state.level = mut.withdraw(value, 'level', int, default=step.state.level)
         step.state.content = mut.withdraw(value, 'content', str)
         raw_actions = mut.withdraw(value, 'action', str_or_unmangled_list)
-        if isinstance(raw_actions, str) or isinstance(raw_actions, dict):
-            step.state.actions = [Action.load(raw_actions)]
-        elif raw_actions:
-            step.state.actions = [Action.load(raw_action) for raw_action in raw_actions]
+
+        try:
+            if isinstance(raw_actions, str) or isinstance(raw_actions, dict):
+                step.state.actions = [Action.load(raw_actions)]
+            elif raw_actions:
+                step.state.actions = [Action.load(raw_action) for raw_action in raw_actions]
+        except ValueError as err:
+            raise StepsInputError(path, ref, str(err)) from err
 
         if raw_actions and step.state.content:
             msg = '"action" will replace "content"'
