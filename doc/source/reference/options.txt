@@ -20,6 +20,7 @@ YAML Format
    program: <string>
    name: <string>
 
+   command: <string>
    aliases: <string>
    args: <string>
    default: <string>

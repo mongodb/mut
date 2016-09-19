@@ -190,7 +190,7 @@ def main() -> None:
             logger.error('Error in plugin "%s": %s', err.plugin_name, str(err))
             logger.error('    %s: %s', err.path, err.ref)
         else:
-            logger.exception(err)
+            logger.exception(str(err))
 
     # Log warnings
     for warning in warnings:

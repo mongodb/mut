@@ -63,6 +63,7 @@ class OptionState(mut.State):
 
         self._program = program
         self._name = name
+        self._command = None  # type: str
         self._aliases = None  # type: str
         self._args = None  # type: str
         self._default = None  # type: str
@@ -79,6 +80,12 @@ class OptionState(mut.State):
 
     @property
     def name(self) -> str: return self._name or ''
+
+    @property
+    def command(self) -> str: return self._command or ''
+
+    @command.setter
+    def command(self, command: str) -> None: self._command = command
 
     @property
     def aliases(self) -> str: return self._aliases or ''
@@ -144,9 +151,9 @@ class OptionState(mut.State):
 
     @property
     def keys(self):
-        return ['_program', '_name', '_directive', '_type', '_default',
-                '_args', '_description', '_aliases', '_optional', '_pre',
-                '_post']
+        return ['_program', '_name', '_command', '_directive', '_type',
+                '_default', '_args', '_description', '_aliases', '_optional',
+                '_pre', '_post']
 
 
 class Option:
@@ -201,8 +208,11 @@ class Option:
         if 'program' not in self.replacements:
             self.replacements['program'] = rstcloth.rstcloth.RstCloth.role('program', self.state.program)
 
+        if self.state.command:
+            self.replacements['command'] = rstcloth.rstcloth.RstCloth.role('toolcommand', self.state.command)
+
         if self.state.directive == 'option':
-            if self.state.name.startswith('<'):
+            if len(self.state.name) > 1 and self.state.name[0] in ('<', '-'):
                 prefix = ''
             else:
                 prefix = '--'
@@ -260,7 +270,8 @@ class Option:
     @property
     def output_path(self) -> str:
         self.inherit()
-        return os.path.join(self.config.output_path, self.state.directive + '-' + self.ref) + '.rst'
+        filename = self.state.directive + '-' + self.ref.replace(' ', '-')
+        return os.path.join(self.config.output_path, filename) + '.rst'
 
     @classmethod
     def load(cls, value: Any, path: str, config: OptionsConfig) -> 'Option':
