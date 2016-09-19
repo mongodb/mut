@@ -25,7 +25,8 @@ YAML Format
    args: <string>
    default: <string>
    description: <string>
-   directive: <"option"|string>
+   directive: "option" | "commandoption" | "data" | "setting" | "method"
+                       | "function" | "class"
    optional: <boolean>
    post: <string>
    pre: <string>

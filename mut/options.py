@@ -58,6 +58,9 @@ class OptionInputError(mut.MutInputError):
 
 
 class OptionState(mut.State):
+    DIRECTIVES = ('option', 'commandoption', 'data', 'setting',
+                  'method', 'function', 'class')
+
     def __init__(self, program: str, name: str) -> None:
         self._replacements = {}  # type: Dict[str, str]
 
@@ -115,7 +118,11 @@ class OptionState(mut.State):
     def directive(self) -> str: return self._directive or ''
 
     @directive.setter
-    def directive(self, directive: str) -> None: self._directive = directive
+    def directive(self, directive: str) -> None:
+        if directive not in self.DIRECTIVES:
+            raise ValueError(directive)
+
+        self._directive = directive
 
     @property
     def optional(self) -> bool: return self._optional or False
@@ -281,14 +288,22 @@ class Option:
 
         name = mut.withdraw(value, 'name', str)
         if not name:
-            raise OptionInputError(path, 'program', 'Missing field "name')
+            raise OptionInputError(path, program, 'Missing field "name')
 
         option = cls(program, name, path, config)  # type: Option
         option.state.aliases = mut.withdraw(value, 'aliases', str)
         option.state.args = mut.withdraw(value, 'args', str)
         option.state.default = mut.withdraw(value, 'default', str)
         option.state.description = mut.withdraw(value, 'description', str)
-        option.state.directive = mut.withdraw(value, 'directive', str)
+
+        directive = mut.withdraw(value, 'directive', str)
+        try:
+            option.state.directive = directive
+        except ValueError:
+            err_str = 'Illegal key "{}". Must be in set {}'.format(directive,
+                                                                   OptionState.DIRECTIVES)
+            raise OptionInputError(path, option.state.ref, err_str)
+
         option.state.optional = mut.withdraw(value, 'optional', bool)
         option.state.type = mut.withdraw(value, 'type', str)
 
