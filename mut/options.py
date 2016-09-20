@@ -23,7 +23,7 @@ class OptionsConfig:
     def register(self, option: 'Option') -> None:
         option_id = self.option_global_id(option.path, option.ref)
         if option_id in self.options:
-            raise ValueError('Already registered')
+            raise ValueError('Option ID "{}" is already used'.format(option.ref))
 
         self.options[option_id] = option
 
@@ -289,7 +289,11 @@ class Option:
         if not name:
             raise OptionInputError(path, program, 'Missing field "name')
 
-        option = cls(program, name, path, config)  # type: Option
+        try:
+            option = cls(program, name, path, config)  # type: Option
+        except ValueError as err:
+            raise OptionInputError(path, program, str(err)) from err
+
         option.state.aliases = mut.withdraw(value, 'aliases', str)
         option.state.args = mut.withdraw(value, 'args', str)
         option.state.default = mut.withdraw(value, 'default', str)
