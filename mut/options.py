@@ -171,7 +171,6 @@ class Option:
                  config: OptionsConfig) -> None:
         self.path = os.path.basename(path)
         self._inherit = None  # type: Tuple[str, str]
-        self.replacements = {}  # type: Dict[str, str]
 
         self.state = OptionState(program, name)
 
@@ -212,11 +211,11 @@ class Option:
 
         cloth = rstcloth.rstcloth.RstCloth()
 
-        if 'program' not in self.replacements:
-            self.replacements['program'] = rstcloth.rstcloth.RstCloth.role('program', self.state.program)
+        if 'program' not in self.state.replacements:
+            self.state.replacements['program'] = rstcloth.rstcloth.RstCloth.role('program', self.state.program)
 
         if self.state.command:
-            self.replacements['command'] = rstcloth.rstcloth.RstCloth.role('toolcommand', self.state.command)
+            self.state.replacements['command'] = rstcloth.rstcloth.RstCloth.role('toolcommand', self.state.command)
 
         if self.state.directive == 'option':
             if len(self.state.name) > 1 and self.state.name[0] in ('<', '-'):
@@ -246,8 +245,8 @@ class Option:
             prefix = ''
             directive_str = self.state.name
 
-        if 'role' not in self.replacements:
-            self.replacements['role'] = ':{0}:`{1}{2}`'.format(self.state.directive, prefix, self.state.name)
+        if 'role' not in self.state.replacements:
+            self.state.replacements['role'] = ':{0}:`{1}{2}`'.format(self.state.directive, prefix, self.state.name)
 
         cloth.directive(self.state.directive, directive_str)
         cloth.newline()
@@ -270,7 +269,7 @@ class Option:
             cloth.content(value.split('\n'), indent=indent, wrap=False)
             cloth.newline()
 
-        content = mut.substitute('\n'.join(cloth.data), self.replacements)
+        content = mut.substitute('\n'.join(cloth.data), self.state.replacements)
         with open(self.output_path, 'w') as f:
             f.write(content)
 
