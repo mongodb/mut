@@ -115,7 +115,7 @@ class OptionState(mut.State):
     def description(self, description: str) -> None: self._description = description
 
     @property
-    def directive(self) -> str: return self._directive or ''
+    def directive(self) -> str: return self._directive or 'option'
 
     @directive.setter
     def directive(self, directive: str) -> None:
@@ -208,10 +208,6 @@ class Option:
 
     def output(self) -> None:
         self.inherit()
-
-        # Preconditions
-        if not self.state.directive:
-            raise OptionInputError(self.path, self.ref, 'Missing "directive"')
 
         cloth = rstcloth.rstcloth.RstCloth()
 

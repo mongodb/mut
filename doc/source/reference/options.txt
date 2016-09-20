@@ -39,3 +39,18 @@ YAML Format
      file: <path>
      program: <string>
      name: <string>
+
+Default Values
+--------------
+
+.. code-block:: yaml
+
+   directive: "option"
+   optional: false
+   replacement:
+     program: ":program:`<program>`"  # If <directive> == "option"
+     command: ":toolcommand:`<command>`"  # If <directive> == "option" and have <command>
+
+     # <name> is prefixed with "--" if <directive> == "option", and if the
+     # first character of <name> is "<" or "-".
+     role: ":<directive>:`<name>`"  # <name> is prefixed with "--"
