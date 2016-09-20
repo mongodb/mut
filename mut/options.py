@@ -119,7 +119,7 @@ class OptionState(mut.State):
 
     @directive.setter
     def directive(self, directive: str) -> None:
-        if directive not in self.DIRECTIVES:
+        if directive not in self.DIRECTIVES and directive is not None:
             raise ValueError(directive)
 
         self._directive = directive
