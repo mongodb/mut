@@ -23,7 +23,7 @@ class OptionsConfig:
     def register(self, option: 'Option') -> None:
         option_id = self.option_global_id(option.path, option.ref)
         if option_id in self.options:
-            raise ValueError('Option ID "{}" is already used'.format(option.ref))
+            raise ValueError('Option ID {} is already used'.format(option.human_ref))
 
         self.options[option_id] = option
 
@@ -182,6 +182,10 @@ class Option:
         return self.state.ref
 
     @property
+    def human_ref(self) -> str:
+        return '{} in program {}'.format(self.state.name, self.state.program)
+
+    @property
     def parent(self) -> 'Option':
         if self._inherit is None:
             return None
@@ -279,53 +283,59 @@ class Option:
         filename = self.state.directive + '-' + self.ref.replace(' ', '-')
         return os.path.join(self.config.output_path, filename) + '.rst'
 
+    def _populate(self, value: Any) -> None:
+        self.state.aliases = mut.withdraw(value, 'aliases', str)
+        self.state.args = mut.withdraw(value, 'args', str)
+        self.state.default = mut.withdraw(value, 'default', str)
+        self.state.description = mut.withdraw(value, 'description', str)
+
+        directive = mut.withdraw(value, 'directive', str)
+        try:
+            self.state.directive = directive
+        except ValueError:
+            msg = 'Illegal key "{}". Must be in set {}'.format(directive,
+                                                               OptionState.DIRECTIVES)
+            raise ValueError(msg)
+
+        self.state.optional = mut.withdraw(value, 'optional', bool)
+        self.state.type = mut.withdraw(value, 'type', str)
+
+        self.state.pre = mut.withdraw(value, 'pre', str)
+        self.state.post = mut.withdraw(value, 'post', str)
+
+        replacements = mut.withdraw(value, 'replacement', mut.str_dict)
+        if replacements:
+            for src, dest in replacements.items():
+                self.state.replacements[src] = dest
+
+        raw_inherit = mut.withdraw(value, 'inherit', mut.str_dict, default={})  # type: Dict[str, str]
+        if raw_inherit:
+            self._inherit = (raw_inherit['file'],
+                             '{}-{}'.format(raw_inherit['program'], raw_inherit['name']))
+
+        if value:
+            msg = 'Unknown fields "{}"'.format(', '.join(value.keys()))
+            raise ValueError(msg)
+
     @classmethod
     def load(cls, value: Any, path: str, config: OptionsConfig) -> 'Option':
         program = mut.withdraw(value, 'program', str)
         if not program:
-            raise OptionInputError(path, '<unknown>', 'Missing field "name')
+            raise OptionInputError(path, '<unknown>', 'Missing field "name"')
 
         name = mut.withdraw(value, 'name', str)
         if not name:
-            raise OptionInputError(path, program, 'Missing field "name')
+            raise OptionInputError(path, program, 'Missing field "name"')
 
         try:
             option = cls(program, name, path, config)  # type: Option
         except ValueError as err:
             raise OptionInputError(path, program, str(err)) from err
 
-        option.state.aliases = mut.withdraw(value, 'aliases', str)
-        option.state.args = mut.withdraw(value, 'args', str)
-        option.state.default = mut.withdraw(value, 'default', str)
-        option.state.description = mut.withdraw(value, 'description', str)
-
-        directive = mut.withdraw(value, 'directive', str)
         try:
-            option.state.directive = directive
-        except ValueError:
-            err_str = 'Illegal key "{}". Must be in set {}'.format(directive,
-                                                                   OptionState.DIRECTIVES)
-            raise OptionInputError(path, option.state.ref, err_str)
-
-        option.state.optional = mut.withdraw(value, 'optional', bool)
-        option.state.type = mut.withdraw(value, 'type', str)
-
-        option.state.pre = mut.withdraw(value, 'pre', str)
-        option.state.post = mut.withdraw(value, 'post', str)
-
-        replacements = mut.withdraw(value, 'replacement', mut.str_dict)
-        if replacements:
-            for src, dest in replacements.items():
-                option.state.replacements[src] = dest
-
-        raw_inherit = mut.withdraw(value, 'inherit', mut.str_dict, default={})  # type: Dict[str, str]
-        if raw_inherit:
-            option._inherit = (raw_inherit['file'],
-                               '{}-{}'.format(raw_inherit['program'], raw_inherit['name']))
-
-        if value:
-            msg = 'Unknown fields "{}"'.format(', '.join(value.keys()))
-            raise OptionInputError(path, option.state.ref, msg)
+            option._populate(value)
+        except ValueError as err:
+            raise OptionInputError(path, option.state.ref, str(err)) from err
 
         return option
 
