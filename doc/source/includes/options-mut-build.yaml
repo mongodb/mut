@@ -1,7 +1,6 @@
 program: mut-build
 name: source
 args: <path>
-directive: option
 description: |
   Specify the project root path. This path should contain a ``source``
   directory.
@@ -9,9 +8,16 @@ optional: true
 default: .
 ---
 program: mut-build
+name: edition
+args: <edition>
+description: |
+  Specify the project edition to build. Appends the edition as a tag, and
+  outputs into an edition-suffixed directory.
+optional: true
+---
+program: mut-build
 name: tags
 args: <tags>
-directive: option
 description: |
   Specify a list of comma-delimited sphinx tags to use, specifying the
   content within ``.. only::`` blocks to build.
@@ -21,7 +27,6 @@ default: website
 program: mut-build
 name: use-builder
 args: sphinx | tuft
-directive: option
 description: |
   Specify the restructured text builder to use, if any.
 optional: true
@@ -29,7 +34,6 @@ default: none
 ---
 program: mut-build
 name: serial
-directive: option
 description: |
   Only execute one transform stage at a time.
 optional: true
@@ -37,7 +41,6 @@ default: false
 ---
 program: mut-build
 name: no-update-submodules
-directive: option
 description: |
   Mut will, by default, update any submodules present in the repository
   while building.

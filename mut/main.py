@@ -1,10 +1,13 @@
 """Usage: mut-build [--use-builder=(sphinx|tuft)] [--source=<path>]
-                    [--tags=<tags>] [--serial] [--no-update-submodules]
-                    [--verbose]
+                    [--edition=<edition>] [--tags=<tags>] [--serial]
+                    [--no-update-submodules] [--verbose]
 
 -h --help                    show this
 --use-builder=(sphinx|tuft)  call sphinx-build [default: sphinx]
 --source=<path>              specify the project root path. [default: .]
+--edition=<edition>          specify the project edition to build. Appends
+                             the edition as a tag, and outputs into an
+                             edition-suffixed directory.
 -t --tags=<tags>             specify a list of comma-delimited sphinx
                              tags to use. [default: website]
 --serial                     only execute one transform stage at a time
@@ -143,10 +146,15 @@ def main() -> None:
 
     builder = str(options['--use-builder'])
     source_path = str(options['--source'])
+    edition = options.get('--edition', None)
     tags = [t.strip() for t in str(options['--tags']).split(',')]
     verbose = bool(options['--verbose'])
     serial = bool(options['--serial'])
     no_update_submodules = bool(options['--no-update-submodules'])
+
+    if edition:
+        edition = edition.strip()
+        tags.append(edition.strip)
 
     if verbose:
         logging.basicConfig(level=logging.INFO)
@@ -159,7 +167,7 @@ def main() -> None:
     except ImportError:
         logging.warning('PyYAML is missing libyaml')
 
-    config = mut.RootConfig(source_path)
+    config = mut.RootConfig(source_path, edition)
     plugins = PluginSet()
     collected = FileCollector()
     collected.walk(config.source_path, plugins.prefixes)
