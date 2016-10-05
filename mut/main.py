@@ -146,7 +146,7 @@ def main() -> None:
 
     builder = str(options['--use-builder'])
     source_path = str(options['--source'])
-    edition = options.get('--edition', None)
+    edition = str(options.get('--edition', ''))
     tags = [t.strip() for t in str(options['--tags']).split(',')]
     verbose = bool(options['--verbose'])
     serial = bool(options['--serial'])
@@ -154,7 +154,7 @@ def main() -> None:
 
     if edition:
         edition = edition.strip()
-        tags.append(edition.strip)
+        tags.append(edition.strip())
 
     if verbose:
         logging.basicConfig(level=logging.INFO)
