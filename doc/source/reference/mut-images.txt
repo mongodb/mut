@@ -1,0 +1,21 @@
+==========
+mut-images
+==========
+
+Synopsis
+--------
+
+``mut-images`` is a preprocessor that bakes SVG images into a form
+appropriate for web distribution, and generates ``.rst`` files for each.
+
+Usage
+-----
+
+.. code-block:: sh
+
+   mut-build [--edition=<edition>]
+
+Options
+-------
+
+.. include:: /includes/option/option-mut-images-edition.rst

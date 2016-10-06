@@ -1,0 +1,7 @@
+program: mut-images
+name: edition
+args: <edition>
+description: |
+  The project edition to build. See :program:`mut-build`.
+optional: true
+...

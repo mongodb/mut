@@ -23,6 +23,7 @@ Usage
    /reference/mut-intersphinx
    /reference/mut-lint
    /reference/mut-publish
+   /reference/mut-images
 
 Transformation Reference
 ========================

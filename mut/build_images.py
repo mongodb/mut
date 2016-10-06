@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Usage: mut-images
+"""Usage: mut-images [--edition=<edition>]
 
--h --help  - show this
+-h --help           - show this
+--edition <edition> - specify the project edition to build.
 
 """
 
@@ -34,9 +35,10 @@ logger = logging.getLogger(__name__)
 
 def main():
     options = docopt.docopt(__doc__)
+    edition = str(options['--edition'] or '')
     logging.basicConfig(level=logging.INFO)
 
-    config = mut.RootConfig('.')
+    config = mut.RootConfig('.', edition)
     config.n_workers = multiprocessing.cpu_count()
 
     collector = mut.main.FileCollector()
