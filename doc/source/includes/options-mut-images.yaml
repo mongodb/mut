@@ -1,7 +1,7 @@
 program: mut-images
-name: edition
-args: <edition>
+name: <root>
 description: |
-  The project edition to build. See :program:`mut-build`.
+  The path under which to process SVG files.
+default: ./
 optional: true
 ...

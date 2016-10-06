@@ -13,9 +13,9 @@ Usage
 
 .. code-block:: sh
 
-   mut-build [--edition=<edition>]
+   mut-build <root>
 
 Options
 -------
 
-.. include:: /includes/option/option-mut-images-edition.rst
+.. include:: /includes/option/option-mut-images-root.rst
