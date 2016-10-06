@@ -103,7 +103,7 @@ def main() -> None:
         for f in futures:
             exception = f.exception()
             if exception:
-                logger.error(exception)
+                logger.error(str(exception))
 
 if __name__ == '__main__':
     main()
