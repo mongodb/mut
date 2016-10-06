@@ -146,7 +146,7 @@ def main() -> None:
 
     builder = str(options['--use-builder'])
     source_path = str(options['--source'])
-    edition = str(options.get('--edition', ''))
+    edition = str(options['--edition'] or '')
     tags = [t.strip() for t in str(options['--tags']).split(',')]
     verbose = bool(options['--verbose'])
     serial = bool(options['--serial'])
