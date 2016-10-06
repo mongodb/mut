@@ -433,7 +433,7 @@ class StepsList:
     @classmethod
     def load(cls, values: List[Any], path: str, config: StepsConfig) -> 'StepsList':
         filename = os.path.basename(path)
-        steps = [Step.load(v, filename, config) for v in values]
+        steps = [Step.load(v, filename, config) for v in values if v]
         return cls(steps, filename, config)
 
     def __repr__(self):

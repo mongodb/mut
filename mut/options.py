@@ -344,6 +344,6 @@ def run(root_config: mut.RootConfig, paths: List[str]):
     config = OptionsConfig(root_config)
     for path in paths:
         raw_options = mut.load_yaml(path)
-        [Option.load(o, path, config) for o in raw_options]
+        [Option.load(o, path, config) for o in raw_options if o]
 
     config.output()

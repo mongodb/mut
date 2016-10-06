@@ -245,6 +245,6 @@ def run(root_config: mut.RootConfig, paths: List[str]):
     config = ExtractConfig(root_config)
     for path in paths:
         raw_extracts = mut.load_yaml(path)
-        [Extract.load(e, path, config) for e in raw_extracts]
+        [Extract.load(e, path, config) for e in raw_extracts if e]
 
     config.output()
