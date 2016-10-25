@@ -1,9 +1,9 @@
 Babel==2.2.0
 Jinja2==2.8
 MarkupSafe==0.23
-PyYAML==3.11
+PyYAML==3.11 --global-option="--with-libyaml"
 Pygments==2.1.3
-Sphinx==1.4b1
+Sphinx==1.4.8
 alabaster==0.7.7
 boto==2.39.0
 certifi==2016.2.28
