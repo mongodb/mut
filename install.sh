@@ -115,7 +115,10 @@ dependencies_osx() {
         INSTALL_PYTHON='python3'
     fi
 
-    prompt 'Setup Xcode command line tools' "sudo xcode-select --install && sudo xcode-select -r"
+    set +e
+    prompt 'Setup Xcode command line tools' "sudo xcode-select --install; sudo xcode-select -r"
+    set -e
+
     prompt 'Install dependencies' "brew update && brew install libyaml ${INSTALL_PYTHON}"
 
     if ! which pip3 > /dev/null; then
