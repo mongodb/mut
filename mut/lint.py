@@ -46,7 +46,7 @@ def report_links(linter: mut.tuft.visitors.LinkLinter, verbose: bool) -> None:
 
         if not ok:
             logger.warn('FAIL: %s', url)
-            logger.warn('      %s', ', '.join(references))
+            logger.warn('      %s', ', '.join(set(references)))
 
 
 def main() -> None:

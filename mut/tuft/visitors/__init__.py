@@ -72,13 +72,14 @@ class LinkLinter(Visitor):
         self.urls = {}  # type: Dict[str, List[str]]
 
     def dispatch_visit(self, node):
-        if not isinstance(node, docutils.nodes.literal_block):
+        if isinstance(node, str):
             return
 
-        if not node.hasattr('refuri'):
+        try:
+            url = node['refuri']
+        except KeyError:
             return
 
-        url = node['refuri']
         path = node.document.settings.env.current_input_path
         self.urls[url] = self.urls.get(url, []) + [path]
 
