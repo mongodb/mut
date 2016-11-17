@@ -175,7 +175,8 @@ class Path:
 
 
 class BulletProofS3:
-    """An S3 API that wraps boto to work around Amazon's 100-request limit."""
+    """An S3 API that wraps boto to work around Amazon's
+       100-request-per-connection limit."""
     THRESHOLD = 20
 
     def __init__(self, access_key: str, secret_key: str, bucket_name: str) -> None:
@@ -340,9 +341,11 @@ class StagingCollector:
             if key.size == 0:
                 continue
 
-            # Check if we want to skip this path
+            # To process this path, either it must be:
+            # - A file or a symlink to a file, or
+            # - A directory in our publish set
             local_path = os.path.join(top_root, local_key)
-            if os.path.isdir(local_path) and local_key.split('/', 1)[0] not in roots:
+            if not os.path.isfile(local_path) and local_key.split('/', 1)[0] not in roots:
                 continue
 
             # Store its MD5 hash. Might be useless if encryption or multi-part
