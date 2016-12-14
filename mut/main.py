@@ -111,7 +111,7 @@ def update_submodules() -> None:
     """Update any submodules in this repository."""
     repo = libgiza.git.GitRepo()
     try:
-        repo.cmd('submodule', 'update', '--remote')
+        repo.cmd('submodule', 'update', '--init', '--remote')
     except libgiza.git.GitError as err:
         logger.error('Failed to update submodules: %s', str(err))
 
@@ -214,6 +214,7 @@ def main() -> None:
         cmd = ['sphinx-build',
                '-j{}'.format(config.n_workers),
                '-c', config.root_path,
+               '-b', 'dirhtml',
                '-d', os.path.join(config.output_path, '.doctree')]
 
         # Create tag flags
