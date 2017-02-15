@@ -18,6 +18,6 @@ libgiza==0.2.14
 typing==3.5.2.2
 pytz==2015.7
 requests==2.9.1
-rstcloth==0.2.6.dev0
+rstcloth==0.2.6
 six==1.10.0
 snowballstemmer==1.2.1
