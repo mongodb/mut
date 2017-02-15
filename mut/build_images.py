@@ -36,7 +36,6 @@ def generate_svg(input_path: str, output_path: str) -> None:
     """Clean up and minify a SVG file."""
     logger.info('Generating %s', output_path)
     inkscape = None
-
     for path in ('/Applications/Inkscape.app/Contents/Resources/bin/inkscape'):
         if os.path.isfile(path):
             inkscape = path
@@ -52,16 +51,17 @@ def generate_svg(input_path: str, output_path: str) -> None:
                                input_path,
                                '--vacuum-defs',
                                '--export-text-to-path',
+                               '--export-area-drawing',
                                '--export-plain-svg', tmp.name],
                               stdout=subprocess.DEVNULL,
                               stderr=subprocess.DEVNULL)
 
-        subprocess.check_call(['scour',
-                               '--enable-comment-stripping',
-                               '--enable-id-stripping',
-                               '--shorten-ids',
-                               '--no-line-breaks',
+        subprocess.check_call(['svgo',
                                '-q',
+                               '--multipass',
+                               '-p', '1',
+                               '--enable=removeTitle',
+                               '--enable=removeViewBox',
                                '-i', tmp.name,
                                '-o', output_path])
 

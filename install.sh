@@ -96,8 +96,8 @@ dependencies_unknown() {
         echo "Could not find pngcrush; you will not be able to run mut-images"
     fi
 
-    if ! which scour > /dev/null ; then
-        echo "Could not find scour; you will not be able to run mut-images"
+    if ! which svgo > /dev/null ; then
+        echo "Could not find svgo; you will not be able to run mut-images"
     fi
 }
 
