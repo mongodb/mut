@@ -12,6 +12,8 @@ from typing import *
 import rstcloth.rstcloth
 
 import mut
+import mut.config
+import mut.util
 
 __all__ = ['PREFIXES', 'run']
 
@@ -27,7 +29,7 @@ class ExerciseInputError(mut.MutInputError):
 
 
 class ExerciseConfig:
-    def __init__(self, root_config: mut.RootConfig) -> None:
+    def __init__(self, root_config: mut.config.RootConfig) -> None:
         self.root_config = root_config
         self.exercises = []  # type: List['Exercise']
 
@@ -108,8 +110,8 @@ class Exercise:
         exercise = cls(ref, path, config)  # type: Exercise
 
         exercise.language = language
-        src_path = mut.withdraw(value, 'src', str)
-        exercise.test_command = mut.withdraw(value, 'test-command', str)
+        src_path = mut.util.withdraw(value, 'src', str)
+        exercise.test_command = mut.util.withdraw(value, 'test-command', str)
 
         if not src_path:
             raise ExerciseInputError(path, ref, 'Missing "src"')
@@ -128,25 +130,25 @@ class Exercise:
 
 def str_dict_dict(value: Dict[str, Dict[str, str]]) -> Dict[str, Dict[str, str]]:
     """Verifies dictionaries of string dictionaries."""
-    return dict([(str(v[0]), mut.str_dict(v[1])) for v in value.items()])
+    return dict([(str(v[0]), mut.util.str_dict(v[1])) for v in value.items()])
 
 
 def load_exercises(value: Dict[str, Any], path: str, config: ExerciseConfig) -> List['Exercise']:
-    ref = mut.withdraw(value, 'ref', str)
+    ref = mut.util.withdraw(value, 'ref', str)
     if not ref:
         raise ExerciseInputError(path, ref, 'Missing "ref"')
 
-    languages = mut.withdraw(value, 'languages', str_dict_dict)
+    languages = mut.util.withdraw(value, 'languages', str_dict_dict)
     return [Exercise.load('{}-{}'.format(ref, language), language, value, path, config) for
                          (language, value) in languages.items()]
 
 
-def run(root_config: mut.RootConfig, paths: List[str]) -> List[mut.MutInputError]:
+def run(root_config: mut.config.RootConfig, paths: List[str]) -> List[mut.MutInputError]:
     logger.info('Exercises')
     config = ExerciseConfig(root_config)
     for path in paths:
         with open(path, 'r') as f:
-            raw_exercises = mut.load_yaml(path)
+            raw_exercises = mut.util.load_yaml(path)
             [load_exercises(raw, path, config) for raw in raw_exercises]
 
     config.output()

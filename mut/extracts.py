@@ -6,6 +6,9 @@ from typing import *
 import rstcloth.rstcloth
 
 import mut
+import mut.config
+import mut.state
+import mut.util
 
 __all__ = ['PREFIXES', 'run']
 
@@ -21,7 +24,7 @@ class ExtractsInputError(mut.MutInputError):
 
 
 class ExtractConfig:
-    def __init__(self, root_config: mut.RootConfig) -> None:
+    def __init__(self, root_config: mut.config.RootConfig) -> None:
         self.root_config = root_config
         self.extracts = {}  # type: Dict[str, Extract]
         self.final_extracts = set()  # type: Set[str]
@@ -56,7 +59,7 @@ class ExtractConfig:
         return '{}#{}'.format(path, ref)
 
 
-class ExtractState(mut.State):
+class ExtractState(mut.state.State):
     def __init__(self, ref: str) -> None:
         self._ref = ref
         self._replacements = {}  # type: Dict[str, str]
@@ -173,7 +176,7 @@ class Extract:
         if self.state.post:
             cloth.content(self.state.post, indent=indent)
 
-        content = mut.substitute_rstcloth(cloth, self.state.replacements)
+        content = mut.util.substitute_rstcloth(cloth, self.state.replacements)
 
         with open(self.output_path, 'w') as f:
             f.write(content)
@@ -205,28 +208,28 @@ class Extract:
 
     @classmethod
     def load(cls, value: Any, path: str, config: ExtractConfig) -> 'Extract':
-        ref = mut.withdraw(value, 'ref', str)
+        ref = mut.util.withdraw(value, 'ref', str)
         if not ref:
             raise ExtractsInputError(path, '<unknown>', 'Extract with no ref')
 
         extract = cls(ref, path, config)  # type: Extract
-        inherit = mut.withdraw(value, 'inherit', mut.str_dict, default={})  # type: Dict[str, str]
+        inherit = mut.util.withdraw(value, 'inherit', mut.util.str_dict, default={})  # type: Dict[str, str]
         if not inherit:
-            inherit = mut.withdraw(value, 'source', mut.str_dict, default={})
+            inherit = mut.util.withdraw(value, 'source', mut.util.str_dict, default={})
 
         if inherit:
             extract._inherit = (inherit['file'], inherit['ref'])
 
-        replacements = mut.withdraw(value, 'replacement', mut.str_dict, default={})  # type: Dict[str, str]
+        replacements = mut.util.withdraw(value, 'replacement', mut.util.str_dict, default={})  # type: Dict[str, str]
         for src, dest in replacements.items():
             extract.state.replacements[src] = dest
 
-        extract.state.title = mut.withdraw(value, 'title', str)
-        extract.state.post = mut.withdraw(value, 'post', str)
-        extract.state.style = mut.withdraw(value, 'style', str)
-        extract.state.only = mut.withdraw(value, 'only', str)
-        extract.state.content = mut.withdraw(value, 'content', str)
-        append = mut.withdraw(value, 'append', mut.string_list)
+        extract.state.title = mut.util.withdraw(value, 'title', str)
+        extract.state.post = mut.util.withdraw(value, 'post', str)
+        extract.state.style = mut.util.withdraw(value, 'style', str)
+        extract.state.only = mut.util.withdraw(value, 'only', str)
+        extract.state.content = mut.util.withdraw(value, 'content', str)
+        append = mut.util.withdraw(value, 'append', mut.util.string_list)
         if append:
             extract.state.append = append
 
@@ -240,11 +243,11 @@ class Extract:
         return '{}({})'.format(self.__class__.__name__, repr(self.state.ref))
 
 
-def run(root_config: mut.RootConfig, paths: List[str]):
+def run(root_config: mut.config.RootConfig, paths: List[str]):
     logger.info('Extracts')
     config = ExtractConfig(root_config)
     for path in paths:
-        raw_extracts = mut.load_yaml(path)
+        raw_extracts = mut.util.load_yaml(path)
         [Extract.load(e, path, config) for e in raw_extracts if e]
 
     config.output()

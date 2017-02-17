@@ -8,6 +8,9 @@ import rstcloth.rstcloth
 import yaml
 
 import mut
+import mut.config
+import mut.state
+import mut.util
 
 __all__ = ['PREFIXES', 'run']
 
@@ -17,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 class ApiargsConfig:
-    def __init__(self, root_config: mut.RootConfig) -> None:
+    def __init__(self, root_config: mut.config.RootConfig) -> None:
         self.root_config = root_config
         self.apiarg_entries = {}  # type: Dict[str, ApiargEntry]
         self.apiargs = []  # type: List[Apiargs]
@@ -55,7 +58,7 @@ class ApiargsInputError(mut.MutInputError):
         return 'apiargs'
 
 
-class ApiargEntryState(mut.State):
+class ApiargEntryState(mut.state.State):
     def __init__(self, name: str, path: str) -> None:
         self.path = os.path.basename(path)
         self._replacements = {}  # type: Dict[str, str]
@@ -103,7 +106,7 @@ class ApiargEntryState(mut.State):
         self._rendered = ''.join(components)
 
         if self.replacements:
-            self._rendered = mut.substitute(self._rendered, self.replacements)
+            self._rendered = mut.util.substitute(self._rendered, self.replacements)
 
         return self._rendered
 
@@ -147,7 +150,7 @@ class ApiargEntry:
 
     @classmethod
     def load(cls, value: Any, path: str, config: ApiargsConfig) -> 'ApiargEntry':
-        entry_name = mut.withdraw(value, 'name', str)
+        entry_name = mut.util.withdraw(value, 'name', str)
         if entry_name is None:
             try:
                 entry_name = value['source']['ref']
@@ -156,27 +159,27 @@ class ApiargEntry:
                 raise ApiargsInputError(path, entry_name, msg) from err
 
         entry = cls(entry_name, path, config)  # type: ApiargEntry
-        entry.state.arg_name = mut.withdraw(value, 'arg_name', str)
-        entry.state.description = mut.withdraw(value, 'description', str)
-        entry.state.interface = mut.withdraw(value, 'interface', str)
-        entry.state.operation = mut.withdraw(value, 'operation', str)
-        entry.state.optional = mut.withdraw(value, 'optional', bool)
-        entry.state.position = mut.withdraw(value, 'position', int)
-        entry.state.type = mut.withdraw(value, 'type', mut.str_or_list)
-        entry.state.pre = mut.withdraw(value, 'pre', str)
+        entry.state.arg_name = mut.util.withdraw(value, 'arg_name', str)
+        entry.state.description = mut.util.withdraw(value, 'description', str)
+        entry.state.interface = mut.util.withdraw(value, 'interface', str)
+        entry.state.operation = mut.util.withdraw(value, 'operation', str)
+        entry.state.optional = mut.util.withdraw(value, 'optional', bool)
+        entry.state.position = mut.util.withdraw(value, 'position', int)
+        entry.state.type = mut.util.withdraw(value, 'type', mut.util.str_or_list)
+        entry.state.pre = mut.util.withdraw(value, 'pre', str)
 
-        raw_parent = mut.withdraw(value, 'source', mut.str_dict)
+        raw_parent = mut.util.withdraw(value, 'source', mut.util.str_dict)
         if raw_parent is not None:
-            parent_path = mut.withdraw(raw_parent, 'file', str)
-            parent_ref = mut.withdraw(raw_parent, 'ref', str)
+            parent_path = mut.util.withdraw(raw_parent, 'file', str)
+            parent_ref = mut.util.withdraw(raw_parent, 'ref', str)
             entry._inherit = parent_path + '#' + parent_ref
 
-        replacements = mut.withdraw(value, 'replacement', mut.str_dict)
+        replacements = mut.util.withdraw(value, 'replacement', mut.util.str_dict)
         if replacements:
             for src, dest in replacements.items():
                 entry.state.replacements[src] = dest
 
-        ref = mut.withdraw(value, 'ref', str)
+        ref = mut.util.withdraw(value, 'ref', str)
         if ref is not None:
             msg = 'Deprecated field: "ref"'
             config.root_config.warn(ApiargsInputError(path, entry_name, msg))
@@ -317,7 +320,7 @@ class Apiargs:
             cloth.newline()
 
 
-def run(root_config: mut.RootConfig, paths: List[str]) -> List[mut.MutInputError]:
+def run(root_config: mut.config.RootConfig, paths: List[str]) -> List[mut.MutInputError]:
     logger.info('Apiargs')
     config = ApiargsConfig(root_config)
     for path in paths:

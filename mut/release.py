@@ -6,6 +6,9 @@ import rstcloth.rstcloth
 from typing import Any, Dict, List
 
 import mut
+import mut.config
+import mut.state
+import mut.util
 
 __all__ = ['PREFIXES', 'run']
 
@@ -21,7 +24,7 @@ class ReleaseInputError(mut.MutInputError):
 
 
 class ReleaseConfig:
-    def __init__(self, root_config: mut.RootConfig) -> None:
+    def __init__(self, root_config: mut.config.RootConfig) -> None:
         self.root_config = root_config
         self.entries = {}  # type: Dict[str, ReleaseEntry]
         self.final_entries = []  # type: List[ReleaseEntry]
@@ -49,7 +52,7 @@ class ReleaseConfig:
         return os.path.join(self.root_config.output_path, 'source', 'includes', 'release')
 
 
-class ReleaseEntryState(mut.State):
+class ReleaseEntryState(mut.state.State):
     def __init__(self, ref: str) -> None:
         self._replacements = {
             'version': '1.0',
@@ -129,7 +132,7 @@ class ReleaseEntry:
             cloth.newline()
 
         contents = '\n'.join(cloth.data)
-        contents = mut.substitute(contents, self.state.replacements)
+        contents = mut.util.substitute(contents, self.state.replacements)
         with open(self.output_path, 'w') as f:
             f.write(contents)
 
@@ -159,20 +162,20 @@ class ReleaseEntry:
 
     @classmethod
     def load(cls, value: Dict[str, Any], path: str, config: ReleaseConfig) -> 'ReleaseEntry':
-        ref = mut.withdraw(value, 'ref', str)
+        ref = mut.util.withdraw(value, 'ref', str)
         state = ReleaseEntryState(ref)
         entry = cls(ref, state, path, config)  # type: ReleaseEntry
 
-        entry.state.pre = mut.withdraw(value, 'pre', str)
-        entry.state.language = mut.withdraw(value, 'language', str)
-        entry.state.code = mut.withdraw(value, 'code', str)
-        entry.state.content = mut.withdraw(value, 'content', str)
-        entry.state.post = mut.withdraw(value, 'post', str)
+        entry.state.pre = mut.util.withdraw(value, 'pre', str)
+        entry.state.language = mut.util.withdraw(value, 'language', str)
+        entry.state.code = mut.util.withdraw(value, 'code', str)
+        entry.state.content = mut.util.withdraw(value, 'content', str)
+        entry.state.post = mut.util.withdraw(value, 'post', str)
 
         if 'source' in value:
-            entry._inherit = mut.withdraw(value, 'source', mut.str_dict)['ref']
+            entry._inherit = mut.util.withdraw(value, 'source', mut.util.str_dict)['ref']
 
-        replacements = mut.withdraw(value, 'replacement', mut.str_dict)
+        replacements = mut.util.withdraw(value, 'replacement', mut.util.str_dict)
         if replacements:
             for src, dest in replacements.items():
                 entry.state.replacements[src] = dest
@@ -180,11 +183,11 @@ class ReleaseEntry:
         return entry
 
 
-def run(root_config: mut.RootConfig, paths: List[str]):
+def run(root_config: mut.config.RootConfig, paths: List[str]):
     logger.info('Release')
     config = ReleaseConfig(root_config)
     for path in paths:
-        raw_entries = mut.load_yaml(path)
+        raw_entries = mut.util.load_yaml(path)
         [ReleaseEntry.load(e, path, config) for e in raw_entries]
 
     config.output()

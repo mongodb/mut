@@ -6,6 +6,7 @@ from typing import *
 import rstcloth.rstcloth
 
 import mut
+import mut.config
 
 PREFIXES = ['images']
 
@@ -13,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class ImagesConfig:
-    def __init__(self, root_config: mut.RootConfig) -> None:
+    def __init__(self, root_config: mut.config.RootConfig) -> None:
         self.root_config = root_config
         self.images = []  # type: List[Image]
 
@@ -105,15 +106,15 @@ class Image:
     @classmethod
     def load(cls, value: Dict[str, Any], path: str, config: ImagesConfig) -> 'Image':
         filename = os.path.basename(path)
-        name = mut.withdraw(value, 'name', str)
+        name = mut.util.withdraw(value, 'name', str)
         if not name:
             msg = 'No "name" field found in {}'.format(path)
             raise ImagesInputError(filename, '<unknown>', msg)
 
         image = cls(name, filename, config)
-        image.alt = mut.withdraw(value, 'alt', str)
+        image.alt = mut.util.withdraw(value, 'alt', str)
 
-        raw_outputs = mut.withdraw(value, 'output', mut.list_str_any_dict)
+        raw_outputs = mut.util.withdraw(value, 'output', mut.util.list_str_any_dict)
 
         try:
             web_output = [int(raw['width']) for raw in raw_outputs if raw['type'] == 'web']
@@ -131,11 +132,11 @@ class Image:
         return '{}({})'.format(self.__class__.__name__, repr(self.ref))
 
 
-def run(root_config: mut.RootConfig, paths: List[str]) -> List[mut.MutInputError]:
+def run(root_config: mut.config.RootConfig, paths: List[str]) -> List[mut.MutInputError]:
     logger.info('Images: %d', len(paths))
     config = ImagesConfig(root_config)
     for path in paths:
-        raw_images = mut.load_yaml(path)
+        raw_images = mut.util.load_yaml(path)
         [Image.load(raw_image, path, config) for raw_image in raw_images if raw_image]
 
     config.output()

@@ -6,7 +6,7 @@ from typing import *
 import rstcloth.rstcloth
 import rstcloth.table
 
-import mut
+import mut.config
 
 __all__ = ['PREFIXES', 'run']
 
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 class TableConfig:
-    def __init__(self, root_config: mut.RootConfig) -> None:
+    def __init__(self, root_config: mut.config.RootConfig) -> None:
         self.root_config = root_config
         self.tables = []  # type: List['Table']
 
@@ -71,7 +71,7 @@ class Table:
         return '{}({})'.format(self.__class__.__name__, repr(self.ref))
 
 
-def run(root_config: mut.RootConfig, paths: List[str]):
+def run(root_config: mut.config.RootConfig, paths: List[str]):
     logger.info('Tables')
     config = TableConfig(root_config)
     for path in paths:

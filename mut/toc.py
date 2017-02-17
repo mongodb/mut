@@ -7,6 +7,9 @@ import rstcloth.rstcloth
 import rstcloth.table
 
 import mut
+import mut.config
+import mut.state
+import mut.util
 
 __all__ = ['PREFIXES', 'run']
 
@@ -16,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 class TocConfig:
-    def __init__(self, root_config: mut.RootConfig) -> None:
+    def __init__(self, root_config: mut.config.RootConfig) -> None:
         self.root_config = root_config
         self.toc_entries = {}  # type: Dict[str, TocEntry]
         self.tocs = {}  # type: Dict[str, Toc]
@@ -62,7 +65,7 @@ class TocInputError(mut.MutInputError):
         return 'Toc'
 
 
-class TocState(mut.State):
+class TocState(mut.state.State):
     def __init__(self, target: str) -> None:
         self._replacements = {}  # type: Dict[str, str]
         self.file = target
@@ -128,9 +131,9 @@ class TocEntry:
 
     @classmethod
     def load(cls, value: Any, path: str, config: TocConfig) -> 'TocEntry':
-        entry_target = mut.withdraw(value, 'file', str)
+        entry_target = mut.util.withdraw(value, 'file', str)
         if entry_target is None:
-            entry_target = mut.withdraw(value, 'ref', str)
+            entry_target = mut.util.withdraw(value, 'ref', str)
         if entry_target is None:
             try:
                 entry_target = value['source']['ref']
@@ -138,12 +141,12 @@ class TocEntry:
                 raise TocInputError(path, entry_target, '') from err
 
         entry = cls(entry_target, path, config)  # type: TocEntry
-        entry.state.name = mut.withdraw(value, 'name', str)
-        entry.state.description = mut.withdraw(value, 'description', str)
-        entry.state.level = mut.withdraw(value, 'level', int)
-        entry.state.text_only = mut.withdraw(value, 'text_only', bool)
+        entry.state.name = mut.util.withdraw(value, 'name', str)
+        entry.state.description = mut.util.withdraw(value, 'description', str)
+        entry.state.level = mut.util.withdraw(value, 'level', int)
+        entry.state.text_only = mut.util.withdraw(value, 'text_only', bool)
 
-        raw_inherit = mut.withdraw(value, 'source', mut.str_dict)
+        raw_inherit = mut.util.withdraw(value, 'source', mut.util.str_dict)
         try:
             if raw_inherit:
                 entry._inherit = (raw_inherit['file'], raw_inherit['ref'])
@@ -292,11 +295,11 @@ class Toc:
         return '{}({})'.format(self.__class__.__name__, repr(self.ref))
 
 
-def run(root_config: mut.RootConfig, paths: List[str]):
+def run(root_config: mut.config.RootConfig, paths: List[str]):
     logger.info('Tocs')
     config = TocConfig(root_config)
     for path in paths:
-        raw_tocs = mut.load_yaml(path)
+        raw_tocs = mut.util.load_yaml(path)
         Toc.load(raw_tocs, path, config)
 
     config.output()

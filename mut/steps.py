@@ -6,6 +6,9 @@ from typing import *
 import rstcloth.rstcloth
 
 import mut
+import mut.config
+import mut.state
+import mut.util
 
 __all__ = ['PREFIXES', 'run']
 
@@ -30,7 +33,7 @@ def str_or_str_dict(value: Union[str, Dict[str, str]]) -> Union[str, Dict[str, s
     if isinstance(value, str):
         return value
 
-    return mut.str_dict(value)
+    return mut.util.str_dict(value)
 
 
 def str_or_dict_to_list(items) -> List[Any]:
@@ -41,7 +44,7 @@ def str_or_dict_to_list(items) -> List[Any]:
 
 
 class StepsConfig:
-    def __init__(self, root_config: mut.RootConfig) -> None:
+    def __init__(self, root_config: mut.config.RootConfig) -> None:
         self.root_config = root_config
         self.steps = {}  # type: Dict[str, Step]
         self.final_steps = []  # type: List[StepsList]
@@ -170,7 +173,7 @@ class Action:
         return action
 
 
-class StepState(mut.State):
+class StepState(mut.state.State):
     DEFAULT_LEVEL = 3
 
     def __init__(self, ref: str) -> None:
@@ -298,20 +301,20 @@ class Step:
 
     @classmethod
     def load(cls, value: Any, path: str, config: StepsConfig) -> 'Step':
-        inherit = mut.withdraw(value, 'inherit', mut.str_dict) or \
-                  mut.withdraw(value, 'source', mut.str_dict)
+        inherit = mut.util.withdraw(value, 'inherit', mut.util.str_dict) or \
+                  mut.util.withdraw(value, 'source', mut.util.str_dict)
 
-        ref = mut.withdraw(value, 'ref', str)
+        ref = mut.util.withdraw(value, 'ref', str)
         if ref is None:
             ref = inherit.get('ref') if inherit else None
         if ref is None:
             raise KeyError('ref: {}'.format(path))
 
         step = cls(ref, path, config)  # type: Step
-        step.state.pre = mut.withdraw(value, 'pre', str)
-        step.state.post = mut.withdraw(value, 'post', str)
+        step.state.pre = mut.util.withdraw(value, 'pre', str)
+        step.state.post = mut.util.withdraw(value, 'post', str)
 
-        title = mut.withdraw(value, 'title', str_or_str_dict)
+        title = mut.util.withdraw(value, 'title', str_or_str_dict)
         if isinstance(title, str):
             step.state.title = title
         elif title:
@@ -319,9 +322,9 @@ class Step:
             if 'character' in title:
                 step.state.level = LEVEL_CHARACTERS[title['character']]
 
-        step.state.level = mut.withdraw(value, 'level', int, default=step.state.level)
-        step.state.content = mut.withdraw(value, 'content', str)
-        raw_actions = mut.withdraw(value, 'action', str_or_dict_to_list)
+        step.state.level = mut.util.withdraw(value, 'level', int, default=step.state.level)
+        step.state.content = mut.util.withdraw(value, 'content', str)
+        raw_actions = mut.util.withdraw(value, 'action', str_or_dict_to_list)
 
         if raw_actions:
             try:
@@ -333,7 +336,7 @@ class Step:
             msg = '"action" will replace "content"'
             config.root_config.warn(StepsInputError(path, ref, msg))
 
-        replacements = mut.withdraw(value, 'replacement', mut.str_dict)
+        replacements = mut.util.withdraw(value, 'replacement', mut.util.str_dict)
         if replacements:
             for src, dest in replacements.items():
                 step.state.replacements[src] = dest
@@ -341,7 +344,7 @@ class Step:
         if inherit:
             step._inherit = (inherit['file'], inherit['ref'])
 
-        if mut.withdraw(value, 'stepnum', int):
+        if mut.util.withdraw(value, 'stepnum', int):
             msg = 'Deprecated field: "stepnum"'
             config.root_config.warn(StepsInputError(path, ref, msg))
 
@@ -419,7 +422,7 @@ class StepsList:
 
             # XXX This is not the right place to apply substitutions
             chunk = '\n'.join(cloth.data)
-            chunk = mut.substitute(chunk, step.state.replacements)
+            chunk = mut.util.substitute(chunk, step.state.replacements)
             chunks.append(chunk)
 
         with open(self.output_path, 'w') as f:
@@ -440,11 +443,11 @@ class StepsList:
         return '{}({})'.format(self.__class__.__name__, repr(self.ref))
 
 
-def run(root_config: mut.RootConfig, paths: List[str]) -> List[mut.MutInputError]:
+def run(root_config: mut.config.RootConfig, paths: List[str]) -> List[mut.MutInputError]:
     logger.info('Steps')
     config = StepsConfig(root_config)
     for path in paths:
-        raw_steps = mut.load_yaml(path)
+        raw_steps = mut.util.load_yaml(path)
         StepsList.load(raw_steps, path, config)
 
     config.output()

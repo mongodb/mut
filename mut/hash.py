@@ -11,14 +11,14 @@ import os
 from typing import List
 import rstcloth.rstcloth
 
-import mut
+import mut.config
 
 PREFIXES = []  # type: List[str]
 
 logger = logging.getLogger(__name__)
 
 
-def generate_hash_file(config: mut.RootConfig) -> None:
+def generate_hash_file(config: mut.config.RootConfig) -> None:
     filename = os.path.join(config.output_source_path,
                             'includes',
                             'hash.rst')
@@ -48,7 +48,7 @@ def generate_hash_file(config: mut.RootConfig) -> None:
         cloth.write(filename)
 
 
-def generate_release_file(config: mut.RootConfig) -> None:
+def generate_release_file(config: mut.config.RootConfig) -> None:
     filename = os.path.join(config.output_path,
                             'html',
                             'release.txt')
@@ -61,7 +61,7 @@ def generate_release_file(config: mut.RootConfig) -> None:
         f.write(config.commit)
 
 
-def run(root_config: mut.RootConfig, paths: List[str]):
+def run(root_config: mut.config.RootConfig, paths: List[str]):
     logger.info('Hash')
     generate_hash_file(root_config)
     generate_release_file(root_config)

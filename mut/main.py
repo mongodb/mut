@@ -31,6 +31,7 @@ import libgiza.git
 
 import mut
 import mut.apiargs
+import mut.config
 import mut.exercise
 import mut.extracts
 import mut.hash
@@ -118,7 +119,7 @@ def update_submodules() -> None:
         logger.error('Failed to update submodules: %s', str(err))
 
 
-def migrate(config: mut.RootConfig, paths: List[str]) -> None:
+def migrate(config: mut.config.RootConfig, paths: List[str]) -> None:
     """Copy plain restructured text files to our output directory."""
     logger.info('Migrating')
     for path in paths:
@@ -173,7 +174,7 @@ def main() -> None:
     except ImportError:
         logging.warning('PyYAML is missing libyaml')
 
-    config = mut.RootConfig(source_path, edition)
+    config = mut.config.RootConfig(source_path, edition)
     plugins = PluginSet()
     collected = FileCollector()
     collected.walk(config.source_path, plugins.prefixes)

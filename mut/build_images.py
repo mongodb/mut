@@ -103,7 +103,7 @@ def main() -> None:
         for path in paths:
             bare_path, _ = os.path.splitext(path)
             output_filename = bare_path + '.bakedsvg.svg'
-            if not mut.compare_mtimes(output_filename, [path]):
+            if not mut.util.compare_mtimes(output_filename, [path]):
                 continue
 
             futures.append(pool.submit(

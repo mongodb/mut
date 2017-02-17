@@ -6,6 +6,9 @@ from typing import *
 import rstcloth.rstcloth
 
 import mut
+import mut.config
+import mut.state
+import mut.util
 
 __all__ = ['PREFIXES', 'run']
 
@@ -15,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 class OptionsConfig:
-    def __init__(self, root_config: mut.RootConfig) -> None:
+    def __init__(self, root_config: mut.config.RootConfig) -> None:
         self.root_config = root_config
         self.options = {}  # type: Dict[str, Option]
         self.final_options = []  # type: List[str]
@@ -57,7 +60,7 @@ class OptionInputError(mut.MutInputError):
         return 'option'
 
 
-class OptionState(mut.State):
+class OptionState(mut.state.State):
     DIRECTIVES = ('option', 'commandoption', 'data', 'setting',
                   'method', 'function', 'class')
 
@@ -269,7 +272,7 @@ class Option:
             cloth.content(value.split('\n'), indent=indent, wrap=False)
             cloth.newline()
 
-        content = mut.substitute('\n'.join(cloth.data), self.state.replacements)
+        content = mut.util.substitute('\n'.join(cloth.data), self.state.replacements)
         with open(self.output_path, 'w') as f:
             f.write(content)
 
@@ -280,12 +283,12 @@ class Option:
         return os.path.join(self.config.output_path, filename) + '.rst'
 
     def _populate(self, value: Any) -> None:
-        self.state.aliases = mut.withdraw(value, 'aliases', str)
-        self.state.args = mut.withdraw(value, 'args', str)
-        self.state.default = mut.withdraw(value, 'default', str)
-        self.state.description = mut.withdraw(value, 'description', str)
+        self.state.aliases = mut.util.withdraw(value, 'aliases', str)
+        self.state.args = mut.util.withdraw(value, 'args', str)
+        self.state.default = mut.util.withdraw(value, 'default', str)
+        self.state.description = mut.util.withdraw(value, 'description', str)
 
-        directive = mut.withdraw(value, 'directive', str)
+        directive = mut.util.withdraw(value, 'directive', str)
         try:
             self.state.directive = directive
         except ValueError:
@@ -293,18 +296,18 @@ class Option:
                                                                OptionState.DIRECTIVES)
             raise ValueError(msg)
 
-        self.state.optional = mut.withdraw(value, 'optional', bool)
-        self.state.type = mut.withdraw(value, 'type', str)
+        self.state.optional = mut.util.withdraw(value, 'optional', bool)
+        self.state.type = mut.util.withdraw(value, 'type', str)
 
-        self.state.pre = mut.withdraw(value, 'pre', str)
-        self.state.post = mut.withdraw(value, 'post', str)
+        self.state.pre = mut.util.withdraw(value, 'pre', str)
+        self.state.post = mut.util.withdraw(value, 'post', str)
 
-        replacements = mut.withdraw(value, 'replacement', mut.str_dict)
+        replacements = mut.util.withdraw(value, 'replacement', mut.util.str_dict)
         if replacements:
             for src, dest in replacements.items():
                 self.state.replacements[src] = dest
 
-        raw_inherit = mut.withdraw(value, 'inherit', mut.str_dict, default={})  # type: Dict[str, str]
+        raw_inherit = mut.util.withdraw(value, 'inherit', mut.util.str_dict, default={})  # type: Dict[str, str]
         if raw_inherit:
             self._inherit = (raw_inherit['file'],
                              '{}-{}'.format(raw_inherit['program'], raw_inherit['name']))
@@ -315,11 +318,11 @@ class Option:
 
     @classmethod
     def load(cls, value: Any, path: str, config: OptionsConfig) -> 'Option':
-        program = mut.withdraw(value, 'program', str)
+        program = mut.util.withdraw(value, 'program', str)
         if not program:
             raise OptionInputError(path, '<unknown>', 'Missing field "name"')
 
-        name = mut.withdraw(value, 'name', str)
+        name = mut.util.withdraw(value, 'name', str)
         if not name:
             raise OptionInputError(path, program, 'Missing field "name"')
 
@@ -339,11 +342,11 @@ class Option:
         return '{}({})'.format(self.__class__.__name__, repr(self.ref))
 
 
-def run(root_config: mut.RootConfig, paths: List[str]):
+def run(root_config: mut.config.RootConfig, paths: List[str]):
     logger.info('Options')
     config = OptionsConfig(root_config)
     for path in paths:
-        raw_options = mut.load_yaml(path)
+        raw_options = mut.util.load_yaml(path)
         [Option.load(o, path, config) for o in raw_options if o]
 
     config.output()
