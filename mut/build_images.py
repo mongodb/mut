@@ -35,6 +35,7 @@ from typing import List
 import docopt
 
 import mut
+import mut.util
 
 logger = logging.getLogger(__name__)
 
