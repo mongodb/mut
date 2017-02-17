@@ -13,11 +13,13 @@
 # limitations under the License.
 
 """Usage: mut-lint <builddir> (--linters=<linter>|--all) [--verbose]
+mut-lint --version
 
--h --help           - show this
---all               - run all linter passes
---linters=<linter>  - comma-separated list of linter passes to run
---verbose           - print more verbose debugging information
+-h --help               show this
+--all                   run all linter passes
+--linters=<linter>      comma-separated list of linter passes to run
+--verbose               print more verbose debugging information
+--version               show mut version
 
 Available Linters:
   links
@@ -51,6 +53,11 @@ def report_links(linter: mut.tuft.visitors.LinkLinter, verbose: bool) -> None:
 
 def main() -> None:
     options = docopt.docopt(__doc__)
+
+    if options.get('--version', False):
+        import mut
+        print('mut ' + mut.__version__)
+        return
 
     root = str(options['<builddir>'])
     verbose = bool(options.get('--verbose', False))

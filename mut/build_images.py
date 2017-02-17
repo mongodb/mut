@@ -12,9 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Usage: mut-images [<root>]
+"""Bake fonts into SVG files using Inkscape, then minify them using svgo.
+Inputs all SVG files "foo.svg" under the root recursively, and outputs
+each file as "foo.bakedsvg.svg".
 
--h --help           - show this
+Usage:
+  mut-images [<root>]
+  mut-images --version
+
+-h --help           show this
+--version           show mut version
 """
 
 import concurrent.futures
@@ -68,6 +75,10 @@ def generate_svg(input_path: str, output_path: str) -> None:
 
 def main() -> None:
     options = docopt.docopt(__doc__)
+    if options.get('--version', False):
+        print('mut ' + mut.__version__)
+        return
+
     root = str(options['<root>'] or '.')
     logging.basicConfig(level=logging.INFO)
 

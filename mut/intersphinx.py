@@ -1,10 +1,12 @@
 """Usage: mut-intersphinx --update=<configpath>
                           [--timeout=<timeout>] [-v|--verbose]
+mut-intersphinx --version
 
 -h --help               show this
 --update=<configpath>   update
 --timeout=<timeout>     wait <timeout> seconds before giving up [default: 5]
 -v --verbose            turn on additional debugging messages
+--version               show mut version
 
 """
 
@@ -69,6 +71,12 @@ def update(name: str, url: str, timeout: float) -> None:
 def main():
     """Main program entry point."""
     options = docopt.docopt(__doc__)
+
+    if options.get('--version', False):
+        import mut
+        print('mut ' + mut.__version__)
+        return
+
     update_path = str(options['--update'])
     timeout = float(options['--timeout'])
     verbose = options.get('--verbose', False)

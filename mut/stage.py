@@ -18,15 +18,12 @@
                       [--redirects=htaccess]
                       [--redirect-prefix=prefix]...
                       [--dry-run] [--verbose]
+mut-publish --version
 
 -h --help               show this help message
-
 --prefix=prefix         the prefix under which to upload in the given bucket
-
 --stage                 apply staging behavior: upload under a prefix
-
 --deploy                apply deploy behavior: upload into the bucket root
-
 --destage               remove all staged files
 
 --all-subdirectories    recurse into all subdirectories under <source>.
@@ -41,8 +38,8 @@
                         option multiple times.
 
 --dry-run               do not actually do anything
-
 --verbose               print more verbose debugging information
+--version               show mut version
 """
 
 import collections
@@ -670,6 +667,11 @@ def create_config_framework(path: str) -> None:
 
 def main() -> None:
     options = docopt.docopt(__doc__)
+
+    if options.get('--version', False):
+        import mut
+        print('mut ' + mut.__version__)
+        return
 
     root = options['<source>']
     bucket = options['<bucket>']

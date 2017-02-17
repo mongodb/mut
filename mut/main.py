@@ -1,6 +1,8 @@
-"""Usage: mut-build [--use-builder=(sphinx|tuft)] [--source=<path>]
-                    [--edition=<edition>] [--tags=<tags>] [--serial]
-                    [--no-update-submodules] [--verbose]
+"""Usage:
+  mut-build [--use-builder=(sphinx|tuft)] [--source=<path>]
+            [--edition=<edition>] [--tags=<tags>] [--serial]
+            [--no-update-submodules] [--verbose]
+  mut-build --version
 
 -h --help                    show this
 --use-builder=(sphinx|tuft)  call sphinx-build [default: sphinx]
@@ -13,7 +15,7 @@
 --serial                     only execute one transform stage at a time
 --no-update-submodules       do not update submodules in the current repository
 --verbose                    print more verbose error information
-
+--version                    show mut version
 """
 
 import concurrent.futures
@@ -143,6 +145,10 @@ def migrate(config: mut.RootConfig, paths: List[str]) -> None:
 def main() -> None:
     """Main program entry point."""
     options = docopt.docopt(__doc__)
+
+    if options.get('--version', False):
+        print('mut ' + mut.__version__)
+        return
 
     builder = str(options['--use-builder'])
     source_path = str(options['--source'])

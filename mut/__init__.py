@@ -6,6 +6,7 @@ import libgiza.git
 import yaml
 from typing import Any, Callable, Dict, List, TypeVar, Union
 
+__version__ = '0.0.dev0'
 __all__ = ['substitute', 'withdraw', 'str_or_list', 'str_dict', 'load_yaml',
            'State', 'MutInputError', 'RootConfig']
 

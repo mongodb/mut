@@ -1,5 +1,6 @@
 import sys
 from setuptools import setup, find_packages
+import mut
 
 REQUIRES = [
     'boto>=2.39,<2.40',
@@ -21,7 +22,7 @@ if sys.version < '3.5':
 setup(
     name='mut',
     description='',
-    version='0.0.0',
+    version=mut.__version__,
     author='Andrew Aldridge',
     author_email='i80and@foxquill.com',
     license='Apache',
