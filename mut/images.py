@@ -7,6 +7,7 @@ import rstcloth.rstcloth
 
 import mut
 import mut.config
+import mut.util
 
 PREFIXES = ['images']
 
