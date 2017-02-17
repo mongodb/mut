@@ -11,8 +11,8 @@ REQUIRES = [
     'libgiza>=0.2.13,<0.3',
     'PyYAML',
     'requests>2.9,<2.10',
-    'rstcloth>0.2.5',
-    'sphinx>1.4',
+    'rstcloth>=0.2.6',
+    'sphinx>=1.5',
 ]
 
 # Need a fallback for the typing module
