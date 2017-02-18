@@ -84,16 +84,19 @@ def main() -> None:
     logging.basicConfig(level=logging.INFO)
 
     paths = []  # type: List[str]
-    for root, dirs, files in os.walk(root):
-        for filename in files:
-            components = os.path.splitext(filename)
-            if len(components) < 2 or components[1] != '.svg':
-                continue
+    if os.path.isfile(root):
+        paths.append(root)
+    else:
+        for root, dirs, files in os.walk(root):
+            for filename in files:
+                components = os.path.splitext(filename)
+                if len(components) < 2 or components[1] != '.svg':
+                    continue
 
-            if components[0].endswith('.bakedsvg'):
-                continue
+                if components[0].endswith('.bakedsvg'):
+                    continue
 
-            paths.append(os.path.join(root, filename))
+                paths.append(os.path.join(root, filename))
 
     logger.info('Build Images: %d', len(paths))
 
