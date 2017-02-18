@@ -26,6 +26,7 @@ YAML Format
 
    action:
      code: <string>
+     copyable: <boolean>
      content: <string>
      heading: <string>
      language: <string>

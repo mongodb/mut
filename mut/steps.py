@@ -99,6 +99,7 @@ class Action:
 
         self.pre = ''
         self.language = None  # type: str
+        self.copyable = False
         self.code = ''
         self.content = ''
         self.post = ''
@@ -123,6 +124,9 @@ class Action:
                           indent=indent,
                           wrap=False)
             cloth.newline()
+
+        if self.copyable and self.code:
+            cloth.content(name='class', arg='copyable-code')
 
         if self.code:
             cloth.directive(name='code-block',
@@ -160,6 +164,7 @@ class Action:
             action.heading_char = raw_heading.get('character', None)
 
         action.pre = value.get('pre', '')
+        action.copyable = value.get('copyable', False)
         action.language = value.get('language', '')
         action.code = value.get('code', '')
         action.content = value.get('content', '')
