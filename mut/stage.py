@@ -659,7 +659,7 @@ def create_config_framework(path: str) -> None:
     try:
         with os.fdopen(os.open(path,
                                os.O_WRONLY | os.O_CREAT | os.O_EXCL,
-                               0o600), 'wx') as conf_file:
+                               0o600), 'x') as conf_file:
             conf_file.write('[authentication]\n')
     except IOError:
         pass
