@@ -27,14 +27,14 @@ class TocConfig:
     def register(self, toc: 'Toc') -> None:
         toc_id = self.toc_global_id(toc.path, toc.ref)
         if toc_id in self.tocs:
-            raise ValueError('Already registered')
+            raise TocInputError(toc.path, toc_id, 'Already registered')
 
         self.tocs[toc_id] = toc
 
         for entry in toc.entries:
             entry_id = entry.ref
             if entry_id in self.toc_entries:
-                raise ValueError('Already registered')
+                raise TocInputError(toc.path, entry_id, 'Already registered')
 
             self.toc_entries[entry_id] = entry
 
@@ -287,6 +287,7 @@ class Toc:
     @classmethod
     def load(cls, values: List[Any], path: str, config: TocConfig) -> 'Toc':
         entries = [TocEntry.load(v, path, config) for v in values]
+
         toc = cls(entries, path, config)  # type: Toc
 
         return toc
