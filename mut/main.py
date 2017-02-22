@@ -49,7 +49,7 @@ logger = logging.getLogger(__name__)
 class FileCollector:
     """Collects and indexes source files."""
 
-    MIGRATE = ('.txt', '.rst', '.png')
+    MIGRATE = ('.txt', '.rst', '.png', '.svg')
 
     def __init__(self) -> None:
         self.files = {}  # type: Dict[str, List[str]]
