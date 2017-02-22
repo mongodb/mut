@@ -72,6 +72,7 @@ class ApiargEntryState(mut.state.State):
         self.optional = None  # type: bool
         self.position = None  # type: int
         self.pre = None  # type: str
+        self.post = None  # type: str
 
         self._rendered = ''
 
@@ -86,7 +87,7 @@ class ApiargEntryState(mut.state.State):
     @property
     def keys(self) -> List[str]:
         return ['name', 'type', 'arg_name', 'description', 'interface',
-                'operation', 'optional', 'position', 'pre']
+                'operation', 'optional', 'position', 'pre', 'post']
 
     @property
     def contents(self) -> str:
@@ -102,6 +103,9 @@ class ApiargEntryState(mut.state.State):
 
         if self.description:
             components.append(self.description)
+
+        if self.post:
+            components.append(self.post + '\n\n')
 
         self._rendered = ''.join(components)
 
@@ -167,6 +171,7 @@ class ApiargEntry:
         entry.state.position = mut.util.withdraw(value, 'position', int)
         entry.state.type = mut.util.withdraw(value, 'type', mut.util.str_or_list)
         entry.state.pre = mut.util.withdraw(value, 'pre', str)
+        entry.state.post = mut.util.withdraw(value, 'post', str)
 
         raw_parent = mut.util.withdraw(value, 'source', mut.util.str_dict)
         if raw_parent is not None:
