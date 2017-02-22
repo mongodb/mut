@@ -126,7 +126,7 @@ class Action:
             cloth.newline()
 
         if self.copyable and self.code:
-            cloth.content(name='class', arg='copyable-code')
+            cloth.directive(name='class', arg='copyable-code')
 
         if self.code:
             cloth.directive(name='code-block',
