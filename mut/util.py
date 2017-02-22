@@ -102,3 +102,11 @@ def save_if_changed(text: str, path: str) -> bool:
         f.write(text)
 
     return True
+
+
+def save_rstcloth_if_changed(cloth, path: str) -> bool:
+    return save_if_changed('\n'.join(cloth.data) + '\n', path)
+
+
+def save_rstcloth_table_if_changed(table_builder, path: str) -> bool:
+    return save_if_changed('\n'.join(table_builder.output), path)

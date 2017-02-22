@@ -72,7 +72,7 @@ class Image:
             msg = 'Could not find input SVG file.'
             raise ImagesInputError(self.config_path, self.name, msg)
 
-        cloth.write(self.output_path)
+        mut.util.save_rstcloth_if_changed(cloth, self.output_path)
 
         return
 

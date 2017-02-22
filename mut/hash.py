@@ -45,7 +45,7 @@ def generate_hash_file(config: mut.config.RootConfig) -> None:
             with open(filename, 'a'):
                 os.utime(filename, None)
     else:
-        cloth.write(filename)
+        mut.util.save_rstcloth_if_changed(cloth, filename)
 
 
 def generate_release_file(config: mut.config.RootConfig) -> None:

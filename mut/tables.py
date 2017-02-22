@@ -53,9 +53,7 @@ class Table:
     def output(self) -> None:
         list_table = rstcloth.table.ListTable(self.table_data)
         builder = rstcloth.table.TableBuilder(list_table)
-        builder.write(self.output_path)
-
-        builder.write(self.output_path)
+        mut.util.save_rstcloth_table_if_changed(builder, self.output_path)
 
     @property
     def output_path(self) -> str:

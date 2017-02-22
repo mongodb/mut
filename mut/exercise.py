@@ -94,7 +94,7 @@ class Exercise:
         cloth.newline()
         cloth.content(code, wrap=False, indent=3)
 
-        cloth.write(self.output_path)
+        mut.util.save_rstcloth_if_changed(cloth, self.output_path)
 
     @property
     def output_path(self) -> str:

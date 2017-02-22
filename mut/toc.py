@@ -245,7 +245,7 @@ class Toc:
                 cloth.definition(dfn_heading, description, indent=indent)
                 cloth.newline()
 
-        cloth.write(output_path)
+        mut.util.save_rstcloth_if_changed(cloth, output_path)
 
     def output_toctree(self, output_path: str) -> None:
         is_ref = self.is_ref
@@ -265,7 +265,7 @@ class Toc:
             else:
                 cloth.content(entry.state.file, indent=6, wrap=False)
 
-        cloth.write(output_path)
+        mut.util.save_rstcloth_if_changed(cloth, output_path)
 
     def output_table(self, output_path: str) -> None:
         table_data = rstcloth.table.TableData()
@@ -282,7 +282,7 @@ class Toc:
             table_data.add_row(row)
 
         table_builder = rstcloth.table.TableBuilder(rstcloth.table.RstTable(table_data))
-        table_builder.write(output_path)
+        mut.util.save_rstcloth_table_if_changed(table_builder, output_path)
 
     @classmethod
     def load(cls, values: List[Any], path: str, config: TocConfig) -> 'Toc':

@@ -256,7 +256,7 @@ class Apiargs:
         cloth.newline()
         self._render_apiarg_fields(cloth)
 
-        cloth.write(self.output_path)
+        mut.util.save_rstcloth_if_changed(cloth, self.output_path)
 
     @property
     def output_path(self) -> str:
