@@ -110,7 +110,12 @@ class ApiargEntryState(mut.state.State):
         self._rendered = ''.join(components)
 
         if self.replacements:
-            self._rendered = mut.util.substitute(self._rendered, self.replacements)
+            try:
+                self._rendered = mut.util.substitute(self._rendered, self.replacements)
+            except KeyError as error:
+                raise ApiargsInputError(self.path,
+                                        self.ref,
+                                        'Failed to substitute {}'.format(str(error))) from error
 
         return self._rendered
 
@@ -144,11 +149,10 @@ class ApiargEntry:
 
     def inherit(self) -> None:
         parent = self.parent
-        if parent is None:
-            return
+        if parent is not None:
+            parent.inherit()
+            self.state.inherit(parent.state)
 
-        parent.inherit()
-        self.state.inherit(parent.state)
         self._setup_replacements()
         self._inherit = None
 

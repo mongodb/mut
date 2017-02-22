@@ -131,8 +131,13 @@ class ReleaseEntry:
                           wrap=False)
             cloth.newline()
 
-        contents = '\n'.join(cloth.data)
-        contents = mut.util.substitute(contents, self.state.replacements)
+        try:
+            contents = mut.util.substitute_rstcloth(cloth, self.state.replacements)
+        except KeyError as error:
+            raise ReleaseInputError(self.path,
+                                    self.ref,
+                                    'Failed to substitute {}'.format(str(error))) from error
+
         mut.util.save_if_changed(contents, self.output_path)
 
     @property

@@ -279,7 +279,13 @@ class Option:
             cloth.content(value.split('\n'), indent=indent, wrap=False)
             cloth.newline()
 
-        content = mut.util.substitute('\n'.join(cloth.data), self.state.replacements)
+        try:
+            content = mut.util.substitute_rstcloth(cloth, self.state.replacements)
+        except KeyError as error:
+            raise OptionInputError(self.path,
+                                   self.ref,
+                                   'Failed to substitute {}'.format(str(error))) from error
+
         mut.util.save_if_changed(content, self.output_path)
 
     @property

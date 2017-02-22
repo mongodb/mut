@@ -176,6 +176,13 @@ class Extract:
         if self.state.post:
             cloth.content(self.state.post, indent=indent)
 
+        try:
+            content = mut.util.substitute_rstcloth(cloth, self.state.replacements)
+        except KeyError as error:
+            raise ExtractsInputError(self.path,
+                                     self.state.ref,
+                                     'Failed to substitute {}'.format(str(error))) from error
+
         content = mut.util.substitute_rstcloth(cloth, self.state.replacements)
 
         mut.util.save_if_changed(content, self.output_path)

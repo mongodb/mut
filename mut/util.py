@@ -1,10 +1,14 @@
 import os.path
+import re
 
 import yaml
 import rstcloth.rstcloth
 from typing import Any, Callable, Dict, List, TypeVar, Union
 
+import mut
+
 T = TypeVar('T')
+PAT_SUBSTITUTION = re.compile(r'{{(.+?)}}')
 
 
 def compare_mtimes(target: str, dependencies: List[str]) -> bool:
@@ -21,10 +25,7 @@ def compare_mtimes(target: str, dependencies: List[str]) -> bool:
 
 def substitute(text: str, replacements: Dict[str, str]) -> str:
     """Quick-and-dirty template substitution function."""
-    for src, dest in replacements.items():
-        text = text.replace('{{{{{}}}}}'.format(src), dest)
-
-    return text
+    return PAT_SUBSTITUTION.sub(lambda match: replacements[match.group(1)], text)
 
 
 def substitute_rstcloth(cloth: rstcloth.rstcloth.RstCloth,
@@ -96,7 +97,6 @@ def save_if_changed(text: str, path: str) -> bool:
         if data == text:
             return False
 
-        print(path)
         f.seek(0)
         f.truncate(0)
         f.write(text)

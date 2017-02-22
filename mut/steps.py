@@ -426,7 +426,12 @@ class StepsList:
             step.render(3, cloth)
 
             # XXX This is not the right place to apply substitutions
-            chunk = '\n'.join(cloth.data)
+            try:
+                chunk = mut.util.substitute_rstcloth(cloth, step.state.replacements)
+            except KeyError as error:
+                raise StepsInputError(self.path,
+                                      self.ref,
+                                      'Failed to substitute {}'.format(str(error))) from error
             chunk = mut.util.substitute(chunk, step.state.replacements)
             chunks.append(chunk)
 
