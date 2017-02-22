@@ -173,10 +173,11 @@ class ApiargEntry:
         entry.state.pre = mut.util.withdraw(value, 'pre', str)
         entry.state.post = mut.util.withdraw(value, 'post', str)
 
-        raw_parent = mut.util.withdraw(value, 'source', mut.util.str_dict)
-        if raw_parent is not None:
-            parent_path = mut.util.withdraw(raw_parent, 'file', str)
-            parent_ref = mut.util.withdraw(raw_parent, 'ref', str)
+        inherit = mut.util.withdraw(value, 'inherit', mut.util.str_dict) or \
+                  mut.util.withdraw(value, 'source', mut.util.str_dict)
+        if inherit is not None:
+            parent_path = mut.util.withdraw(inherit, 'file', str)
+            parent_ref = mut.util.withdraw(inherit, 'ref', str)
             entry._inherit = parent_path + '#' + parent_ref
 
         replacements = mut.util.withdraw(value, 'replacement', mut.util.str_dict)
