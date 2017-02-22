@@ -310,6 +310,7 @@ class Option:
         self.state.pre = mut.util.withdraw(value, 'pre', str)
         self.state.post = mut.util.withdraw(value, 'post', str)
         self.state.filename = mut.util.withdraw(value, 'filename', str)
+        self.state.command = mut.util.withdraw(value, 'command', str)
 
         replacements = mut.util.withdraw(value, 'replacement', mut.util.str_dict)
         if replacements:
