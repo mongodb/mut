@@ -57,8 +57,7 @@ def generate_release_file(config: mut.config.RootConfig) -> None:
     if not os.path.exists(release_root):
         os.makedirs(release_root)
 
-    with open(filename, 'w') as f:
-        f.write(config.commit)
+    mut.util.save_if_changed(config.commit, filename)
 
 
 def run(root_config: mut.config.RootConfig, paths: List[str]):

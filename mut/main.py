@@ -131,7 +131,7 @@ def migrate(config: mut.config.RootConfig, paths: List[str]) -> None:
         except FileNotFoundError:
             pass
 
-        if dest_mtime > src_mtime:
+        if dest_mtime >= src_mtime:
             continue
 
         dest_dir = os.path.dirname(dest_path)

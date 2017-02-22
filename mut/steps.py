@@ -430,8 +430,7 @@ class StepsList:
             chunk = mut.util.substitute(chunk, step.state.replacements)
             chunks.append(chunk)
 
-        with open(self.output_path, 'w') as f:
-            f.write('\n'.join(chunks))
+        mut.util.save_if_changed('\n'.join(chunks), self.output_path)
 
     @property
     def output_path(self) -> str:

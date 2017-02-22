@@ -87,3 +87,18 @@ def load_yaml(path: str) -> List[Dict[str, Any]]:
     """Open a file and parse the YAML within."""
     with open(path, 'r') as f:
         return list(yaml.load_all(f, Loader=yaml.CLoader))
+
+
+def save_if_changed(text: str, path: str) -> bool:
+    """Write text to a path only if its contents are not equal to said text."""
+    with open(path, 'r+') as f:
+        data = f.read()
+        if data == text:
+            return False
+
+        print(path)
+        f.seek(0)
+        f.truncate(0)
+        f.write(text)
+
+    return True

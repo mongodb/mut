@@ -133,8 +133,7 @@ class ReleaseEntry:
 
         contents = '\n'.join(cloth.data)
         contents = mut.util.substitute(contents, self.state.replacements)
-        with open(self.output_path, 'w') as f:
-            f.write(contents)
+        mut.util.save_if_changed(contents, self.output_path)
 
     @property
     def parent(self) -> 'ReleaseEntry':

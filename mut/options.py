@@ -280,8 +280,7 @@ class Option:
             cloth.newline()
 
         content = mut.util.substitute('\n'.join(cloth.data), self.state.replacements)
-        with open(self.output_path, 'w') as f:
-            f.write(content)
+        mut.util.save_if_changed(content, self.output_path)
 
     @property
     def output_path(self) -> str:

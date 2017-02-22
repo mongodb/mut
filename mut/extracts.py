@@ -178,8 +178,7 @@ class Extract:
 
         content = mut.util.substitute_rstcloth(cloth, self.state.replacements)
 
-        with open(self.output_path, 'w') as f:
-            f.write(content)
+        mut.util.save_if_changed(content, self.output_path)
 
         relative_path = self.output_path.replace(self.config.root_config.output_source_path, '', 1)
         include_line = '.. include:: {}'.format(relative_path)
