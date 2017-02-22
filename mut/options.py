@@ -69,6 +69,7 @@ class OptionState(mut.state.State):
 
         self._program = program
         self._name = name
+        self._filename = None  # type: str
         self._command = None  # type: str
         self._aliases = None  # type: str
         self._args = None  # type: str
@@ -86,6 +87,12 @@ class OptionState(mut.state.State):
 
     @property
     def name(self) -> str: return self._name or ''
+
+    @property
+    def filename(self) -> str: return self._filename or ''
+
+    @filename.setter
+    def filename(self, filename: str) -> None: self._filename = filename
 
     @property
     def command(self) -> str: return self._command or ''
@@ -161,7 +168,7 @@ class OptionState(mut.state.State):
 
     @property
     def keys(self):
-        return ['_program', '_name', '_command', '_directive', '_type',
+        return ['_program', '_name', '_filename', '_command', '_directive', '_type',
                 '_default', '_args', '_description', '_aliases', '_optional',
                 '_pre', '_post']
 
@@ -279,7 +286,8 @@ class Option:
     @property
     def output_path(self) -> str:
         self.inherit()
-        filename = self.state.directive + '-' + self.ref.replace(' ', '-')
+        filename = (self.state.filename or self.ref).replace(' ', '-')
+        filename = self.state.directive + '-' + filename
         return os.path.join(self.config.output_path, filename) + '.rst'
 
     def _populate(self, value: Any) -> None:
@@ -301,6 +309,7 @@ class Option:
 
         self.state.pre = mut.util.withdraw(value, 'pre', str)
         self.state.post = mut.util.withdraw(value, 'post', str)
+        self.state.filename = mut.util.withdraw(value, 'filename', str)
 
         replacements = mut.util.withdraw(value, 'replacement', mut.util.str_dict)
         if replacements:
