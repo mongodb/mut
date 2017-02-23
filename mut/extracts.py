@@ -64,12 +64,19 @@ class ExtractState(mut.state.State):
         self._ref = ref
         self._replacements = {}  # type: Dict[str, str]
 
+        self._edition = None  # type: str
         self._content = None  # type: str
         self._append = None  # type: List[str]
         self._only = None  # type: str
         self._post = None  # type: str
         self._style = None  # type: str
         self._title = None  # type: str
+
+    @property
+    def edition(self) -> str: return self._edition or ''
+
+    @edition.setter
+    def edition(self, edition: str) -> None: self._edition = edition
 
     @property
     def content(self) -> str: return self._content or ''
@@ -156,8 +163,15 @@ class Extract:
         indent = 0
         cloth = rstcloth.rstcloth.RstCloth()
 
+        only = []
         if self.state.only:
-            cloth.directive('only', self.state.only, indent=indent)
+            only.append(self.state.only)
+
+        if self.state.edition:
+            only.append('({})'.format(self.state.edition))
+
+        if self.state.only:
+            cloth.directive('only', ' and '.join(only), indent=indent)
             cloth.newline()
             indent += 3
 
@@ -230,6 +244,7 @@ class Extract:
         for src, dest in replacements.items():
             extract.state.replacements[src] = dest
 
+        extract.state.edition = mut.util.withdraw(value, 'edition', str)
         extract.state.title = mut.util.withdraw(value, 'title', str)
         extract.state.post = mut.util.withdraw(value, 'post', str)
         extract.state.style = mut.util.withdraw(value, 'style', str)
