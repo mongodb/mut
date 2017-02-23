@@ -140,11 +140,6 @@ create_venv() {
         cd dev
 
         git clone --depth=1 https://github.com/mongodb/mut.git
-        git clone https://github.com/i80and/docs-tools.git
-        git clone --depth=1 https://github.com/i80and/libgiza.git
-
-        ( cd libgiza && pip install . )
-        ( cd docs-tools/giza && git checkout giza3 && pip install . )
         ( cd mut && pip install -r requirements.txt . )
     )
 

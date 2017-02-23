@@ -3,13 +3,13 @@ from setuptools import setup, find_packages
 import mut
 
 REQUIRES = [
-    'boto>=2.39,<2.40',
+    'boto',
     'certifi',
-    'docopt>=0.6,<0.7',
+    'docopt',
     'docutils',
-    'dominate>=2.1,<2.2',
+    'dominate',
     'PyYAML',
-    'requests>2.9,<2.10',
+    'requests',
     'rstcloth>=0.2.6',
     'sphinx>=1.5',
     'giza>=0.5.13'
