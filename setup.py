@@ -8,7 +8,6 @@ REQUIRES = [
     'docopt>=0.6,<0.7',
     'docutils',
     'dominate>=2.1,<2.2',
-    'libgiza>=0.2.13,<0.3',
     'PyYAML',
     'requests>2.9,<2.10',
     'rstcloth>=0.2.6',

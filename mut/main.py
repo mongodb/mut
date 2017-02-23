@@ -27,7 +27,7 @@ import subprocess
 from typing import Any, Callable, Dict, List, Tuple, TypeVar, Union
 
 import docopt
-import libgiza.git
+import giza.libgiza.git
 
 import mut
 import mut.apiargs
@@ -112,10 +112,10 @@ class PluginSet:
 
 def update_submodules() -> None:
     """Update any submodules in this repository."""
-    repo = libgiza.git.GitRepo()
+    repo = giza.libgiza.git.GitRepo()
     try:
         repo.cmd('submodule', 'update', '--init', '--remote')
-    except libgiza.git.GitError as err:
+    except giza.libgiza.git.GitError as err:
         logger.error('Failed to update submodules: %s', str(err))
 
 

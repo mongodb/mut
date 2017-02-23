@@ -1,12 +1,12 @@
 import os.path
-import libgiza.git
+import giza.libgiza.git
 import mut
 
 
 class RootConfig:
     """The root configuration giving project-wide configuration details."""
     def __init__(self, root: str, edition: str) -> None:
-        self.repo = libgiza.git.GitRepo()
+        self.repo = giza.libgiza.git.GitRepo()
         self.branch = self.repo.current_branch()
         self.commit = self.repo.sha()
 

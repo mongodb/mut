@@ -8,7 +8,6 @@ dominate==2.1.17
 future==0.16.0
 imagesize==0.7.1
 Jinja2==2.9.5
-libgiza==0.2.13
 MarkupSafe==0.23
 Pygments==2.2.0
 pytz==2016.10
