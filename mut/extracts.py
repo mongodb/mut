@@ -32,7 +32,7 @@ class ExtractConfig:
     def register(self, extract: 'Extract') -> None:
         extract_id = self.extract_global_id(extract.path, extract.state.ref)
         if extract_id in self.extracts:
-            raise ValueError('Already registered')
+            raise ExtractsInputError(extract.path, extract_id, 'Already registered')
 
         self.extracts[extract_id] = extract
         if not extract.state.ref.startswith('_'):

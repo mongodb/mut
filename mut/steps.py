@@ -43,6 +43,12 @@ def str_or_dict_to_list(items) -> List[Any]:
     return list(items)
 
 
+class StepsInputError(mut.MutInputError):
+    @property
+    def plugin_name(self) -> str:
+        return 'steps'
+
+
 class StepsConfig:
     def __init__(self, root_config: mut.config.RootConfig) -> None:
         self.root_config = root_config
@@ -81,15 +87,9 @@ class StepsConfig:
     def _register_step(self, step: 'Step') -> None:
         step_id = self.step_global_id(step.path, step.state.ref)
         if step_id in self.steps:
-            raise ValueError('Already registered')
+            raise StepsInputError(step.path, step_id, 'Already registered')
 
         self.steps[step_id] = step
-
-
-class StepsInputError(mut.MutInputError):
-    @property
-    def plugin_name(self) -> str:
-        return 'steps'
 
 
 class Action:

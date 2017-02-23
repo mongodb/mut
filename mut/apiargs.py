@@ -19,6 +19,12 @@ PREFIXES = ['apiargs']
 logger = logging.getLogger(__name__)
 
 
+class ApiargsInputError(mut.MutInputError):
+    @property
+    def plugin_name(self) -> str:
+        return 'apiargs'
+
+
 class ApiargsConfig:
     def __init__(self, root_config: mut.config.RootConfig) -> None:
         self.root_config = root_config
@@ -31,7 +37,7 @@ class ApiargsConfig:
         for entry in apiarg.entries:
             entry_id = entry.ref
             if entry_id in self.apiarg_entries:
-                raise ValueError('Already registered')
+                raise ApiargsInputError(apiarg.path, entry_id, 'Already registered')
 
             self.apiarg_entries[entry_id] = entry
 
@@ -50,12 +56,6 @@ class ApiargsConfig:
     @property
     def output_path(self) -> str:
         return os.path.join(self.root_config.output_path, 'source', 'includes', 'apiargs')
-
-
-class ApiargsInputError(mut.MutInputError):
-    @property
-    def plugin_name(self) -> str:
-        return 'apiargs'
 
 
 class ApiargEntryState(mut.state.State):
