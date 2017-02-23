@@ -12,6 +12,7 @@ REQUIRES = [
     'requests>2.9,<2.10',
     'rstcloth>=0.2.6',
     'sphinx>=1.5',
+    'giza>=0.5.13'
 ]
 
 # Need a fallback for the typing module

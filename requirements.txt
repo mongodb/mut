@@ -6,6 +6,7 @@ docopt==0.6.2
 docutils==0.13.1
 dominate==2.1.17
 future==0.16.0
+giza==0.5.13
 imagesize==0.7.1
 Jinja2==2.9.5
 MarkupSafe==0.23
