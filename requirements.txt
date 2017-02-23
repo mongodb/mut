@@ -15,7 +15,6 @@ imagesize==0.7.1
 Jinja2==2.9.5
 jira==1.0.10
 MarkupSafe==0.23
-mut==0.0.dev0
 oauthlib==2.0.1
 onetimepass==1.0.1
 pbr==1.10.0
