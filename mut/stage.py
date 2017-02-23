@@ -58,7 +58,7 @@ import boto.s3.bucket
 import boto.s3.connection
 import boto.s3.key
 import docopt
-import libgiza.git
+import giza.libgiza.git
 
 from typing import cast, Callable, Dict, List, Set, Tuple, Pattern
 
@@ -84,7 +84,7 @@ class AuthenticationInfo:
 class Config:
     """Staging and deployment runtime configuration."""
     def __init__(self, bucket: str, prefix: str) -> None:
-        repo = libgiza.git.GitRepo()
+        repo = giza.libgiza.git.GitRepo()
         self.builder = 'html'
         self.branch = repo.current_branch()
         self.bucket = bucket

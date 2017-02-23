@@ -31,7 +31,7 @@ import logging
 import sys
 
 import docopt
-import libgiza.git
+import giza.libgiza.git
 
 from typing import Any, Dict
 
