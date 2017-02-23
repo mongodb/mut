@@ -167,6 +167,12 @@ class OptionState(mut.state.State):
         return '{}-{}'.format(self.program, self.name)
 
     @property
+    def ref_filename(self) -> str:
+        """Returns a variant of the ref that makes use of the "filename" option,
+           and substitutes spaces in the *program* for compatibility with giza."""
+        return '{}-{}'.format(self.program.replace(' ', '-'), self.filename or self.name)
+
+    @property
     def keys(self):
         return ['_program', '_name', '_filename', '_command', '_directive', '_type',
                 '_default', '_args', '_description', '_aliases', '_optional',
@@ -291,8 +297,10 @@ class Option:
     @property
     def output_path(self) -> str:
         self.inherit()
-        filename = (self.state.filename or self.ref).replace(' ', '-')
-        filename = self.state.directive + '-' + filename
+        # Use an explicit filename if we were given one, or construct a name
+        # where our *option name* can have spaces, but not our *program*.
+        # Why? Compatibility with giza.
+        filename = self.state.directive + '-' + self.state.ref_filename
         return os.path.join(self.config.output_path, filename) + '.rst'
 
     def _populate(self, value: Any) -> None:

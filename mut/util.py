@@ -92,13 +92,15 @@ def load_yaml(path: str) -> List[Dict[str, Any]]:
 
 def save_if_changed(text: str, path: str) -> bool:
     """Write text to a path only if its contents are not equal to said text."""
-    with open(path, 'r+') as f:
-        data = f.read()
-        if data == text:
-            return False
+    try:
+        with open(path, 'r') as f:
+            data = f.read()
+            if data == text:
+                return False
+    except FileNotFoundError:
+        pass
 
-        f.seek(0)
-        f.truncate(0)
+    with open(path, 'w') as f:
         f.write(text)
 
     return True
