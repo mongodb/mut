@@ -26,7 +26,7 @@ class ExtractsInputError(mut.MutInputError):
 class ExtractConfig:
     def __init__(self, root_config: mut.config.RootConfig) -> None:
         self.root_config = root_config
-        self.extracts = {}  # type: Dict[str, Extract]
+        self.extracts = {}  # type: Dict[str, List[Extract]]
         self.final_extracts = set()  # type: Set[str]
 
     def register(self, extract: 'Extract') -> None:
@@ -34,11 +34,11 @@ class ExtractConfig:
         if extract_id in self.extracts:
             raise ExtractsInputError(extract.path, extract_id, 'Already registered')
 
-        self.extracts[extract_id] = extract
+        self.extracts.setdefault(extract_id, []).append(extract)
         if not extract.state.ref.startswith('_'):
             self.final_extracts.add(extract_id)
 
-    def get_extract(self, path: str, ref: str) -> 'Extract':
+    def get_extracts(self, path: str, ref: str) -> List['Extract']:
         return self.extracts[self.extract_global_id(path, ref)]
 
     def output(self) -> None:
@@ -48,7 +48,11 @@ class ExtractConfig:
             pass
 
         for extract_id in self.final_extracts:
-            self.extracts[extract_id].output()
+            parts = []
+            for extract in self.extracts[extract_id]:
+                parts.append(extract.get_output())
+
+            mut.util.save_if_changed('\n'.join(parts), self.extracts[extract_id][0].output_path)
 
     @property
     def output_path(self) -> str:
@@ -137,20 +141,24 @@ class Extract:
         self.config = config
         config.register(self)
 
-    @property
-    def parent(self) -> 'Extract':
+    def get_parent(self, edition: str) -> 'Extract':
         if self._inherit is None:
             return None
 
         parent_path, parent_ref = self._inherit
         try:
-            return self.config.get_extract(parent_path, parent_ref)
+            candidates = self.config.get_extracts(parent_path, parent_ref)
+            return next(filter(lambda extract: extract.state.edition == edition, candidates))
         except KeyError:
             msg = 'Could not find Extract "{}" to inherit from in "{}"'.format(parent_ref, parent_path)
             raise ExtractsInputError(self.path, self.state.ref, msg)
+        except StopIteration:
+            msg = 'Could not find Extract "{}" with edition "{}" to inherit from in "{}"'.format(
+                parent_ref, edition, parent_path)
+            raise ExtractsInputError(self.path, self.state.ref, msg)
 
     def inherit(self) -> None:
-        parent = self.parent
+        parent = self.get_parent(self.state.edition)
         if parent is None:
             return
 
@@ -158,7 +166,7 @@ class Extract:
         self.state.inherit(parent.state)
         self._inherit = None
 
-    def output(self) -> None:
+    def get_output(self) -> str:
         self.inherit()
         indent = 0
         cloth = rstcloth.rstcloth.RstCloth()
@@ -199,8 +207,6 @@ class Extract:
 
         content = mut.util.substitute_rstcloth(cloth, self.state.replacements)
 
-        mut.util.save_if_changed(content, self.output_path)
-
         relative_path = self.output_path.replace(self.config.root_config.output_source_path, '', 1)
         include_line = '.. include:: {}'.format(relative_path)
         for append_path in self.state.append:
@@ -221,6 +227,8 @@ class Extract:
 
                 if not found:
                     f.write('\n\n' + include_line + '\n')
+
+        return content
 
     @property
     def output_path(self) -> str:
