@@ -29,3 +29,12 @@ class MutInputError(Exception, metaclass=abc.ABCMeta):
     def __str__(self) -> str:
         """Return a human-readable message."""
         return self._message
+
+
+class MutYAMLError(Exception):
+    def __init__(self, path: str, message: str) -> None:
+        self.path = path
+        self.message = message
+
+    def __str__(self) -> str:
+        return self.message

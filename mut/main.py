@@ -206,6 +206,11 @@ def main() -> None:
             logger.error('    %s: %s', err.path, err.ref)
         else:
             logger.exception(str(err))
+    except mut.MutYAMLError as err:
+        if not verbose:
+            logger.error('Error parsing YAML: %s', str(err))
+        else:
+            logger.exception(str(err))
 
     # Log warnings
     for warning in warnings:

@@ -86,8 +86,11 @@ def list_str_any_dict(values: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 
 def load_yaml(path: str) -> List[Dict[str, Any]]:
     """Open a file and parse the YAML within."""
-    with open(path, 'r') as f:
-        return list(yaml.load_all(f, Loader=yaml.CLoader))
+    try:
+        with open(path, 'r') as f:
+            return list(yaml.load_all(f, Loader=yaml.CLoader))
+    except yaml.error.YAMLError as error:
+        raise mut.MutYAMLError(path, str(error)) from error
 
 
 def save_if_changed(text: str, path: str) -> bool:
