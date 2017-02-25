@@ -313,7 +313,7 @@ class Step:
         if ref is None:
             ref = inherit.get('ref') if inherit else None
         if ref is None:
-            raise KeyError('ref: {}'.format(path))
+            raise StepsInputError(path, '<unknown>', 'Missing ref')
 
         step = cls(ref, path, config)  # type: Step
         step.state.pre = mut.util.withdraw(value, 'pre', str)
