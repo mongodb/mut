@@ -44,7 +44,7 @@ def generate_svg(input_path: str, output_path: str) -> None:
     """Clean up and minify a SVG file."""
     logger.info('Generating %s', output_path)
     inkscape = None
-    for path in ('/Applications/Inkscape.app/Contents/Resources/bin/inkscape'):
+    for path in ('/Applications/Inkscape.app/Contents/Resources/bin/inkscape',):
         if os.path.isfile(path):
             inkscape = path
             break
