@@ -36,6 +36,7 @@ requests-oauthlib==0.8.0
 requests-toolbelt==0.8.0
 rstcloth==0.2.6
 s3transfer==0.1.10
+setuptools==36.2.7
 six==1.10.0
 snowballstemmer==1.2.1
 Sphinx==1.6.3
