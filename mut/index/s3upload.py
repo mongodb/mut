@@ -3,15 +3,22 @@ import os
 import boto3
 from botocore.exceptions import ClientError, ParamValidationError
 
+from mut.AuthenticationInfo import AuthenticationInfo
 from mut.index.utils.AwaitResponse import wait_for_response
 from mut.index.utils.Logger import log_unsuccessful
 
 
 def _connect_to_s3():
+    authentication_info = AuthenticationInfo.load()
+    session = boto3.session.Session(
+        aws_access_key_id=authentication_info.access_key,
+        aws_secret_access_key=authentication_info.secret_key)
+
     try:
         s3 = wait_for_response(
             'Opening connection to s3',
-            boto3.resource, 's3'
+            session.resource,
+            's3'
         )
         print('Successfully connected to s3.')
         return s3
@@ -20,8 +27,8 @@ def _connect_to_s3():
         log_unsuccessful('connection')(message, ex)
 
 
-def _backup_current(bucket, prefix, output_file):
-    backup = Backup(bucket, prefix, output_file)
+def _backup_current(s3, bucket, prefix, output_file):
+    backup = Backup(s3, bucket, prefix, output_file)
     backup_created = backup.create()
     if not backup_created:
         backup = None
@@ -60,14 +67,15 @@ def upload_manifest_to_s3(bucket, prefix, file, manifest, do_backup):
     key = prefix + file
     print('\n### Uploading Manifest to s3\n')
     s3 = _connect_to_s3()
-    backup = _backup_current(bucket, prefix, file) if do_backup else None
+    backup = _backup_current(s3, bucket, prefix, file) if do_backup else None
     _upload(s3, bucket, key, manifest)
     return backup
 
 
 class Backup:
     '''Backs up the current version of a file being uploaded to s3.'''
-    def __init__(self, bucket, prefix, output_file):
+    def __init__(self, s3, bucket, prefix, output_file):
+        self.s3 = s3
         self.bucket = bucket
         self.prefix = prefix
         self.output_file = output_file
@@ -82,7 +90,7 @@ class Backup:
     def create(self):
         '''Creates the backup file.'''
         try:
-            bucket = boto3.resource('s3').Bucket(self.bucket)
+            bucket = self.s3.Bucket(self.bucket)
             if self.key in [obj.key for obj in bucket.objects.all()]:
                 wait_for_response(
                     'Backing up current manifest from s3',
@@ -109,7 +117,7 @@ class Backup:
             with open(self.backup_path, 'r') as backup:
                 wait_for_response(
                     'Attempting to restore backup to s3',
-                    boto3.resource('s3').Bucket(self.bucket).put_object,
+                    self.s3.Bucket(self.bucket).put_object,
                     Key=self.key,
                     Body=backup.read(),
                     ContentType='application/json'
