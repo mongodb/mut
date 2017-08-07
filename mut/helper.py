@@ -4,6 +4,7 @@ Usage: mut build [...]
        mut intersphinx [...]
        mut lint [...]
        mut publish [...]
+       mut index [...]
 """
 
 import os.path

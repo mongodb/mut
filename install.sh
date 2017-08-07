@@ -19,6 +19,7 @@ _try_venv() {
 venv() {
     if _try_venv pyvenv "$@"; then return; fi
     if _try_venv pyvenv-3.5 "$@"; then return; fi
+    if _try_venv pyvenv-3.6 "$@"; then return; fi
     pyvenv-3.4 "$@"
 }
 
@@ -102,7 +103,7 @@ dependencies_unknown() {
 }
 
 dependencies_openbsd() {
-    prompt 'Install dependencies' doas pkg_add libyaml py3-pip git
+    prompt 'Install dependencies' doas pkg_add libyaml py3-pip git libxml2
 }
 
 dependencies_debian() {
@@ -119,7 +120,7 @@ dependencies_osx() {
     prompt 'Setup Xcode command line tools' "sudo xcode-select --install; sudo xcode-select -r"
     set -e
 
-    prompt 'Install dependencies' "brew update && brew install libyaml ${INSTALL_PYTHON}"
+    prompt 'Install dependencies' "brew update && brew install libyaml libxml2 ${INSTALL_PYTHON}"
 
     if ! which pip3 > /dev/null; then
         prompt 'Install pip' sudo python3 -m ensurepip
@@ -145,6 +146,7 @@ create_venv() {
 
     install_helper mut-build
     install_helper mut-images
+    install_helper mut-index
     install_helper mut-intersphinx
     install_helper mut-lint
     install_helper mut-publish
@@ -180,6 +182,7 @@ create_venv() {
     echo "  mut"
     echo "  mut-build"
     echo "  mut-images"
+    echo "  mut-index"
     echo "  mut-intersphinx"
     echo "  mut-lint"
     echo "  mut-publish"

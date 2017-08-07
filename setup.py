@@ -4,15 +4,19 @@ import mut
 
 REQUIRES = [
     'boto',
+    'boto3',
     'certifi',
+    'cssselect',
     'docopt',
     'docutils',
     'dominate',
+    'giza>=0.5.14',
+    'html5-parser',
+    'lxml',
     'PyYAML',
     'requests',
     'rstcloth>=0.2.6',
     'sphinx>=1.5',
-    'giza>=0.5.13'
 ]
 
 # Need a fallback for the typing module
@@ -44,6 +48,7 @@ setup(
             'mut-intersphinx = mut.intersphinx:main',
             'mut-lint = mut.lint:main',
             'mut-publish = mut.stage:main',
+            'mut-index = mut.index.main:main',
             ],
         }
     )
