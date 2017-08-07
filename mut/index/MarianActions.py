@@ -6,7 +6,7 @@ from mut.index.utils.Logger import log_unsuccessful
 MARIAN_URL = 'https://marian.mongodb.com/'
 
 
-def refresh_marian():
+def refresh_marian() -> None:
     '''Sends a refresh request to the Marian server.'''
     print("\n### Refreshing Marian\n")
     refresh_url = MARIAN_URL+'refresh'
@@ -31,7 +31,7 @@ def refresh_marian():
 
 class FailedRefreshError(Exception):
     '''Failed to refresh Marian.'''
-    def __init__(self, exception, message):
+    def __init__(self, exception, message) -> None:
         super(FailedRefreshError, self).__init__()
         log_unsuccessful('refresh')(message=message,
                                     exception=exception,

@@ -178,7 +178,7 @@ class ApiargEntry:
         entry.state.post = mut.util.withdraw(value, 'post', str)
 
         inherit = mut.util.withdraw(value, 'inherit', mut.util.str_dict) or \
-                  mut.util.withdraw(value, 'source', mut.util.str_dict)
+            mut.util.withdraw(value, 'source', mut.util.str_dict)
         if inherit is not None:
             parent_path = mut.util.withdraw(inherit, 'file', str)
             parent_ref = mut.util.withdraw(inherit, 'ref', str)

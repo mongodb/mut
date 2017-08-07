@@ -5,6 +5,8 @@ import os
 import re
 import time
 
+from typing import Any, Dict, List, Tuple, Optional
+
 from mut.index.utils.Logger import log_unsuccessful
 from mut.index.utils.ProgressBar import ProgressBar
 from mut.index.Document import Document
@@ -20,19 +22,21 @@ BLACKLIST = set([
     'contents'
 ])
 
+FileInfo = Tuple[str, str, str]
+
 
 class Manifest:
     '''Manifest of index results.'''
-    def __init__(self, url, globally):
+    def __init__(self, url: str, globally: bool) -> None:
         self.url = url
         self.globally = globally
-        self.documents = []
+        self.documents = []  # type: List[Dict[str, Any]]
 
-    def add_document(self, document):
+    def add_document(self, document: Dict[str, Any]) -> None:
         '''Adds a document to the manifest.'''
         self.documents.append(document)
 
-    def json(self):
+    def json(self) -> str:
         '''Return the manifest as json.'''
         manifest = {
             'url': self.url,
@@ -42,7 +46,7 @@ class Manifest:
         return json.dumps(manifest, indent=4)
 
 
-def generate_manifest(url, root_dir, globally, show_progress):
+def generate_manifest(url: str, root_dir: str, globally: bool, show_progress: bool) -> str:
     '''Build the index and compile a manifest.'''
     start_time = time.time()
     manifest = Manifest(url, globally)
@@ -60,12 +64,12 @@ def generate_manifest(url, root_dir, globally, show_progress):
     return manifest.json()
 
 
-def _get_html_path_info(root_dir, url):
+def _get_html_path_info(root_dir: str, url: str) -> List[FileInfo]:
     '''Return a list of parsed path_info for html files.'''
-    def should_index(file):
+    def should_index(file) -> bool:
         '''Returns True the file should be indexed.'''
         match = re.search(r'([^./]+)(?:/index)?.html$', file)
-        return match and match.group(1) not in BLACKLIST
+        return match is not None and match.group(1) not in BLACKLIST
 
     path_info = []
     for root, _, files in os.walk(root_dir):
@@ -75,7 +79,7 @@ def _get_html_path_info(root_dir, url):
     return path_info
 
 
-def _parse_html_file(path_info):
+def _parse_html_file(path_info: FileInfo):
     '''Open the html file with the given path then parse the file.'''
     file, file_dir, url = path_info
     with open(file_dir + file, 'r') as html:
@@ -88,7 +92,7 @@ def _parse_html_file(path_info):
                                       exception=ex)
 
 
-def _process_html_files(html_path_info, manifest, progress_bar=None):
+def _process_html_files(html_path_info, manifest: Manifest, progress_bar: Optional[ProgressBar]=None):
     '''Apply a function to a list of .html file paths in parallel.'''
     with concurrent.futures.ProcessPoolExecutor() as executor:
         for document in executor.map(_parse_html_file, html_path_info):
@@ -97,7 +101,7 @@ def _process_html_files(html_path_info, manifest, progress_bar=None):
                 progress_bar.update(document['slug'])
 
 
-def _summarize_build(num_documents, start_time):
+def _summarize_build(num_documents: int, start_time: float) -> None:
     summary = ('\nFinished indexing!\n'
                'Indexed {num_docs} documents in {time} seconds.')
     summary = summary.format(num_docs=num_documents,
@@ -106,7 +110,7 @@ def _summarize_build(num_documents, start_time):
 
 
 class NothingIndexedError(Exception):
-    def __init__(self):
+    def __init__(self) -> None:
         message = 'No documents were found.'
         log_unsuccessful('index')(message=message,
                                   exception=None)

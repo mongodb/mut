@@ -21,7 +21,7 @@ from mut.index.MarianActions import refresh_marian, FailedRefreshError
 from mut.index.utils.IntroMessage import print_intro_message
 
 
-def main():
+def main() -> None:
     '''Generate index files.'''
     options = docopt(__doc__)
     root = options['<root>']

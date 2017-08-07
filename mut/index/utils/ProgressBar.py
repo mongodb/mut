@@ -3,7 +3,7 @@ import math
 
 
 class Section:
-    def __init__(self, header='', output='', data={}):
+    def __init__(self, header: str='', output: str='', data={}) -> None:
         '''Generiec progress bar section interface.'''
         self.header = header
         self.output = output
@@ -17,7 +17,7 @@ class Section:
 
 class Timer(Section):
     '''Display a running timer of how long the parser has been running.'''
-    def __init__(self, start_time, rpadding=0):
+    def __init__(self, start_time: float, rpadding: int=0) -> None:
         super().__init__()
         self.header = 'Elapsed Time'
         self.output = '{elapsed_time: 3.3f} (s)'
@@ -34,7 +34,7 @@ class Timer(Section):
 
 class Percentage(Section):
     '''Display a progress bar and percentage completed indicator.'''
-    def __init__(self, num_documents, rpadding=0):
+    def __init__(self, num_documents: int, rpadding: int=0) -> None:
         super().__init__()
         self.header = 'Progress'
         self.output = '|{done}{todo}|{percent_done: 2.2f}%'
@@ -55,7 +55,7 @@ class Percentage(Section):
 
 class Counter(Section):
     '''Display a count of finished items vs total items.'''
-    def __init__(self, num_documents, rpadding=0):
+    def __init__(self, num_documents: int, rpadding: int=0) -> None:
         super().__init__()
         self.header = 'Files'
         self.output = '[{num_processed} / {num_documents}]'
@@ -71,7 +71,7 @@ class Counter(Section):
 
 class CurrentFile(Section):
     '''Display the last file to have been successfully parsed.'''
-    def __init__(self, rpadding=0):
+    def __init__(self, rpadding: int=0) -> None:
         super().__init__()
         self.header = 'Last Processed File'
         self.output = '{current_file}'
@@ -87,7 +87,7 @@ class CurrentFile(Section):
 
 class ProgressBar():
     '''Display a progress bar for the parser.'''
-    def __init__(self, num_documents, start_time):
+    def __init__(self, num_documents: int, start_time: float) -> None:
         self.sections = {
             'Timer': Timer(start_time, rpadding=4),
             'Percentage': Percentage(num_documents, rpadding=4),
@@ -97,7 +97,7 @@ class ProgressBar():
         self.num_processed = 0
         self.build()
 
-    def build(self):
+    def build(self) -> None:
         '''Print the progress bar to stdout.'''
         self._print_header_row()
         self._print_sections()
@@ -116,13 +116,13 @@ class ProgressBar():
             section.update(**kwargs)
         self._print_sections()
 
-    def _print_header_row(self):
+    def _print_header_row(self) -> None:
         header_row = ''
         for section in self.sections.values():
             header_row += (section.header + ':').ljust(section.width, ' ')
         print(header_row)
 
-    def _print_sections(self):
+    def _print_sections(self) -> None:
         row = ''
         for section in self.sections.values():
             out = section.output.format(**section.data)

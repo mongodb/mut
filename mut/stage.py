@@ -60,7 +60,7 @@ import boto.s3.key
 import docopt
 import giza.libgiza.git
 
-from mut.AuthenticationInfo import AuthenticationInfo
+import mut.AuthenticationInfo
 
 from typing import cast, Callable, Dict, List, Set, Tuple, Pattern
 
@@ -91,12 +91,12 @@ class Config:
 
         self.verbose = False
 
-        self._authentication = None  # type: AuthenticationInfo
+        self._authentication = None  # type: mut.AuthenticationInfo.AuthenticationInfo
 
     @property
-    def authentication(self) -> AuthenticationInfo:
+    def authentication(self) -> mut.AuthenticationInfo.AuthenticationInfo:
         if not self._authentication:
-            self._authentication = AuthenticationInfo.load()
+            self._authentication = mut.AuthenticationInfo.AuthenticationInfo.load()
 
         return self._authentication
 
@@ -662,7 +662,7 @@ def main() -> None:
         if err.status == 403:
             logger.error('Failed to upload to S3: Permission denied.')
             logger.info('Check your authentication configuration at %s.',
-                        CONFIG_PATH)
+                        mut.AuthenticationInfo.CONFIG_PATH)
             return
 
         raise err

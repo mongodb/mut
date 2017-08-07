@@ -125,7 +125,7 @@ def migrate(config: mut.config.RootConfig, paths: List[str]) -> None:
     for path in paths:
         dest_path = config.get_output_source_path(path.replace(config.source_path, '', 1))
         src_mtime = os.path.getmtime(path)
-        dest_mtime = -1
+        dest_mtime = -1.0
         try:
             dest_mtime = os.path.getmtime(dest_path)
         except FileNotFoundError:

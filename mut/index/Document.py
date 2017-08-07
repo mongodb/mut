@@ -3,13 +3,15 @@ import urllib.parse
 from html5_parser import html_parser
 from lxml import etree
 
+from typing import Any, Callable, Dict, List, Optional
 
-def node_to_text(node):
+
+def node_to_text(node) -> str:
     '''Convert an lxml node to text.'''
     return ''.join(node.itertext())
 
 
-def return_text_from_node(func):
+def return_text_from_node(func) -> Callable[[Any], str]:
     '''Wraps node_to_text around a function that returns an lxml node.'''
     def textify(*args, **kwargs):
         output = func(*args, **kwargs)
@@ -30,7 +32,7 @@ def is_element_of_type(candidate, element_type):
 
 class Document:
     '''Return indexing data from an html document.'''
-    def __init__(self, base_url, root_dir, path):
+    def __init__(self, base_url: str, root_dir: str, path) -> None:
         # Paths
         self._base_url = base_url
         self._root_dir = root_dir
@@ -57,7 +59,7 @@ class Document:
         result['main_content'] = doc.cssselect('.main-column .section')[0]
         return result
 
-    def get_url_slug(self, path):
+    def get_url_slug(self, path) -> str:
         '''Return the slug after the base url.'''
         url_slug = str(path.name)[len(self._root_dir):]
         return url_slug
@@ -83,12 +85,12 @@ class Document:
         '''Return the text inside the <body> tag.'''
         return self.html['main_content']
 
-    def get_page_preview(self):
+    def get_page_preview(self) -> str:
         '''Return a summary of the page.'''
 
-        def test_page_preview(preview):
+        def test_page_preview(preview) -> bool:
             '''Return False if bad preview.'''
-            def blacklisted(slug):
+            def blacklisted(slug) -> bool:
                 '''Return True if the file should not have a preview.'''
                 blacklist = [
                     '/reference/api.',
@@ -109,7 +111,7 @@ class Document:
 
             return bool(good_preview(preview) and not blacklisted(self.slug))
 
-        def set_to_meta_description():
+        def set_to_meta_description() -> Optional[str]:
             '''Set preview to the page's meta description.'''
             selector = 'meta[name="description"]'
             candidate_list = self.html['head'].cssselect(selector)
@@ -120,9 +122,9 @@ class Document:
                 is_good_preview = test_page_preview(candidate_preview)
                 if is_good_preview:
                     return candidate_preview
-            return False
+            return None
 
-        def set_to_first_paragraph():
+        def set_to_first_paragraph() -> Optional[str]:
             '''Set preview to the first descriptive paragraph on the page.'''
             candidate_list = self.html['main_content'].cssselect('p')
             for candidate_preview in candidate_list:
@@ -131,20 +133,20 @@ class Document:
                 is_good_preview = test_page_preview(candidate_preview)
                 if is_good_preview:
                     return candidate_preview
-            return False
+            return None
 
         page_preview = set_to_meta_description() or set_to_first_paragraph()
         page_preview = ' '.join(page_preview.split()) if page_preview else ''
         return page_preview
 
-    def get_page_tags(self):
+    def get_page_tags(self) -> str:
         '''Return the tags for the page.'''
         meta_keywords = self.html['head'].cssselect('meta[name="keywords"]')
         if not meta_keywords:
             return ''
         return meta_keywords[0].get('content')
 
-    def get_page_links(self):
+    def get_page_links(self) -> List[str]:
         '''Return all links to other pages in the documentation.'''
         links = set()
         for link in self.html['main_content'].cssselect('a'):
@@ -157,7 +159,7 @@ class Document:
                 links.add(re.sub('#.*$', '', href))
         return list(links)
 
-    def export(self):
+    def export(self) -> Dict[str, Any]:
         '''Generate the manifest dictionary for an html page.'''
         document = {
             "slug": self.slug,
