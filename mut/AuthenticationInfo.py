@@ -69,6 +69,6 @@ class AuthenticationInfo:
         try:
             username = cfg.get('personal', 'username')
         except (configparser.NoSectionError, configparser.NoOptionError):
-            username = pwd.getpwuid(os.getuid())[0]
+            username = pwd.getpwuid(os.getuid()).pw_name
 
         return AuthenticationInfo(access_key, secret_key, username)

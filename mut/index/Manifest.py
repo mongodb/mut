@@ -72,7 +72,11 @@ def _get_html_path_info(root_dir: str, url: str) -> List[FileInfo]:
         return match is not None and match.group(1) not in BLACKLIST
 
     path_info = []
-    root_dir = root_dir.lstrip('/') + '/'
+
+    # Ensure that root_dir has a single trailing slash to ensure that we
+    # chop off enough of our slugs.
+    root_dir = root_dir.rstrip('/') + '/'
+
     for root, _, files in os.walk(root_dir):
         path_info.extend([(root_dir, os.path.join(root, file), url)
                           for file in files
