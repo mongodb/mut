@@ -99,17 +99,7 @@ class Document:
                 matches = [re.compile(item).match(slug) for item in blacklist]
                 return any(matches)
 
-            def good_preview(preview):
-                '''Return True if the candidate preview should be used.'''
-                bad_previews = [
-                    'On this page',
-                    '\u00a9 MongoDB, Inc. 2008-2017',
-                    'Run.'
-                ]
-                matches = [re.compile(p).match(preview) for p in bad_previews]
-                return not any(matches)
-
-            return bool(good_preview(preview) and not blacklisted(self.slug))
+            return len(preview) > 30 and not blacklisted(self.slug)
 
         def set_to_meta_description() -> Optional[str]:
             '''Set preview to the page's meta description.'''
