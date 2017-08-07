@@ -72,8 +72,9 @@ def _get_html_path_info(root_dir: str, url: str) -> List[FileInfo]:
         return match is not None and match.group(1) not in BLACKLIST
 
     path_info = []
+    root_dir = root_dir.lstrip('/') + '/'
     for root, _, files in os.walk(root_dir):
-        path_info.extend([(file, root+'/', url)
+        path_info.extend([(root_dir, os.path.join(root, file), url)
                           for file in files
                           if should_index(os.path.join(root, file))])
     return path_info
@@ -81,18 +82,18 @@ def _get_html_path_info(root_dir: str, url: str) -> List[FileInfo]:
 
 def _parse_html_file(path_info: FileInfo):
     '''Open the html file with the given path then parse the file.'''
-    file, file_dir, url = path_info
-    with open(file_dir + file, 'r') as html:
+    root_dir, path, url = path_info
+    with open(path, 'r') as html:
         try:
-            document = Document(url, file_dir, html).export()
+            document = Document(url, root_dir, html).export()
             return document
         except Exception as ex:
-            message = 'Problem parsing file ' + os.path.join(file_dir, file)
+            message = 'Problem parsing file ' + path
             log_unsuccessful('parse')(message=message,
                                       exception=ex)
 
 
-def _process_html_files(html_path_info, manifest: Manifest, progress_bar: Optional[ProgressBar]=None):
+def _process_html_files(html_path_info: List[FileInfo], manifest: Manifest, progress_bar: Optional[ProgressBar]=None):
     '''Apply a function to a list of .html file paths in parallel.'''
     with concurrent.futures.ProcessPoolExecutor() as executor:
         for document in executor.map(_parse_html_file, html_path_info):
