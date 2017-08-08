@@ -118,6 +118,9 @@ class Document:
             '''Set preview to the first descriptive paragraph on the page.'''
             candidate_list = self.html['main_content'].cssselect('p')
             for candidate_preview in candidate_list:
+                if 'admonition' in (candidate_preview.getparent().get('class') or ''):
+                    continue
+
                 if is_element_of_type(candidate_preview, 'p'):
                     candidate_preview = node_to_text(candidate_preview)
                 is_good_preview = test_page_preview(candidate_preview)
