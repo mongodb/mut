@@ -145,6 +145,7 @@ create_venv() {
     )
 
     install_helper mut-build
+    install_helper mut-convert-redirects
     install_helper mut-images
     install_helper mut-index
     install_helper mut-intersphinx
@@ -181,6 +182,7 @@ create_venv() {
     echo "Installed:"
     echo "  mut"
     echo "  mut-build"
+    echo "  mut-convert-redirects"
     echo "  mut-images"
     echo "  mut-index"
     echo "  mut-intersphinx"

@@ -1,5 +1,6 @@
 """
 Usage: mut build [...]
+       mut convert-redirects [...]
        mut images [...]
        mut intersphinx [...]
        mut lint [...]

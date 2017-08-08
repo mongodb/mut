@@ -44,6 +44,7 @@ setup(
         'console_scripts': [
             'mut = mut.helper:main',
             'mut-build = mut.main:main',
+            'mut-convert-redirects = mut.convert_redirects:main',
             'mut-images = mut.build_images:main',
             'mut-intersphinx = mut.intersphinx:main',
             'mut-lint = mut.lint:main',
