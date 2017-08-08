@@ -107,7 +107,7 @@ dependencies_openbsd() {
 }
 
 dependencies_debian() {
-    prompt 'Install dependencies' sudo apt-get update && sudo apt-get install libyaml-dev python3 python3-pip python3-venv git
+    prompt 'Install dependencies' sudo apt-get update && sudo apt-get install libyaml-dev python3 python3-pip python3-venv git pkg-config
 }
 
 dependencies_osx() {
@@ -120,7 +120,7 @@ dependencies_osx() {
     prompt 'Setup Xcode command line tools' "sudo xcode-select --install; sudo xcode-select -r"
     set -e
 
-    prompt 'Install dependencies' "brew update && brew install libyaml libxml2 ${INSTALL_PYTHON}"
+    prompt 'Install dependencies' "brew update && brew install libyaml libxml2 pkgconfig ${INSTALL_PYTHON}"
 
     if ! which pip3 > /dev/null; then
         prompt 'Install pip' sudo python3 -m ensurepip
