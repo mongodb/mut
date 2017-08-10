@@ -13,7 +13,7 @@ Usage:
     -b, --bucket <bucket>  Name of the s3 bucket to upload the index manifest to. [default: docs-mongodb-org-prod]
     -p, --prefix <prefix>  Name of the s3 prefix to attached to the manifest. [default: search-indexes]
     --no-backup            Disables automatic backup and restore of previous manifest versions.
-    --exclude <paths>      A comma-separated list of directories to ignore.
+    --exclude <paths>      A comma-separated list of directories to ignore. [default: ]
 '''
 from docopt import docopt
 from mut.index.Manifest import generate_manifest
@@ -26,7 +26,7 @@ def main() -> None:
     '''Generate index files.'''
     options = docopt(__doc__)
     root = options['<root>']
-    exclude = [path.strip() for path in options.get('--exclude', '').split(',')]
+    exclude = [path.strip() for path in options['--exclude'].split(',') if path]
     output = options['--output']
     url = options['--url']
     globally = options['--global']
