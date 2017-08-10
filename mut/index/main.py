@@ -1,7 +1,7 @@
 '''
 Usage:
-    mut-index <root> -o <output> -u <url> [-g -s]
-    mut-index upload [-b <bucket> -p <prefix> --no-backup] <root> -o <output> -u <url> [-g -s]
+    mut-index <root> -o <output> -u <url> [-g -s --exclude <paths>]
+    mut-index upload [-b <bucket> -p <prefix> --no-backup] <root> -o <output> -u <url> [-g -s --exclude <paths>]
 
     -h, --help             List CLI prototype, arguments, and options.
     <root>                 Path to the directory containing html files.
@@ -13,6 +13,7 @@ Usage:
     -b, --bucket <bucket>  Name of the s3 bucket to upload the index manifest to. [default: docs-mongodb-org-prod]
     -p, --prefix <prefix>  Name of the s3 prefix to attached to the manifest. [default: search-indexes]
     --no-backup            Disables automatic backup and restore of previous manifest versions.
+    --exclude <paths>      A comma-separated list of directories to ignore.
 '''
 from docopt import docopt
 from mut.index.Manifest import generate_manifest
@@ -25,13 +26,14 @@ def main() -> None:
     '''Generate index files.'''
     options = docopt(__doc__)
     root = options['<root>']
+    exclude = [path.strip() for path in options.get('--exclude', '').split(',')]
     output = options['--output']
     url = options['--url']
     globally = options['--global']
     show_progress = options['--show-progress']
 
-    print_intro_message(root, output, url, globally)
-    manifest = generate_manifest(url, root, globally, show_progress)
+    print_intro_message(root, exclude, output, url, globally)
+    manifest = generate_manifest(url, root, exclude, globally, show_progress)
     if options['upload']:
         bucket = options['--bucket']
         prefix = options['--prefix']

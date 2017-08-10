@@ -45,11 +45,11 @@ class Manifest:
         return json.dumps(manifest, indent=4)
 
 
-def generate_manifest(url: str, root_dir: str, globally: bool, show_progress: bool) -> str:
+def generate_manifest(url: str, root_dir: str, exclude: List[str], globally: bool, show_progress: bool) -> str:
     '''Build the index and compile a manifest.'''
     start_time = time.time()
     manifest = Manifest(url, globally)
-    html_path_info = _get_html_path_info(root_dir, url)
+    html_path_info = _get_html_path_info(root_dir, exclude, url)
     if not html_path_info:
         raise NothingIndexedError()
     num_documents = len(html_path_info)
@@ -63,7 +63,7 @@ def generate_manifest(url: str, root_dir: str, globally: bool, show_progress: bo
     return manifest.json()
 
 
-def _get_html_path_info(root_dir: str, url: str) -> List[FileInfo]:
+def _get_html_path_info(root_dir: str, exclude: List[str], url: str) -> List[FileInfo]:
     '''Return a list of parsed path_info for html files.'''
     def should_index(file) -> bool:
         '''Returns True the file should be indexed.'''
@@ -77,6 +77,15 @@ def _get_html_path_info(root_dir: str, url: str) -> List[FileInfo]:
     root_dir = root_dir.rstrip('/') + '/'
 
     for root, _, files in os.walk(root_dir):
+        skip = False
+        for exclusion in exclude:
+            if root.startswith(exclusion):
+                skip = True
+                break
+
+        if skip:
+            continue
+
         path_info.extend([(root_dir, os.path.join(root, file), url)
                           for file in files
                           if should_index(os.path.join(root, file))])
