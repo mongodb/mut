@@ -17,7 +17,6 @@ BLACKLIST = set([
     '404',
     '410',
     'genindex',
-    'faq',
     'search',
     'contents'
 ])
