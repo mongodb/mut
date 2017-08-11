@@ -67,6 +67,10 @@ def _get_html_path_info(root_dir: str, exclude: List[str], url: str) -> List[Fil
     '''Return a list of parsed path_info for html files.'''
     def should_index(file) -> bool:
         '''Returns True the file should be indexed.'''
+        for exclusion in exclude:
+            if file.startswith(exclusion):
+                return False
+
         match = re.search(r'([^./]+)(?:/index)?.html$', file)
         return match is not None and match.group(1) not in BLACKLIST
 
