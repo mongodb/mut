@@ -26,9 +26,10 @@ FileInfo = Tuple[str, str, str]
 
 class Manifest:
     '''Manifest of index results.'''
-    def __init__(self, url: str, globally: bool) -> None:
+    def __init__(self, url: str, aliases: List[str], globally: bool) -> None:
         self.url = url
         self.globally = globally
+        self.aliases = aliases
         self.documents = []  # type: List[Dict[str, Any]]
 
     def add_document(self, document: Dict[str, Any]) -> None:
@@ -40,15 +41,17 @@ class Manifest:
         manifest = {
             'url': self.url,
             'includeInGlobalSearch': self.globally,
+            'aliases': self.aliases,
             'documents': self.documents
         }
         return json.dumps(manifest, indent=4)
 
 
-def generate_manifest(url: str, root_dir: str, exclude: List[str], globally: bool, show_progress: bool) -> str:
+def generate_manifest(url: str, aliases: List[str], root_dir: str,
+                      exclude: List[str], globally: bool, show_progress: bool) -> str:
     '''Build the index and compile a manifest.'''
     start_time = time.time()
-    manifest = Manifest(url, globally)
+    manifest = Manifest(url, aliases, globally)
     html_path_info = _get_html_path_info(root_dir, exclude, url)
     if not html_path_info:
         raise NothingIndexedError()
