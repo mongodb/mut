@@ -57,7 +57,7 @@ class Document:
         result = {}
         result['head'] = doc.cssselect('head')[0]
 
-        for candidate in ('.main-column section', '.main__content'):
+        for candidate in ('.main-column .section', '.main__content'):
             elements = doc.cssselect(candidate)
             if elements:
                 result['main_content'] = elements[0]
