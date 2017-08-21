@@ -141,7 +141,10 @@ create_venv() {
         cd dev
 
         git clone --depth=1 https://github.com/mongodb/mut.git
-        ( cd mut && pip install -r requirements.txt . )
+        (   cd mut
+            export PATH="/usr/local/bin:/usr/bin:$PATH"
+            pip install -r requirements.txt .
+        )
     )
 
     install_helper mut-build
