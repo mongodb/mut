@@ -1,0 +1,89 @@
+define: base ruby-driver
+define: base_url https://docs.mongodb.com/${base}
+define: mongoid_base https://docs.mongodb.com/mongoid
+
+define: versions v1.x v2.1 v2.2 v2.4
+
+raw: / -> ${base_url}/master
+
+(v1.x-*]: ${version}/aggregation-framework -> ${base_url}/${version}/quick-start
+(v1.x-*]: ${version}/examples -> ${base_url}/${version}/quick-start
+(v1.x-*]: ${version}/replica-sets -> ${base_url}/${version}/quick-start
+(v1.x-*]: ${version}/read-preference -> ${base_url}/${version}/quick-start
+(v1.x-*]: ${version}/write-concern -> ${base_url}/${version}/quick-start
+(v1.x-*]: ${version}/bulk-write-operations -> ${base_url}/${version}/quick-start
+(v1.x-*]: ${version}/authentication-examples -> ${base_url}/${version}/quick-start
+(v1.x-*]: ${version}/gridfs -> ${base_url}/${version}/quick-start
+(v1.x-*]: ${version}/tailable-cursors -> ${base_url}/${version}/quick-start
+(v1.x-*]: ${version}/web-examples -> ${base_url}/${version}/quick-start
+(v1.x-*]: ${version}/faq -> ${base_url}/${version}/quick-start
+(v1.x-*]: ${version}/style-guide -> ${base_url}/${version}/quick-start
+(v1.x-*]: ${version}/credits -> ${base_url}/${version}/quick-start
+
+[v1.x]: ${version}/bson-tutorials -> ${base_url}/${version}/quick-start
+[v1.x]: ${version}/contribute -> ${base_url}/${version}/quick-start
+[v1.x]: ${version}/reference/additional-resources -> ${base_url}/${version}/quick-start
+[v1.x]: ${version}/reference/driver-compatibility -> ${base_url}/${version}/quick-start
+[v1.x]: ${version}/reference/bson-v3 -> ${base_url}/${version}/quick-start
+[v1.x]: ${version}/reference/bson-v4 -> ${base_url}/${version}/quick-start
+
+
+[v1.x-v2.2]: ${version}/installation -> ${base_url}/${version}/quick-start
+[v1.x-v2.2]: ${version}/ruby-driver-tutorials -> ${base_url}/${version}/quick-start
+[v1.x-v2.2]: ${version}/tutorials/ruby-driver-admin-tasks -> ${base_url}/${version}/quick-start
+[v1.x-v2.2]: ${version}/tutorials/ruby-driver-create-client -> ${base_url}/${version}/quick-start
+[v1.x-v2.2]: ${version}/tutorials/ruby-driver-indexing -> ${base_url}/${version}/quick-start
+[v1.x-v2.2]: ${version}/tutorials/ruby-driver-aggregation -> ${base_url}/${version}/quick-start
+[v1.x-v2.2]: ${version}/tutorials/ruby-driver-crud-operations -> ${base_url}/${version}/quick-start
+[v1.x-v2.2]: ${version}/tutorials/ruby-driver-projections -> ${base_url}/${version}/quick-start
+[v1.x-v2.2]: ${version}/tutorials/ruby-driver-bulk-operations -> ${base_url}/${version}/quick-start
+[v1.x-v2.2]: ${version}/tutorials/ruby-driver-geospatial-search -> ${base_url}/${version}/quick-start
+[v1.x-v2.2]: ${version}/tutorials/ruby-driver-text-search -> ${base_url}/${version}/quick-start
+[v1.x-v2.2]: ${version}/tutorials/ruby-driver-collection-tasks -> ${base_url}/${version}/quick-start
+[v1.x-v2.2]: ${version}/tutorials/ruby-driver-gridfs -> ${base_url}/${version}/quick-start
+
+[v1.x-v2.4]: ${version}/whats-new -> ${base_url}/${version}/
+
+
+[v2.2-*]: ${version}/mongoid-tutorials -> ${mongoid_base}/master/
+[v2.2-*]: ${version}/mongoid -> ${mongoid_base}/master/
+[v2.2-*]: ${version}/tutorials/mongoid-callbacks -> ${mongoid_base}/master/tutorials/mongoid-callbacks
+[v2.2-*]: ${version}/tutorials/mongoid-installation -> ${mongoid_base}/master/tutorials/mongoid-installation
+[v2.2-*]: ${version}/tutorials/mongoid-queries -> ${mongoid_base}/master/tutorials/mongoid-queries
+[v2.2-*]: ${version}/tutorials/mongoid-upgrade -> ${mongoid_base}/master/tutorials/mongoid-upgrade
+[v2.2-*]: ${version}/tutorials/mongoid-documents -> ${mongoid_base}/master/tutorials/mongoid-documents
+[v2.2-*]: ${version}/tutorials/mongoid-nested-attributes -> ${mongoid_base}/master/tutorials/mongoid-nested-attributes
+[v2.2-*]: ${version}/tutorials/mongoid-rails -> ${mongoid_base}/master/tutorials/mongoid-rails
+[v2.2-*]: ${version}/tutorials/mongoid-validation -> ${mongoid_base}/master/tutorials/mongoid-validation
+[v2.2-*]: ${version}/tutorials/mongoid-indexes -> ${mongoid_base}/master/tutorials/mongoid-indexes
+[v2.2-*]: ${version}/tutorials/mongoid-persistence -> ${mongoid_base}/master/tutorials/mongoid-persistence
+[v2.2-*]: ${version}/tutorials/mongoid-relations -> ${mongoid_base}/master/tutorials/mongoid-relations
+
+
+[v2.2-*]: ${version}/mongoid-tutorials-6.0 -> ${mongoid_base}/master/
+[v2.2-*]: ${version}/tutorials/6.1.0/mongoid-callbacks -> ${mongoid_base}/master/tutorials/mongoid-callbacks
+[v2.2-*]: ${version}/tutorials/6.1.0/mongoid-installation -> ${mongoid_base}/master/tutorials/mongoid-installation
+[v2.2-*]: ${version}/tutorials/6.1.0/mongoid-queries -> ${mongoid_base}/master/tutorials/mongoid-queries
+[v2.2-*]: ${version}/tutorials/6.1.0/mongoid-upgrade -> ${mongoid_base}/master/tutorials/mongoid-upgrade
+[v2.2-*]: ${version}/tutorials/6.1.0/mongoid-documents -> ${mongoid_base}/master/tutorials/mongoid-documents
+[v2.2-*]: ${version}/tutorials/6.1.0/mongoid-nested-attributes -> ${mongoid_base}/master/tutorials/mongoid-nested-attributes
+[v2.2-*]: ${version}/tutorials/6.1.0/mongoid-rails -> ${mongoid_base}/master/tutorials/mongoid-rails
+[v2.2-*]: ${version}/tutorials/6.1.0/mongoid-validation -> ${mongoid_base}/master/tutorials/mongoid-validation
+[v2.2-*]: ${version}/tutorials/6.1.0/mongoid-indexes -> ${mongoid_base}/master/tutorials/mongoid-indexes
+[v2.2-*]: ${version}/tutorials/6.1.0/mongoid-persistence -> ${mongoid_base}/master/tutorials/mongoid-persistence
+[v2.2-*]: ${version}/tutorials/6.1.0/mongoid-relations -> ${mongoid_base}/master/tutorials/mongoid-relations
+
+
+[v2.2-*]: ${version}/mongoid-tutorials-5.2 -> ${mongoid_base}/v5.2/
+[v2.2-*]: ${version}/mongoid-tutorials-5.1 -> ${mongoid_base}/v5.2/
+[v2.2-*]: ${version}/tutorials/5.2.0/mongoid-callbacks -> ${mongoid_base}/v5.2/tutorials/mongoid-callbacks/
+[v2.2-*]: ${version}/tutorials/5.2.0/mongoid-installation -> ${mongoid_base}/v5.2/tutorials/mongoid-installation/
+[v2.2-*]: ${version}/tutorials/5.2.0/mongoid-queries -> ${mongoid_base}/v5.2/tutorials/mongoid-queries/
+[v2.2-*]: ${version}/tutorials/5.2.0/mongoid-upgrade -> ${mongoid_base}/v5.2/tutorials/mongoid-upgrade/
+[v2.2-*]: ${version}/tutorials/5.2.0/mongoid-documents -> ${mongoid_base}/v5.2/tutorials/mongoid-documents/
+[v2.2-*]: ${version}/tutorials/5.2.0/mongoid-nested-attributes -> ${mongoid_base}/v5.2/tutorials/mongoid-nested-attributes/
+[v2.2-*]: ${version}/tutorials/5.2.0/mongoid-rails -> ${mongoid_base}/v5.2/tutorials/mongoid-rails/
+[v2.2-*]: ${version}/tutorials/5.2.0/mongoid-validation -> ${mongoid_base}/v5.2/tutorials/mongoid-validation/
+[v2.2-*]: ${version}/tutorials/5.2.0/mongoid-indexes -> ${mongoid_base}/v5.2/tutorials/mongoid-indexes/
+[v2.2-*]: ${version}/tutorials/5.2.0/mongoid-persistence -> ${mongoid_base}/v5.2/tutorials/mongoid-persistence/
+[v2.2-*]: ${version}/tutorials/5.2.0/mongoid-relations -> ${mongoid_base}/v5.2/tutorials/mongoid-relations/
