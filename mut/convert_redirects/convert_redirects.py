@@ -20,11 +20,6 @@ Output = NamedTuple('Output', [
     ('old_prefix', str),
     ('new_prefix', str)
 ])
-Rule = NamedTuple('Rule', [
-    ('version', str),
-    ('old', str),
-    ('new', str)
-])
 Pragma = NamedTuple('Pragma', [
     ('type', str),
     ('key', str),
@@ -76,10 +71,10 @@ def parse_output(output, property_name, pragmas, versions) -> List[Output]:
                 version = transform_version_rule(output[0], pragmas)
             output = list(output[1].items())[0]
         if isinstance(output[1], str):
-            old_prefix = output[0]
-            new_prefix = output[1]
+            old_prefix = output[0].lstrip('/')
+            new_prefix = output[1].lstrip('/')
             if len(old_prefix):
-                parts = old_prefix.lstrip('/').split('/')
+                parts = old_prefix.split('/')
                 if parts[0] == property_name:
                     del parts[0]
                 if parts and re.match(r'(v.*|master)', parts[-1]):
@@ -123,6 +118,18 @@ def create_pragmas(base: str, versions: [str], symlinks: [str]) -> List[str]:
     return [format_pragma(p) for p in pragmas]
 
 
+def filter_rules(rules: list):
+    def not_only_classic(rule: dict):
+        if rule.get('edition'):
+            r = rule.get('edition')
+            if not isinstance(r, list):
+                r = [r]
+            if not [x for x in r if x in ['cloud', 'onprem']]:
+                return False
+        return True
+    return [x for x in rules if not_only_classic(x)]
+
+
 def process_rule(rule: dict, base: str, cfg: dict, pragmas: List[str]):
     rule["from"] = '/' + rule["from"].lstrip('/')
     min_version = 0
@@ -147,10 +154,13 @@ def process_rule(rule: dict, base: str, cfg: dict, pragmas: List[str]):
     return '{}: {} -> {}'.format(o.version, f, t)
 
 
-def convert_file(file: str, base: str, **cfg) -> List[str]:
+def convert_file(base: str, **cfg) -> List[str]:
     """Convert a giza-style redirect file to a list of mut-style rules."""
-    with open(file, 'r') as f:
-        redirects = list(yaml.safe_load_all(f))
+    files = [f for f in cfg['file']] if isinstance(cfg['file'], list) else [cfg.get('file')]
+    redirects = []
+    for file in files:
+        with open(file, 'r') as f:
+            redirects.extend(filter_rules(list(yaml.safe_load_all(f))))
     pragmas = create_pragmas(base, cfg.get('versions'), cfg.get('symlinks'))
     rules = [process_rule(rule=rule, base=base, cfg=cfg, pragmas=pragmas)
              for rule in redirects if rule]
@@ -168,7 +178,6 @@ def main() -> None:
         cfg['base'] = cfg.get('base').rstrip('/')
         result = convert_file(**cfg)
         if cfg['output']:
-            print('./results/' + cfg['output'])
             with open('results/' + cfg['output'], 'w') as f:
                 f.write(result)
         else:

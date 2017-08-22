@@ -58,15 +58,41 @@ output: ecosystem-results.txt
 file: /Users/nick/mongodb/docs-ecosystem/config/htaccess.yaml
 base: https://docs.mongodb.com/ecosystem/
 ---
-name: ruby-driver
-output: ruby-results.txt
-file: /Users/nick/mongodb/docs-ruby/config/htaccess.yaml
-base: https://docs.mongodb.com/ruby-driver/
+# name: ruby-driver
+# output: ruby-results.txt
+# file: /Users/nick/mongodb/docs-ruby/config/htaccess.yaml
+# base: https://docs.mongodb.com/ruby-driver/
+# versions:
+#   - 2.4
+#   - 2.3
+#   - 2.2
+#   - 2.0
+#   - 1.x
+# symlinks:
+#   - master -> 2.4
+# ---
+name: ops-manager
+output: ops-manager-results.txt
+file:
+  - /Users/nick/mongodb/mms-docs/config/redirects-hosted.yaml
+  - /Users/nick/mongodb/mms-docs/config/redirects-next-hosted.yaml
+  - /Users/nick/mongodb/mms-docs/config/redirects-api.yaml
+  - /Users/nick/mongodb/mms-docs/config/redirects-pdfs-onprem.yaml
+base: https://docs.opsmanager.mongodb.com/
 versions:
-  - 2.4
-  - 2.3
-  - 2.2
+  - 3.4
   - 2.0
-  - 1.x
+  - 1.8
+  - 1.6
+  - 1.5
+  - 1.4
+  - 1.3
+  - 1.2
+  - 1.1
 symlinks:
-  - master -> 2.4
+  - current -> 3.4
+---
+name: cloud-manager
+output: cloud-manager-results.txt
+file: /Users/nick/mongodb/mms-docs/config/redirects-cloud.yaml
+base: https://docs.cloudmanager.mongodb.com/
