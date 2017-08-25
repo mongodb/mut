@@ -18,7 +18,7 @@ RuleDefinition = collections.namedtuple('RuleDefinition', ('is_temp', 'version',
 
 
 class RedirectContext:
-    def __init__(self, rules: List = [], symlinks: List = [], definitions: List = []):
+    def __init__(self):
         self.rules = []
         self.symlinks = []
         self.definitions = []
@@ -32,9 +32,9 @@ class RedirectContext:
     def generate_rule(self, is_temp: bool, version: str, old_url: str, new_url: str, is_symlink: bool = False):
         context_url = ''
 
-        for x in range(0, len(self.definitions)):
-            if (self.definitions[x][0] == 'base'):
-                context_url = self.definitions[x][1]
+        for definition in self.definitions:
+            if (definition[0] == 'base'):
+                context_url = definition[1]
 
         # if url contains {version} - substitute in the correct version
         old_url_sub = self.rule_substitute(old_url, version)
@@ -50,13 +50,13 @@ class RedirectContext:
                     old_url_sub = old_url_sub[:-1]
                 old_url_sub = '/' + context_url + old_url_sub
 
-        new_rule = RuleDefinition._make([is_temp, version, old_url_sub, new_url_sub, False])
+        new_rule = RuleDefinition(is_temp, version, old_url_sub, new_url_sub, False)
 
         # check for symlinks
         if len(self.symlinks) > 0:
-            for x in range(len(self.symlinks)):
-                if version == self.symlinks[x][1]:
-                    self.generate_rule(is_temp, self.symlinks[x][0], old_url, new_url, True)
+            for symlink in self.symlinks:
+                if version == symlink[1]:
+                    self.generate_rule(is_temp, symlink[0], old_url, new_url, True)
 
         self.rules.append(new_rule)
 
@@ -84,9 +84,9 @@ class RedirectContext:
 
 
 def parse_versions(defs: List):
-    for x in range(0, len(defs)):
-        if defs[x][0] == 'versions':
-            return defs[x][1]
+    for definition in defs:
+        if definition[0] == 'versions':
+            return definition[1]
 
 
 def write_to_file(rules: List[RuleDefinition], output_path: str) -> None:
