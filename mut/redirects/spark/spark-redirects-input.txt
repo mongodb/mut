@@ -1,0 +1,47 @@
+define: versions v1.1 v2.0 v2.1 master
+
+define: base spark-connector
+define: base_url https://docs.mongodb.com/${base}
+
+symlink: current -> master
+symlink: v2.2 -> master
+
+### Redirects to put /current in the URL
+raw: / -> ${base_url}/current
+raw: /configuration -> ${base_url}/current/configuration
+raw: /faq -> ${base_url}/current/faq
+raw: /getting-started -> ${base_url}/current/getting-started
+raw: /java-api -> ${base_url}/current/java-api
+raw: /python-api -> ${base_url}/current/python-api
+raw: /spark-sql -> ${base_url}/current/spark-sql
+raw: /sparkR -> ${base_url}/current/r-api
+
+### Redirect new 2.0 subpages to original v1.1 pages
+[v1.1]: ${version}/python/write-to-mongodb -> ${base_url}/${version}/python-api
+[v1.1]: ${version}/python/read-from-mongodb -> ${base_url}/${version}/python-api
+[v1.1]: ${version}/python/aggregation -> ${base_url}/${version}/python-api
+[v1.1]: ${version}/python/filters-and-sql -> ${base_url}/${version}/python-api
+
+[v1.1]: ${version}/scala/write-to-mongodb -> ${base_url}/${version}/getting-started
+[v1.1]: ${version}/scala/read-from-mongodb -> ${base_url}/${version}/getting-started
+[v1.1]: ${version}/scala/aggregation -> ${base_url}/${version}/getting-started
+[v1.1]: ${version}/scala/datasets-and-sql -> ${base_url}/${version}/spark-sql
+
+[v1.1]: ${version}/java/write-to-mongodb -> ${base_url}/${version}/java-api
+[v1.1]: ${version}/java/read-from-mongodb -> ${base_url}/${version}/java-api
+[v1.1]: ${version}/java/aggregation -> ${base_url}/${version}/java-api
+[v1.1]: ${version}/java/datasets-and-sql -> ${base_url}/${version}/java-api
+
+[v1.1]: ${version}/r/write-to-mongodb -> ${base_url}/${version}/sparkR
+[v1.1]: ${version}/r/read-from-mongodb -> ${base_url}/${version}/sparkR
+[v1.1]: ${version}/r/aggregation -> ${base_url}/${version}/sparkR
+[v1.1]: ${version}/r/filters-and-sql -> ${base_url}/${version}/sparkR
+
+### Redirect new 2.0 landing pages to original v1.1 landing pages
+[v1.1]: ${version}/scala-api -> ${base_url}/${version}/getting-started
+[v1.1]: ${version}/r-api -> ${base_url}/${version}/sparkR
+
+### Redirect from removed v1.1 pages to v2.0 pages
+(v1.1-*]: ${version}/getting-started -> ${base_url}/${version}
+(v1.1-*]: ${version}/spark-sql -> ${base_url}/${version}
+(v1.1-*]: ${version}/sparkR -> ${base_url}/${version}/r-api

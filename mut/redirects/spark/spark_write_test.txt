@@ -1,0 +1,52 @@
+Redirect 301 /current/getting-started https://docs.mongodb.com/spark-connector/current
+Redirect 301 /current/spark-sql https://docs.mongodb.com/spark-connector/current
+Redirect 301 /current/sparkR https://docs.mongodb.com/spark-connector/current/r-api
+
+Redirect 301 /v2.2/getting-started https://docs.mongodb.com/spark-connector/v2.2
+Redirect 301 /v2.2/spark-sql https://docs.mongodb.com/spark-connector/v2.2
+Redirect 301 /v2.2/sparkR https://docs.mongodb.com/spark-connector/v2.2/r-api
+
+Redirect 301 /spark-connector https://docs.mongodb.com/spark-connector/current
+Redirect 301 /spark-connector/configuration https://docs.mongodb.com/spark-connector/current/configuration
+Redirect 301 /spark-connector/faq https://docs.mongodb.com/spark-connector/current/faq
+Redirect 301 /spark-connector/getting-started https://docs.mongodb.com/spark-connector/current/getting-started
+Redirect 301 /spark-connector/java-api https://docs.mongodb.com/spark-connector/current/java-api
+
+Redirect 301 /spark-connector/master/getting-started https://docs.mongodb.com/spark-connector/master
+Redirect 301 /spark-connector/master/spark-sql https://docs.mongodb.com/spark-connector/master
+Redirect 301 /spark-connector/master/sparkR https://docs.mongodb.com/spark-connector/master/r-api
+
+Redirect 301 /spark-connector/python-api https://docs.mongodb.com/spark-connector/current/python-api
+Redirect 301 /spark-connector/spark-sql https://docs.mongodb.com/spark-connector/current/spark-sql
+Redirect 301 /spark-connector/sparkR https://docs.mongodb.com/spark-connector/current/r-api
+
+Redirect 301 /spark-connector/v1.1/python/write-to-mongodb https://docs.mongodb.com/spark-connector/v1.1/python-api
+Redirect 301 /spark-connector/v1.1/python/read-from-mongodb https://docs.mongodb.com/spark-connector/v1.1/python-api
+Redirect 301 /spark-connector/v1.1/python/aggregation https://docs.mongodb.com/spark-connector/v1.1/python-api
+Redirect 301 /spark-connector/v1.1/python/filters-and-sql https://docs.mongodb.com/spark-connector/v1.1/python-api
+
+Redirect 301 /spark-connector/v1.1/java/write-to-mongodb https://docs.mongodb.com/spark-connector/v1.1/java-api
+Redirect 301 /spark-connector/v1.1/java/read-from-mongodb https://docs.mongodb.com/spark-connector/v1.1/java-api
+Redirect 301 /spark-connector/v1.1/java/aggregation https://docs.mongodb.com/spark-connector/v1.1/java-api
+Redirect 301 /spark-connector/v1.1/java/datasets-and-sql https://docs.mongodb.com/spark-connector/v1.1/java-api
+
+Redirect 301 /spark-connector/v1.1/r-api https://docs.mongodb.com/spark-connector/v1.1/sparkR
+Redirect 301 /spark-connector/v1.1/r/write-to-mongodb https://docs.mongodb.com/spark-connector/v1.1/sparkR
+Redirect 301 /spark-connector/v1.1/r/read-from-mongodb https://docs.mongodb.com/spark-connector/v1.1/sparkR
+Redirect 301 /spark-connector/v1.1/r/aggregation https://docs.mongodb.com/spark-connector/v1.1/sparkR
+Redirect 301 /spark-connector/v1.1/r/filters-and-sql https://docs.mongodb.com/spark-connector/v1.1/sparkR
+
+Redirect 301 /spark-connector/v1.1/scala-api https://docs.mongodb.com/spark-connector/v1.1/getting-started
+Redirect 301 /spark-connector/v1.1/scala/write-to-mongodb https://docs.mongodb.com/spark-connector/v1.1/getting-started
+Redirect 301 /spark-connector/v1.1/scala/read-from-mongodb https://docs.mongodb.com/spark-connector/v1.1/getting-started
+Redirect 301 /spark-connector/v1.1/scala/aggregation https://docs.mongodb.com/spark-connector/v1.1/getting-started
+Redirect 301 /spark-connector/v1.1/scala/datasets-and-sql https://docs.mongodb.com/spark-connector/v1.1/spark-sql
+
+Redirect 301 /spark-connector/v2.0/getting-started https://docs.mongodb.com/spark-connector/v2.0
+Redirect 301 /spark-connector/v2.1/getting-started https://docs.mongodb.com/spark-connector/v2.1
+Redirect 301 /spark-connector/v2.0/spark-sql https://docs.mongodb.com/spark-connector/v2.0
+Redirect 301 /spark-connector/v2.1/spark-sql https://docs.mongodb.com/spark-connector/v2.1
+Redirect 301 /spark-connector/v2.0/sparkR https://docs.mongodb.com/spark-connector/v2.0/r-api
+Redirect 301 /spark-connector/v2.1/sparkR https://docs.mongodb.com/spark-connector/v2.1/r-api
+
+
