@@ -144,6 +144,7 @@ create_venv() {
         ( cd mut && pip install -r requirements.txt . )
     )
 
+    install_helper mut
     install_helper mut-build
     install_helper mut-convert-redirects
     install_helper mut-images
@@ -151,7 +152,7 @@ create_venv() {
     install_helper mut-intersphinx
     install_helper mut-lint
     install_helper mut-publish
-    install_helper mut
+    install_helper mut-redirects
 
     if ! echo "${PATH}" | grep -q "${MUT_PATH}/bin"; then
         local rc_files=()
@@ -188,6 +189,7 @@ create_venv() {
     echo "  mut-intersphinx"
     echo "  mut-lint"
     echo "  mut-publish"
+    echo "  mut-redirects"
 }
 
 case "$(uname -s)" in

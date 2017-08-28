@@ -11,25 +11,23 @@ Usage:
 
 import re
 import collections
-from typing import List
+from typing import List, Optional
 from docopt import docopt
 
 RuleDefinition = collections.namedtuple('RuleDefinition', ('is_temp', 'version', 'old_url', 'new_url', 'is_symlink'))
 
 
 class RedirectContext:
-    def __init__(self):
-        self.rules = []
-        self.symlinks = []
-        self.definitions = []
+    def __init__(self) -> None:
+        self.rules = []  # type: List[RuleDefinition]
+        self.symlinks = []  # type: List[List[str]]
+        self.definitions = []  # type: List[List[str]]
 
-        return None
-
-    def add_definition(self, key: str, value: str):
+    def add_definition(self, key: str, value: str) -> None:
         d = [key, value]
         self.definitions.append(d)
 
-    def generate_rule(self, is_temp: bool, version: str, old_url: str, new_url: str, is_symlink: bool = False):
+    def generate_rule(self, is_temp: bool, version: str, old_url: str, new_url: str, is_symlink: bool = False) -> None:
         context_url = ''
 
         for definition in self.definitions:
@@ -60,7 +58,7 @@ class RedirectContext:
 
         self.rules.append(new_rule)
 
-    def rule_substitute(self, url_string: str, version: str):
+    def rule_substitute(self, url_string: str, version: str) -> str:
         # look for strings between { }
         sub_regex = '{(.*?)}'
         matches = re.findall(sub_regex, url_string, re.DOTALL)
@@ -83,10 +81,12 @@ class RedirectContext:
         return url_string
 
 
-def parse_versions(defs: List):
+def parse_versions(defs: List[List[str]]) -> Optional[str]:
     for definition in defs:
         if definition[0] == 'versions':
             return definition[1]
+
+    return None
 
 
 def write_to_file(rules: List[RuleDefinition], output_path: str) -> None:
@@ -106,7 +106,7 @@ def write_to_file(rules: List[RuleDefinition], output_path: str) -> None:
         f.close()
 
 
-def parse_source_file(source_path: str, output: str):
+def parse_source_file(source_path: str, output: str) -> None:
     version_regex = re.compile('([\[\(])([\w.\*]+)(?:-([\w.\*]+))?([\]\)])')
     url_regex = re.compile(':(?:[ \t\f\v])(.*)(?:[ \t\f\v]->)(.*)')
     rc = RedirectContext()
