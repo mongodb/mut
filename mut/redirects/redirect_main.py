@@ -11,7 +11,7 @@ Usage:
 
 import re
 import collections
-from typing import List, Optional
+from typing import List, Optional, Dict
 from docopt import docopt
 
 RuleDefinition = collections.namedtuple('RuleDefinition', ('is_temp', 'version', 'old_url', 'new_url', 'is_symlink'))
@@ -21,19 +21,13 @@ class RedirectContext:
     def __init__(self) -> None:
         self.rules = []  # type: List[RuleDefinition]
         self.symlinks = []  # type: List[List[str]]
-        self.definitions = {}  # type: dict
-        return None
+        self.definitions = {}  # type: Dict[str, str]
 
     def add_definition(self, key: str, value: str) -> None:
         self.definitions[key] = value
-        return None
 
     def generate_rule(self, is_temp: bool, version: str, old_url: str, new_url: str, is_symlink: bool = False) -> None:
-        context_url = ''
-
-        for key, value in self.definitions.items():
-            if (key == 'base'):
-                context_url = value
+        context_url = self.definitions['base']
 
         # if url contains {version} - substitute in the correct version
         old_url_sub = self.rule_substitute(old_url, version)
@@ -58,32 +52,27 @@ class RedirectContext:
                     self.generate_rule(is_temp, symlink[0], old_url, new_url, True)
 
         self.rules.append(new_rule)
-        return None
 
-    def rule_substitute(self, url_string: str, version: str) -> str:
+    def rule_substitute(self, input_string: str, version: str = '') -> str:
         # look for strings between { }
         sub_regex = '{(.*?)}'
-        matches = re.findall(sub_regex, url_string, re.DOTALL)
-        url_string = url_string.replace('${version}', version)
-        url_string = url_string.strip()
+        matches = re.findall(sub_regex, input_string, re.DOTALL)
+        if (version != ''):
+            input_string = input_string.replace('${version}', version)
+
+        input_string = input_string.strip()
 
         if not matches:
-            return url_string
+            return input_string
 
-        # loop through each match
         for match in matches:
-            # loop through each definition
-            for key, value in self.definitions.items():
-                # if the match == the definition key
-                if match == key:
-                    # substitute the definition value for the match
-                    if isinstance(value, str):
-                        url_string = url_string.replace('${' + match + '}', value)
-
-        return url_string
+            # substitute the definition value for the match
+            if match != 'version':
+                input_string = input_string.replace('${' + match + '}', self.definitions[match])
+        return input_string
 
 
-def parse_versions(defs: dict) -> [str]:
+def parse_versions(defs: Dict[str, str]) -> [str]:
     return defs['versions'].split(' ')
 
 
@@ -100,8 +89,6 @@ def write_to_file(rules: List[RuleDefinition], output_path: str) -> None:
             line += str(rule.old_url) + ' ' + str(rule.new_url)
             f.write(line)
             f.write('\n')
-        f.close()
-    return None
 
 
 def parse_source_file(source_path: str, output: str) -> None:
@@ -132,25 +119,8 @@ def parse_source_file(source_path: str, output: str) -> None:
                         value = type_split[2]
 
                     value = value.strip()
+                    value = rc.rule_substitute(value)
                     rc.add_definition(key, value)
-                    # see if any definitions have to be substituted with other definitions:
-                    for key, value in rc.definitions.items():
-                        # This goes pretty deep and can probably be refactored.
-                        # Maybe move this logic to a function?
-                        if isinstance(value, str):
-                            matches = re.findall(dict_regex, value, re.DOTALL)
-                            if matches:
-                                # loop through each match
-                                for match in matches:
-                                    # loop through each definition
-                                    for sub_key, sub_value in rc.definitions.items():
-                                        # if the match == the definition key
-                                        if match == sub_key:
-                                            # substitute the definition value for the match
-                                            if isinstance(sub_value, str):
-                                                rc.definitions[key] = \
-                                                    value.replace(
-                                                        '${' + match + '}', sub_value)
 
                     versions = parse_versions(rc.definitions)
 
@@ -319,7 +289,6 @@ def parse_source_file(source_path: str, output: str) -> None:
 
     # write all our rules to the file
     write_to_file(rc.rules, output)
-    return None
 
 
 def main() -> None:
