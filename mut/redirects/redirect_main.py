@@ -11,7 +11,7 @@ Usage:
 
 import re
 import collections
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Tuple
 from docopt import docopt
 
 RuleDefinition = collections.namedtuple('RuleDefinition', ('is_temp', 'version', 'old_url', 'new_url', 'is_symlink'))
@@ -20,7 +20,7 @@ RuleDefinition = collections.namedtuple('RuleDefinition', ('is_temp', 'version',
 class RedirectContext:
     def __init__(self) -> None:
         self.rules = []  # type: List[RuleDefinition]
-        self.symlinks = []  # type: List[List[str]]
+        self.symlinks = []  # type: List[Tuple[str, str]]
         self.definitions = {}  # type: Dict[str, str]
 
     def add_definition(self, key: str, value: str) -> None:
