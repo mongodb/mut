@@ -21,18 +21,19 @@ class RedirectContext:
     def __init__(self) -> None:
         self.rules = []  # type: List[RuleDefinition]
         self.symlinks = []  # type: List[List[str]]
-        self.definitions = []  # type: List[List[str]]
+        self.definitions = {}  # type: dict
+        return None
 
     def add_definition(self, key: str, value: str) -> None:
-        d = [key, value]
-        self.definitions.append(d)
+        self.definitions[key] = value
+        return None
 
     def generate_rule(self, is_temp: bool, version: str, old_url: str, new_url: str, is_symlink: bool = False) -> None:
         context_url = ''
 
-        for definition in self.definitions:
-            if (definition[0] == 'base'):
-                context_url = definition[1]
+        for key, value in self.definitions.items():
+            if (key == 'base'):
+                context_url = value
 
         # if url contains {version} - substitute in the correct version
         old_url_sub = self.rule_substitute(old_url, version)
@@ -57,6 +58,7 @@ class RedirectContext:
                     self.generate_rule(is_temp, symlink[0], old_url, new_url, True)
 
         self.rules.append(new_rule)
+        return None
 
     def rule_substitute(self, url_string: str, version: str) -> str:
         # look for strings between { }
@@ -71,27 +73,22 @@ class RedirectContext:
         # loop through each match
         for match in matches:
             # loop through each definition
-            for definition in self.definitions:
+            for key, value in self.definitions.items():
                 # if the match == the definition key
-                if match == definition[0]:
+                if match == key:
                     # substitute the definition value for the match
-                    if isinstance(definition[1], str):
-                        url_string = url_string.replace('${' + match + '}', definition[1])
+                    if isinstance(value, str):
+                        url_string = url_string.replace('${' + match + '}', value)
 
         return url_string
 
 
-def parse_versions(defs: List[List[str]]) -> Optional[str]:
-    for definition in defs:
-        if definition[0] == 'versions':
-            return definition[1]
-
-    return None
+def parse_versions(defs: dict) -> [str]:
+    return defs['versions'].split(' ')
 
 
 def write_to_file(rules: List[RuleDefinition], output_path: str) -> None:
-    with open(output_path + '/.htaccess', 'w') as f:
-
+    with open(output_path + '/htaccess_test.txt', 'w') as f:
         for rule in rules:
             line = 'Redirect '
 
@@ -104,11 +101,13 @@ def write_to_file(rules: List[RuleDefinition], output_path: str) -> None:
             f.write(line)
             f.write('\n')
         f.close()
+    return None
 
 
 def parse_source_file(source_path: str, output: str) -> None:
     version_regex = re.compile('([\[\(])([\w.\*]+)(?:-([\w.\*]+))?([\]\)])')
     url_regex = re.compile(':(?:[ \t\f\v])(.*)(?:[ \t\f\v]->)(.*)')
+    dict_regex = '{(.*?)}'
     rc = RedirectContext()
 
     with open(source_path) as file:
@@ -122,36 +121,36 @@ def parse_source_file(source_path: str, output: str) -> None:
 
                 # define:
                 if keyword_split[0] == 'define':
+                    value = ''
                     type_split = keyword_split[1].split(' ')
                     key = type_split[1]
 
                     if len(type_split) > 3:
-                        value = []
                         for x in range(2, len(type_split)):
-                            value.append(type_split[x])
+                            value = value + type_split[x] + ' '
                     else:
                         value = type_split[2]
 
+                    value = value.strip()
                     rc.add_definition(key, value)
                     # see if any definitions have to be substituted with other definitions:
-                    for x in range(0, len(rc.definitions)):
-                        sub_regex = '{(.*?)}'
+                    for key, value in rc.definitions.items():
                         # This goes pretty deep and can probably be refactored.
                         # Maybe move this logic to a function?
-                        if isinstance(rc.definitions[x][1], str):
-                            matches = re.findall(sub_regex, rc.definitions[x][1], re.DOTALL)
+                        if isinstance(value, str):
+                            matches = re.findall(dict_regex, value, re.DOTALL)
                             if matches:
                                 # loop through each match
-                                for y in range(0, len(matches)):
+                                for match in matches:
                                     # loop through each definition
-                                    for m in range(0, len(rc.definitions)):
+                                    for sub_key, sub_value in rc.definitions.items():
                                         # if the match == the definition key
-                                        if matches[y] == rc.definitions[m][0]:
+                                        if match == sub_key:
                                             # substitute the definition value for the match
-                                            if isinstance(rc.definitions[m][1], str):
-                                                rc.definitions[x][1] = \
-                                                    rc.definitions[x][1].replace(
-                                                        '${' + matches[y] + '}', rc.definitions[m][1])
+                                            if isinstance(sub_value, str):
+                                                rc.definitions[key] = \
+                                                    value.replace(
+                                                        '${' + match + '}', sub_value)
 
                     versions = parse_versions(rc.definitions)
 
@@ -320,6 +319,7 @@ def parse_source_file(source_path: str, output: str) -> None:
 
     # write all our rules to the file
     write_to_file(rc.rules, output)
+    return None
 
 
 def main() -> None:
