@@ -15,6 +15,8 @@ from collections import defaultdict
 from docopt import docopt
 import yaml
 
+REDIRECTS_DIR = '/Users/nick/mongodb/mut/mut/convert_redirects/htaccess/'
+
 Output = NamedTuple('Output', [
     ('version', str),
     ('old_prefix', str),
@@ -53,7 +55,7 @@ def transform_version_rule(rule: str, pragmas) -> str:
         }
         template = templates[predicate] if predicate in templates else '[{}]'
         if version in symlinks:
-            version = symlinks[version]
+            version = 'v'+symlinks[version]
         return template.format(version)
 
 
@@ -77,7 +79,7 @@ def parse_output(output, property_name, pragmas, versions) -> List[Output]:
                 parts = old_prefix.split('/')
                 if parts[0] == property_name:
                     del parts[0]
-                if parts and re.match(r'(v.*|master)', parts[-1]):
+                if parts and re.match(r'(v.*|master|manual)', parts[-1]):
                     version = transform_version_rule(parts[-1], pragmas)
                     del parts[-1]
                 old_prefix = '/'.join(parts)
@@ -132,12 +134,18 @@ def filter_rules(rules: list):
 
 def process_rule(rule: dict, base: str, cfg: dict, pragmas: List[str]):
     rule["from"] = '/' + rule["from"].lstrip('/')
-    min_version = 0
-    max_version = 0
+    rules = []
+    rule_versions = cfg.get('versions')
+    output_versions = []
+
     for output in rule['outputs']:
-        v = None if not defaultdict(None, cfg).get(
-            'versions') else cfg['versions']
-        o = parse_output(output, cfg["name"], pragmas, v)
+        o = parse_output(output, cfg["name"], pragmas, rule_versions)
+
+        # Detect if rule applies to many contiguous versions
+        if o.version not in output_versions:
+            output_versions.append(o.version)
+        # todo: make this actually work
+
         if re.match(re.escape(base) + r"*", o.new_prefix):
             o = o._replace(new_prefix=o.new_prefix[len(base):])
         if o.version == 'raw':
@@ -151,15 +159,19 @@ def process_rule(rule: dict, base: str, cfg: dict, pragmas: List[str]):
         f += '/'.join([o.old_prefix, rule['from'].lstrip('/')]
                       ) if o.old_prefix else rule['from']
         t += o.new_prefix + rule['to'] if o.new_prefix else rule['to']
-    return '{}: {} -> {}'.format(o.version, f, t)
+        rules.append('{}: {} -> {}'.format(o.version, f, t))
+    if len(output_versions) > 1:
+        print('\t', rule.get('from'), '-', output_versions)
+    return '\n'.join(rules)
 
 
 def convert_file(base: str, **cfg) -> List[str]:
     """Convert a giza-style redirect file to a list of mut-style rules."""
+    print(cfg.get('name'))
     files = [f for f in cfg['file']] if isinstance(cfg['file'], list) else [cfg.get('file')]
     redirects = []
     for file in files:
-        with open(file, 'r') as f:
+        with open(REDIRECTS_DIR + file, 'r') as f:
             redirects.extend(filter_rules(list(yaml.safe_load_all(f))))
     pragmas = create_pragmas(base, cfg.get('versions'), cfg.get('symlinks'))
     rules = [process_rule(rule=rule, base=base, cfg=cfg, pragmas=pragmas)
