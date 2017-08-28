@@ -123,13 +123,13 @@ def parse_source_file(source_path: str, output: str) -> None:
                     type_split = line.split(':', 1)
                     sym_split = [sym.strip() for sym in type_split[1].split('->')]
                     alias = sym_split[0]  # did not exist previously
-                    target = sym_split[1]  # original folder
+                    origin = sym_split[1]  # original folder
 
                     if os.path.islink('./build/public/' + alias):
                         os.remove('./build/public/' + alias)
 
-                    os.symlink('./build/public/' + target, './build/public/' + alias)
-                    rc.symlinks.append((alias, target))
+                    os.symlink('./build/public/' + origin, './build/public/' + alias)
+                    rc.symlinks.append((alias, origin))
 
                 # raw redirects:
                 if keyword_split[0] == 'raw':
