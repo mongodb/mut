@@ -13,6 +13,7 @@ mut-intersphinx --version
 import base64
 import datetime
 import email.utils
+import http.client
 import logging
 import os
 import posixpath
@@ -59,11 +60,11 @@ def update(name: str, url: str, timeout: float) -> None:
         with open(path, 'wb') as f:
             f.write(response.read())
     except urllib.error.HTTPError as err:
-        if err.status == 304:
+        if err.code == 304:
             logger.debug('Not modified: %s', url)
             return
-        logger.error('Error downloading %s: Got %d', url, err.status)
-    except (urllib.request.http.client.HTTPException,
+        logger.error('Error downloading %s: Got %d', url, err.code)
+    except (http.client.HTTPException,
             urllib.error.URLError) as err:
         logger.error('Error downloading %s: %s', url, str(err))
 

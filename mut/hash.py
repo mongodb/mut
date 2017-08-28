@@ -12,6 +12,7 @@ from typing import List
 import rstcloth.rstcloth
 
 import mut.config
+import mut.util
 
 PREFIXES = []  # type: List[str]
 
@@ -27,7 +28,7 @@ def generate_hash_file(config: mut.config.RootConfig) -> None:
 
     if os.path.exists(filename):
         with open(filename, 'r') as f:
-            existing = f.read()
+            existing = [f.read()]
     else:
         existing = []
 
