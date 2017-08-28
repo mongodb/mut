@@ -70,7 +70,7 @@ def parse_versions(defs: Dict[str, str]) -> List[str]:
 
 
 def write_to_file(rules: List[RuleDefinition], output_path: str) -> None:
-    with open(output_path + '/htaccess_test.txt', 'w') as f:
+    with open(output_path, 'w') as f:
         for rule in rules:
             line = 'Redirect '
 
