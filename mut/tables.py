@@ -7,6 +7,7 @@ import rstcloth.rstcloth
 import rstcloth.table
 
 import mut.config
+import mut.util
 
 __all__ = ['PREFIXES', 'run']
 
