@@ -27,8 +27,6 @@ class RedirectContext:
         self.definitions[key] = value
 
     def generate_rule(self, is_temp: bool, version: str, old_url: str, new_url: str, is_symlink: bool = False) -> None:
-        context_url = self.definitions['base']
-
         # if url contains {version} - substitute in the correct version
         old_url_sub = self.rule_substitute(old_url, version)
         new_url_sub = self.rule_substitute(new_url, version)
@@ -37,11 +35,6 @@ class RedirectContext:
         if len(old_url_sub) > 0:
             if old_url_sub[0] != '/':
                 old_url_sub = '/' + old_url_sub
-
-            if not is_symlink:
-                if old_url_sub[-1] == '/':
-                    old_url_sub = old_url_sub[:-1]
-                old_url_sub = '/' + context_url + old_url_sub
 
         new_rule = RuleDefinition(is_temp, version, old_url_sub, new_url_sub, False)
 
@@ -72,7 +65,7 @@ class RedirectContext:
         return input_string
 
 
-def parse_versions(defs: Dict[str, str]) -> [str]:
+def parse_versions(defs: Dict[str, str]) -> List[str]:
     return defs['versions'].split(' ')
 
 
@@ -128,8 +121,8 @@ def parse_source_file(source_path: str, output: str) -> None:
                 if keyword_split[0] == 'symlink':
                     type_split = line.split(':', 1)
                     sym_split = [sym.strip() for sym in type_split[1].split('->')]
-
-                    rc.symlinks.append(sym_split)
+                    sym_tup = (sym_split[0], sym_split[1])
+                    rc.symlinks.append(sym_tup)
 
                 # raw redirects:
                 if keyword_split[0] == 'raw':
