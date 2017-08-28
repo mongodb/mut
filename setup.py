@@ -46,10 +46,11 @@ setup(
             'mut-build = mut.main:main',
             'mut-convert-redirects = mut.convert_redirects:main',
             'mut-images = mut.build_images:main',
+            'mut-index = mut.index.main:main',
             'mut-intersphinx = mut.intersphinx:main',
             'mut-lint = mut.lint:main',
             'mut-publish = mut.stage:main',
-            'mut-index = mut.index.main:main',
+            'mut-redirects = mut.redirects.redirect_main:main',
             ],
         }
     )
