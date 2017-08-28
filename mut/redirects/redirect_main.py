@@ -72,7 +72,7 @@ class RedirectContext:
         return input_string
 
 
-def parse_versions(defs: Dict[str, str]) -> [str]:
+def parse_versions(defs: Dict[str, str]) -> List[str]:
     return defs['versions'].split(' ')
 
 
