@@ -11,7 +11,7 @@ Usage:
 
 import re
 import collections
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Tuple
 from docopt import docopt
 
 RuleDefinition = collections.namedtuple('RuleDefinition', ('is_temp', 'version', 'old_url', 'new_url', 'is_symlink'))
@@ -20,15 +20,13 @@ RuleDefinition = collections.namedtuple('RuleDefinition', ('is_temp', 'version',
 class RedirectContext:
     def __init__(self) -> None:
         self.rules = []  # type: List[RuleDefinition]
-        self.symlinks = []  # type: List[List[str]]
+        self.symlinks = []  # type: List[Tuple[str, str]]
         self.definitions = {}  # type: Dict[str, str]
 
     def add_definition(self, key: str, value: str) -> None:
         self.definitions[key] = value
 
     def generate_rule(self, is_temp: bool, version: str, old_url: str, new_url: str, is_symlink: bool = False) -> None:
-        context_url = self.definitions['base']
-
         # if url contains {version} - substitute in the correct version
         old_url_sub = self.rule_substitute(old_url, version)
         new_url_sub = self.rule_substitute(new_url, version)
@@ -37,11 +35,6 @@ class RedirectContext:
         if len(old_url_sub) > 0:
             if old_url_sub[0] != '/':
                 old_url_sub = '/' + old_url_sub
-
-            if not is_symlink:
-                if old_url_sub[-1] == '/':
-                    old_url_sub = old_url_sub[:-1]
-                old_url_sub = '/' + context_url + old_url_sub
 
         new_rule = RuleDefinition(is_temp, version, old_url_sub, new_url_sub, False)
 
@@ -128,8 +121,8 @@ def parse_source_file(source_path: str, output: str) -> None:
                 if keyword_split[0] == 'symlink':
                     type_split = line.split(':', 1)
                     sym_split = [sym.strip() for sym in type_split[1].split('->')]
-
-                    rc.symlinks.append(sym_split)
+                    sym_tup = (sym_split[0], sym_split[1])
+                    rc.symlinks.append(sym_tup)
 
                 # raw redirects:
                 if keyword_split[0] == 'raw':
