@@ -124,11 +124,14 @@ def parse_source_file(source_path: str, output: str) -> None:
                     sym_split = [sym.strip() for sym in type_split[1].split('->')]
                     alias = sym_split[0]  # did not exist previously
                     origin = sym_split[1]  # original folder
+                    alias_path = os.path.join('./build/public/', alias)
 
-                    if os.path.islink('./build/public/' + alias):
-                        os.remove('./build/public/' + alias)
+                    try:
+                        os.remove(alias_path)
+                    except FileNotFoundError:
+                        pass
 
-                    os.symlink('./build/public/' + origin, './build/public/' + alias)
+                    os.symlink(origin, os.path.join('build/public', alias))
                     rc.symlinks.append((alias, origin))
 
                 # raw redirects:
