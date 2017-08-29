@@ -190,7 +190,7 @@ def main() -> None:
         cfg['base'] = cfg.get('base').rstrip('/')
         result = convert_file(**cfg)
         if cfg['output']:
-            with open('results/' + cfg['output'], 'w') as f:
+            with open('/Users/nick/mongodb/mut/mut/convert_redirects/results/' + cfg['output'], 'w') as f:
                 f.write(result)
         else:
             print(result)

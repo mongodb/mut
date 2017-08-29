@@ -18,31 +18,31 @@ output: bi-connector-results.txt
 file: bi-connector-htaccess.yaml
 base: https://docs.mongodb.com/bi-connector/
 versions:
-  - 2.2
+  - master
   - 2.1
   - 2.0
   - 1.1
 symlinks:
-  - master -> 2.2
+  - v2.2 -> master
 ---
 name: spark-connector
 output: spark-results.txt
 file: spark-connector-htaccess.yaml
 base: https://docs.mongodb.com/spark-connector/
 versions:
-  - 2.2
+  - master
   - 2.1
   - 2.0
   - 1.1
 symlinks:
-  - master -> 2.2
+  - v2.2 -> master
 ---
 name: server
-output: manual-results.txt
+output: server-results.txt
 file: server-htaccess.yaml
 base: https://docs.mongodb.com/
 versions:
-  - 3.6
+  - master
   - 3.4
   - 3.2
   - 3.0
@@ -50,7 +50,7 @@ versions:
   - 2.4
   - 2.2
 symlinks:
-  - master -> 3.6
+  - v3.6 -> master
   - manual -> 3.4
 ---
 name: ecosystem
@@ -74,12 +74,13 @@ base: https://docs.mongodb.com/ecosystem/
 name: ops-manager
 output: ops-manager-results.txt
 file:
-  #- redirects-hosted.yaml
+  - redirects-hosted.yaml
   - redirects-next-hosted.yaml
   - redirects-api.yaml
   - redirects-pdfs-onprem.yaml
 base: https://docs.opsmanager.mongodb.com/
 versions:
+  - master
   - 3.4
   - 2.0
   - 1.8
@@ -90,6 +91,7 @@ versions:
   - 1.2
   - 1.1
 symlinks:
+  - upcoming -> master
   - current -> 3.4
 ---
 name: cloud-manager
