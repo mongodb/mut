@@ -23,6 +23,14 @@ class RedirectContext:
         self.rules = []  # type: List[RuleDefinition]
         self.symlinks = []  # type: List[Tuple[str, str]]
         self.definitions = {}  # type: Dict[str, str]
+        self._versions = None  # type: Optional[List[str]]
+
+    @property
+    def versions(self):
+        if self._versions is None:
+            self._versions = parse_versions(self.definitions)
+
+        return self._versions
 
     def add_definition(self, key: str, value: str) -> None:
         self.definitions[key] = value
@@ -116,7 +124,8 @@ def parse_source_file(source_path: str, output: str) -> None:
                     value = rc.rule_substitute(value)
                     rc.add_definition(key, value)
 
-                    versions = parse_versions(rc.definitions)
+                    if 'versions' in rc.definitions:
+                        versions = parse_versions(rc.definitions)
 
                 # grab symlinks:
                 if keyword_split[0] == 'symlink':
