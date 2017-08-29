@@ -170,6 +170,7 @@ def parse_source_file(source_path: str, output: str) -> None:
                             old_url = url_match.group(1)
                         if url_match.group(2):
                             new_url = url_match.group(2)
+
                         # match regex groups:
                         # Group 1: Opening container - ( or [
                         # Group 2: Left version number
