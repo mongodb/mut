@@ -26,9 +26,9 @@ class RedirectContext:
         self._versions = None  # type: Optional[List[str]]
 
     @property
-    def versions(self):
+    def versions(self) -> List[str]:
         if self._versions is None:
-            self._versions = parse_versions(self.definitions)
+            self._versions = self.definitions['versions'].split(' ')
 
         return self._versions
 
@@ -72,10 +72,6 @@ class RedirectContext:
             if match != 'version':
                 input_string = input_string.replace('${' + match + '}', self.definitions[match])
         return input_string
-
-
-def parse_versions(defs: Dict[str, str]) -> List[str]:
-    return defs['versions'].split(' ')
 
 
 def write_to_file(rules: List[RuleDefinition], output_path: str) -> None:
@@ -123,9 +119,6 @@ def parse_source_file(source_path: str, output: str) -> None:
                     value = value.strip()
                     value = rc.rule_substitute(value)
                     rc.add_definition(key, value)
-
-                    if 'versions' in rc.definitions:
-                        versions = parse_versions(rc.definitions)
 
                 # grab symlinks:
                 if keyword_split[0] == 'symlink':
@@ -188,10 +181,10 @@ def parse_source_file(source_path: str, output: str) -> None:
                         # Check if group 2 and/or 3 are '*' or in version array
                         # If not, error.
                         # Process accordingly based on brackets in groups 1 and 4
-                        if (match.group(2) not in versions and match.group(2) != '*'):
+                        if (match.group(2) not in rc.versions and match.group(2) != '*'):
                             raise ValueError('ERROR: Bad version in line ' + str(line_num))
                         elif match.group(3):
-                            if (match.group(3) not in versions and match.group(3) != '*'):
+                            if (match.group(3) not in rc.versions and match.group(3) != '*'):
                                 raise ValueError('ERROR: Bad version in line ' + str(line_num))
 
                             # if we've made it this far, there are two versions provided and they are both valid
@@ -205,18 +198,18 @@ def parse_source_file(source_path: str, output: str) -> None:
 
                                     # left version is a number, not *
                                     else:
-                                        begin_index = versions.index(match.group(2))
+                                        begin_index = rc.versions.index(match.group(2))
                                         # right version is *
                                         # (v2 - *]
                                         if (match.group(3) == '*'):
-                                            for x in range(begin_index + 1, len(versions)):
-                                                version = versions[x]
+                                            for x in range(begin_index + 1, len(rc.versions)):
+                                                version = rc.versions[x]
                                                 rc.generate_rule(is_temp, version, old_url, new_url)
 
                                         # right version is a number, not *
                                         # (v2 - v3
                                         else:
-                                            end_index = versions.index(match.group(3))
+                                            end_index = rc.versions.index(match.group(3))
                                             # non-inclusive end_index
                                             # (v2 - v3)
                                             if match.group(4) == ')':
@@ -226,14 +219,14 @@ def parse_source_file(source_path: str, output: str) -> None:
                                                                      str(line_num))
                                                 else:
                                                     for x in range(begin_index + 1, end_index):
-                                                        version = versions[x]
+                                                        version = rc.versions[x]
                                                         rc.generate_rule(is_temp, version, old_url, new_url)
 
                                             # inclusive end_index
                                             # (v2 - v3]
                                             if match.group(4) == ']':
                                                 for x in range(begin_index + 1, end_index + 1):
-                                                    version = versions[x]
+                                                    version = rc.versions[x]
                                                     rc.generate_rule(is_temp, version, old_url, new_url)
 
                                 # inclusive begin_index
@@ -241,7 +234,7 @@ def parse_source_file(source_path: str, output: str) -> None:
                                     # left version is *
                                     # [* -
                                     if match.group(2) == '*':
-                                        end_index = versions.index(match.group(3))
+                                        end_index = rc.versions.index(match.group(3))
 
                                         # raise an error here because [* - * should be a raw redirect
                                         if match.group(3) == '*':
@@ -251,18 +244,18 @@ def parse_source_file(source_path: str, output: str) -> None:
                                             # [* - v3)
                                             if (match.group(4) == ')'):
                                                 for x in range(0, end_index):
-                                                    version = versions[x]
+                                                    version = rc.versions[x]
                                                     rc.generate_rule(is_temp, version, old_url, new_url)
 
                                             # [* - v3]
                                             elif (match.group(4) == ']'):
                                                 for x in range(0, end_index + 1):
-                                                    version = versions[x]
+                                                    version = rc.versions[x]
                                                     rc.generate_rule(is_temp, version, old_url, new_url)
                                     # left version is a number, not *
                                     # [v2 -
                                     else:
-                                        begin_index = versions.index(match.group(2))
+                                        begin_index = rc.versions.index(match.group(2))
 
                                         if match.group(3) == '*':
                                             # right version is *
@@ -271,26 +264,26 @@ def parse_source_file(source_path: str, output: str) -> None:
                                                 raise ValueError('ERROR: Bad formatting in line ' + str(line_num))
 
                                             elif (match.group(4) == ']'):
-                                                for x in range(begin_index, len(versions)):
-                                                    version = versions[x]
+                                                for x in range(begin_index, len(rc.versions)):
+                                                    version = rc.versions[x]
                                                     rc.generate_rule(is_temp, version, old_url, new_url)
 
                                         # right version is a number, not *
                                         else:
-                                            end_index = versions.index(match.group(3))
+                                            end_index = rc.versions.index(match.group(3))
 
                                             # non-inclusive end_index
                                             # [v2 - v3)
                                             if match.group(4) == ')':
                                                 for x in range(begin_index, end_index):
-                                                    version = versions[x]
+                                                    version = rc.versions[x]
                                                     rc.generate_rule(is_temp, version, old_url, new_url)
 
                                             # inclusive end_index
                                             # [v2 - v3]
                                             elif match.group(4) == ']':
                                                 for x in range(begin_index, end_index + 1):
-                                                    version = versions[x]
+                                                    version = rc.versions[x]
                                                     rc.generate_rule(is_temp, version, old_url, new_url)
 
                         # only one version number provided
