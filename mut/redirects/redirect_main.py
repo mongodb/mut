@@ -11,6 +11,7 @@ Usage:
 
 import re
 import collections
+import os
 from typing import List, Optional, Dict, Tuple
 from docopt import docopt
 
@@ -121,8 +122,17 @@ def parse_source_file(source_path: str, output: str) -> None:
                 if keyword_split[0] == 'symlink':
                     type_split = line.split(':', 1)
                     sym_split = [sym.strip() for sym in type_split[1].split('->')]
-                    sym_tup = (sym_split[0], sym_split[1])
-                    rc.symlinks.append(sym_tup)
+                    alias = sym_split[0]  # did not exist previously
+                    origin = sym_split[1]  # original folder
+                    alias_path = os.path.join('build/public/', alias)
+
+                    try:
+                        os.remove(alias_path)
+                    except FileNotFoundError:
+                        pass
+
+                    os.symlink(origin, alias_path)
+                    rc.symlinks.append((alias, origin))
 
                 # raw redirects:
                 if keyword_split[0] == 'raw':
