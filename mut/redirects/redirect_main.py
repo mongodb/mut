@@ -170,7 +170,6 @@ def parse_source_file(source_path: str, output: str) -> None:
                             old_url = url_match.group(1)
                         if url_match.group(2):
                             new_url = url_match.group(2)
-
                         # match regex groups:
                         # Group 1: Opening container - ( or [
                         # Group 2: Left version number
@@ -290,7 +289,11 @@ def parse_source_file(source_path: str, output: str) -> None:
                         # [v2]
                         elif not match.group(3):
                             version = match.group(2)
-                            rc.generate_rule(is_temp, version, old_url, new_url)
+                            if version == '*':
+                                for ver in rc.versions:
+                                    rc.generate_rule(is_temp, ver, old_url, new_url)
+                            else:
+                                rc.generate_rule(is_temp, version, old_url, new_url)
 
     # write all our rules to the file
     write_to_file(rc.rules, output)
