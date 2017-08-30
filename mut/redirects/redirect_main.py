@@ -48,7 +48,7 @@ class RedirectContext:
         new_rule = RuleDefinition(is_temp, version, old_url_sub, new_url_sub, False)
 
         # check for symlinks
-        if len(self.symlinks) > 0:
+        if len(self.symlinks) > 0 and version is not 'raw':
             for symlink in self.symlinks:
                 if version == symlink[1]:
                     self.generate_rule(is_temp, symlink[0], old_url, new_url, True)
@@ -147,8 +147,7 @@ def parse_source_file(source_path: str, output: str) -> None:
 
                         # get version from new_url
                         new_url_s = new_url.split('/')
-                        version = new_url_s[1]
-                        rc.generate_rule(False, version, old_url, new_url)
+                        rc.generate_rule(False, 'raw', old_url, new_url)
 
             # for versioning rules:
             else:
