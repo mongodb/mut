@@ -3,7 +3,6 @@ from setuptools import setup, find_packages
 import mut
 
 REQUIRES = [
-    'boto',
     'boto3',
     'certifi',
     'cssselect',
