@@ -130,22 +130,24 @@ class ChangeSet:
         self.commands_redirect = []  # type: List[Tuple[str, str]]
         self.commands_upload = []  # type: List[Tuple[str, str, str]]
 
-    def delete(self, objects: List[str]) -> None:
+    def delete(self, objects: List[str], tag: str='D') -> None:
         """Request deletion of a list of objects."""
-        self.commands_delete.extend(('D', x) for x in objects)
+        self.commands_delete.extend((tag, x.lstrip('/')) for x in objects)
 
     def delete_redirects(self, objects: List[str]) -> None:
         """Request deletion of a list of redirects. Behavior is the same as ChangeSet.delete():
            the distinction is informational for ChangeSet.print()."""
-        self.commands_delete.extend(('DR', x) for x in objects)
+        self.delete(objects, tag='DR')
 
     def upload(self, path: str, key: str, new_file: bool) -> None:
         """Upload a local path into the bucket. new_file is informational for ChangeSet.print()."""
         flag = 'C' if new_file else 'M'
+        key = key.lstrip('/')
         self.commands_upload.append((flag, path, key))
 
     def redirect(self, from_key: str, to_url: str) -> None:
         """Create an S3 redirect."""
+        from_key = from_key.lstrip('/')
         self.commands_redirect.append((from_key, to_url))
 
     def print(self) -> None:
