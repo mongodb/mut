@@ -72,19 +72,19 @@ output: ecosystem-results.txt
 file: ecosystem-htaccess.yaml
 base: https://docs.mongodb.com/ecosystem/
 ---
-# name: ruby-driver
-# output: ruby-results.txt
-# file: /Users/nick/mongodb/docs-ruby/config/htaccess.yaml
-# base: https://docs.mongodb.com/ruby-driver/
-# versions:
-#   - 2.4
-#   - 2.3
-#   - 2.2
-#   - 2.0
-#   - 1.x
-# symlinks:
-#   - master -> 2.4
-# ---
+name: ruby-driver
+output: ruby-results.txt
+file: /Users/nick/mongodb/docs-ruby/config/htaccess.yaml
+base: https://docs.mongodb.com/ruby-driver/
+versions:
+  - 2.4
+  - 2.3
+  - 2.2
+  - 2.0
+  - 1.x
+symlinks:
+  - master -> 2.4
+---
 name: ops-manager
 output: ops-manager-results.txt
 file:

@@ -24,10 +24,12 @@ directory = {
     "bi-connector": "docs-bi-connector",
     "cloud-manager": "mms-docs",
     "ops-manager": "mms-docs",
+    "ruby-driver": "docs-ruby"
 }
 options = docopt(__doc__)
 current_properties = options['-f'] if options['-f'] else [k for k in directory.keys()]
 filename_regex = re.compile(r'(?P<name>.*)(?:-results.txt)')
+
 
 def convert_yaml_redirects():
     print(heading('Converting yaml redirects to new arrow syntax'))
@@ -45,6 +47,7 @@ def mutpath(p='', c=None):
 
 
 def term(*args, pwd=None, name=None):
+    print(pwd)
     call = ' '.join(['cd', pwd + ';',
                      'giza generate redirects -p >',
                      mutpath('/convert_redirects/tests/old/{}').format(name)+';',
@@ -58,9 +61,12 @@ def term(*args, pwd=None, name=None):
             'Error': 'red',
             'Output': 'green'
         }
-        x = ['{}:\n',
+        x = ['{0}:\n',
              '\n'.join(['\t' + l for l in std.decode('ascii').split('\n')])]
-        print(colored(''.join(x).format(msgtype), color=t[msgtype]))
+        print(colored(
+            ''.join(x).format(msgtype),
+            t[msgtype]
+        ))
     if err:
         if re.match(r'INFO:giza.content.post.redirects:generating', err.decode('ascii')):
             print(colored(err.decode('ascii'), 'blue'))
