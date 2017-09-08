@@ -14,7 +14,7 @@ docutils==0.14
 dominate==2.3.1
 fett==0.3.2
 giza==0.5.14
-hieroglyph==0.7.1
+hieroglyph==1.0.0
 html5-parser==0.4.4
 idna==2.5
 imagesize==0.7.1

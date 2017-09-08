@@ -132,7 +132,7 @@ class ChangeSet:
 
     def delete(self, objects: List[str], tag: str='D') -> None:
         """Request deletion of a list of objects."""
-        self.commands_delete.extend((tag, x.lstrip('/')) for x in objects)
+        self.commands_delete.extend((tag, x) for x in objects)
 
     def delete_redirects(self, objects: List[str]) -> None:
         """Request deletion of a list of redirects. Behavior is the same as ChangeSet.delete():
