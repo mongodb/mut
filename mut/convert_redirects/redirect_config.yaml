@@ -24,9 +24,10 @@ versions:
   - 1.1
 symlinks:
   - v2.2 -> master
+  - current -> master
 ---
 name: spark-connector
-output: spark-results.txt
+output: spark-connector-results.txt
 file: spark-connector-htaccess.yaml
 base: https://docs.mongodb.com/spark-connector/
 versions:
@@ -36,10 +37,22 @@ versions:
   - 1.1
 symlinks:
   - v2.2 -> master
+  - current -> master
 ---
-name: server
-output: server-results.txt
-file: server-htaccess.yaml
+name: manual
+output: manual-results.txt
+file:
+  - server-htaccess.yaml
+  - server-htaccess-operators.yaml
+  - server-redirects-contributors-guide.yaml
+  - server-redirects-internal-commands.yaml
+  - server-redirects-meta-driver.yaml
+  - server-redirects-next.yaml
+  - server-redirects-pdfs.yaml
+  - server-redirects-products.yaml
+  - server-redirects-tar-gz.yaml
+  - server-redirects.yaml
+
 base: https://docs.mongodb.com/
 versions:
   - master
@@ -51,7 +64,8 @@ versions:
   - 2.2
 symlinks:
   - v3.6 -> master
-  - manual -> 3.4
+  - manual -> v3.4
+  - v2.8 -> v3.0
 ---
 name: ecosystem
 output: ecosystem-results.txt

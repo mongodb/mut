@@ -19,6 +19,7 @@ REDIRECTS_DIR = '/Users/nick/mongodb/mut/mut/convert_redirects/htaccess/'
 
 Output = NamedTuple('Output', [
     ('version', str),
+    ('branch', str),
     ('old_prefix', str),
     ('new_prefix', str)
 ])
@@ -47,16 +48,19 @@ def transform_version_rule(rule: str, pragmas) -> str:
         return '[*]'
     else:
         match = re.match(r'((?:after)|(?:before)|)-?(.*)', rule)
-        predicate = match.group(1)
-        version = match.group(2)
-        templates = {
-            'before': '[*-{}]',
-            'after': '({}-*]',
-        }
-        template = templates[predicate] if predicate in templates else '[{}]'
-        if version in symlinks:
-            version = 'v'+symlinks[version]
-        return template.format(version)
+        if match:
+            predicate = match.group(1)
+            version = match.group(2)
+            templates = {
+                'before': '[*-{}]',
+                'after': '({}-*]',
+            }
+            template = templates[predicate] if predicate in templates else '[{}]'
+            if version in symlinks:
+                version = 'v'+symlinks[version].lstrip('v')
+            return template.format(version)
+        else:
+            return False
 
 
 def parse_output(output, property_name, pragmas, versions) -> List[Output]:
@@ -64,6 +68,7 @@ def parse_output(output, property_name, pragmas, versions) -> List[Output]:
     version = 'raw'
     old_prefix = ''
     new_prefix = ''
+    branch = ''
     if isinstance(output, str) and versions:
         version = transform_version_rule(output, pragmas)
     elif isinstance(output, dict):
@@ -77,14 +82,20 @@ def parse_output(output, property_name, pragmas, versions) -> List[Output]:
             new_prefix = output[1].lstrip('/')
             if len(old_prefix):
                 parts = old_prefix.split('/')
-                if parts[0] == property_name:
+                p = [pragma for pragma in pragmas if re.match(r'symlink.*', pragma)]
+                syms = [re.match(r'(?:symlink:\s)(.*)(?:\s->.*)', s).group(1)
+                        for s in p]
+                if parts[0] == property_name and property_name not in syms:
+                    branch = parts[0]
                     del parts[0]
-                if parts and re.match(r'(v.*|master|manual)', parts[-1]):
+                if parts and re.match(r'(v.*)', parts[-1]):
                     version = transform_version_rule(parts[-1], pragmas)
                     del parts[-1]
+                if len(parts):
+                    parts[0] = '/' + parts[0].lstrip('/')
                 old_prefix = '/'.join(parts)
 
-    return Output(version, old_prefix, new_prefix)
+    return Output(version, branch, old_prefix, new_prefix)
 
 
 def create_pragmas(base: str, versions: [str], symlinks: [str]) -> List[str]:
@@ -120,6 +131,16 @@ def create_pragmas(base: str, versions: [str], symlinks: [str]) -> List[str]:
     return [format_pragma(p) for p in pragmas]
 
 
+def get_rule_versions(cfg):
+    try:
+        rule_versions = cfg['versions'].copy()
+        rule_versions.extend([
+            sym.split(' -> ')[0] for sym in cfg.get('symlinks')])
+        return rule_versions
+    except KeyError:
+        return []
+
+
 def filter_rules(rules: list):
     def not_only_classic(rule: dict):
         if rule.get('edition'):
@@ -132,42 +153,90 @@ def filter_rules(rules: list):
     return [x for x in rules if not_only_classic(x)]
 
 
+def tidy_output_versions(otp, rule_versions):
+    if not isinstance(otp, list):
+        outs = [otp]
+    else:
+        outs = [op for op in otp]
+    if len(outs) > 1:
+        print('\n\nmultiple outs!!!', otp, '\n')
+    dict_style_rule = all([isinstance(o, dict) and len(o) == 1 for o in outs])
+
+    if dict_style_rule:
+        outputs = [list(o.items())[0] for o in outs]
+
+
+
+
+        def only_versions(verlist, versions):
+            return [v for v in verlist if v in versions]
+
+        def output_match(v):
+            v = str(v)
+            is_all_versions = v == 'all'
+            version = re.match(r'((?:after)|(?:before)|)-?(.*)', v)
+            return any([is_all_versions, version.group(0)])
+
+        version_outputs = [v for v in rule_versions if output_match(v)]
+            # v is 'all' or re.match(r'((?:after)|(?:before)|)-?(.*)', v)
+            # for v in rule_versions
+
+
+
+        # return (outputs == [
+        #         {
+        #     'after-v2.0'
+        #         },
+        #         { ... }
+        # ])
+    return None
+
+
+
 def process_rule(rule: dict, base: str, cfg: dict, pragmas: List[str]):
     rule["from"] = '/' + rule["from"].lstrip('/')
+    isTemporary = str(rule.get("code")) in ['302', '303']
     rules = []
-    rule_versions = cfg.get('versions')
-    output_versions = []
+    rule_versions = get_rule_versions(cfg) # Specified version and symlink names
+    # new_outputs = tidy_output_versions(rule['outputs'], rule_versions)
 
     for output in rule['outputs']:
         o = parse_output(output, cfg["name"], pragmas, rule_versions)
 
         # Detect if rule applies to many contiguous versions
-        if o.version not in output_versions:
-            output_versions.append(o.version)
+        #if o.version not in output_versions:
+            #output_versions.append(o.version)
         # todo: make this actually work
 
         if re.match(re.escape(base) + r"*", o.new_prefix):
             o = o._replace(new_prefix=o.new_prefix[len(base):])
         if o.version == 'raw':
-            f = ''
+            f = '' if not o.branch else o.branch
             t = '${base}' if not re.match(r'http*', o.new_prefix) else ''
         else:
-            f = '/${version}'
+            f = '/${version}'if not o.branch else o.branch + '/${version}'
             t = '${base}/${version}' if not re.match(
                 r'http*', o.old_prefix) else ''
 
         f += '/'.join([o.old_prefix, rule['from'].lstrip('/')]
                       ) if o.old_prefix else rule['from']
+        t = t if not re.match(r'https://.*', rule['to']) else ''
         t += o.new_prefix + rule['to'] if o.new_prefix else rule['to']
+        #if re.match(r'https://docs.mongodb.com', base):
+            # rules.append('{}/{}: {} -> {}'.format(cfg.get('name'),
+            #                                       o.version, f, t))
+
+            # For adding the property name back to the start of the from base
+            # print('{}: {}{} -> {}'.format(o.version,
+            #                               '/'+cfg.get('name')+'/',
+            #                               f.lstrip('/'), t))
+        #else:
         rules.append('{}: {} -> {}'.format(o.version, f, t))
-    if len(output_versions) > 1:
-        print('\t', rule.get('from'), '-', output_versions)
     return '\n'.join(rules)
 
 
-def convert_file(base: str, **cfg) -> List[str]:
+def convert_files(base: str, **cfg) -> List[str]:
     """Convert a giza-style redirect file to a list of mut-style rules."""
-    print(cfg.get('name'))
     files = [f for f in cfg['file']] if isinstance(cfg['file'], list) else [cfg.get('file')]
     redirects = []
     for file in files:
@@ -187,10 +256,11 @@ def main() -> None:
         if options['-f']:
             config = [cfg for cfg in config if cfg['name'] in options['-f']]
     for cfg in config:
+        print(cfg.get('name'))
         cfg['base'] = cfg.get('base').rstrip('/')
-        result = convert_file(**cfg)
+        result = convert_files(**cfg)
         if cfg['output']:
-            with open('/Users/nick/mongodb/mut/mut/convert_redirects/results/' + cfg['output'], 'w') as f:
+            with open('/Users/nick/mongodb/mut/mut/convert_redirects/results/'+cfg['output'], 'w') as f:
                 f.write(result)
         else:
             print(result)
