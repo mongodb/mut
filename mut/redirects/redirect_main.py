@@ -50,7 +50,7 @@ class RedirectContext:
         # check for symlinks
         if len(self.symlinks) > 0 and version is not 'raw':
             for symlink in self.symlinks:
-                if version.lstrip('v') == symlink[1].lstrip('v'):
+                if version == symlink[1]:
                     self.generate_rule(is_temp, symlink[0], old_url, new_url, True)
 
         self.rules.append(new_rule)

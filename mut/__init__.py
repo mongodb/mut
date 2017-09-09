@@ -1,6 +1,6 @@
 import abc
 
-__version__ = '0.4.3.dev0'
+__version__ = '0.4.4.dev0'
 
 
 class MutInputError(Exception, metaclass=abc.ABCMeta):

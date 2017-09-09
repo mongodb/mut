@@ -16,6 +16,7 @@ from docopt import docopt
 import yaml
 
 REDIRECTS_DIR = '/Users/nick/mongodb/mut/mut/convert_redirects/htaccess/'
+RESULTS_DIR = '/Users/nick/mongodb/mut/mut/convert_redirects/results/'
 
 Output = NamedTuple('Output', [
     ('version', str),
@@ -165,9 +166,6 @@ def tidy_output_versions(otp, rule_versions):
     if dict_style_rule:
         outputs = [list(o.items())[0] for o in outs]
 
-
-
-
         def only_versions(verlist, versions):
             return [v for v in verlist if v in versions]
 
@@ -178,19 +176,7 @@ def tidy_output_versions(otp, rule_versions):
             return any([is_all_versions, version.group(0)])
 
         version_outputs = [v for v in rule_versions if output_match(v)]
-            # v is 'all' or re.match(r'((?:after)|(?:before)|)-?(.*)', v)
-            # for v in rule_versions
-
-
-
-        # return (outputs == [
-        #         {
-        #     'after-v2.0'
-        #         },
-        #         { ... }
-        # ])
     return None
-
 
 
 def process_rule(rule: dict, base: str, cfg: dict, pragmas: List[str]):
@@ -202,12 +188,6 @@ def process_rule(rule: dict, base: str, cfg: dict, pragmas: List[str]):
 
     for output in rule['outputs']:
         o = parse_output(output, cfg["name"], pragmas, rule_versions)
-
-        # Detect if rule applies to many contiguous versions
-        #if o.version not in output_versions:
-            #output_versions.append(o.version)
-        # todo: make this actually work
-
         if re.match(re.escape(base) + r"*", o.new_prefix):
             o = o._replace(new_prefix=o.new_prefix[len(base):])
         if o.version == 'raw':
@@ -222,15 +202,6 @@ def process_rule(rule: dict, base: str, cfg: dict, pragmas: List[str]):
                       ) if o.old_prefix else rule['from']
         t = t if not re.match(r'https://.*', rule['to']) else ''
         t += o.new_prefix + rule['to'] if o.new_prefix else rule['to']
-        #if re.match(r'https://docs.mongodb.com', base):
-            # rules.append('{}/{}: {} -> {}'.format(cfg.get('name'),
-            #                                       o.version, f, t))
-
-            # For adding the property name back to the start of the from base
-            # print('{}: {}{} -> {}'.format(o.version,
-            #                               '/'+cfg.get('name')+'/',
-            #                               f.lstrip('/'), t))
-        #else:
         rules.append('{}: {} -> {}'.format(o.version, f, t))
     return '\n'.join(rules)
 
@@ -260,7 +231,7 @@ def main() -> None:
         cfg['base'] = cfg.get('base').rstrip('/')
         result = convert_files(**cfg)
         if cfg['output']:
-            with open('/Users/nick/mongodb/mut/mut/convert_redirects/results/'+cfg['output'], 'w') as f:
+            with open(RESULTS_DIR+cfg['output'], 'w') as f:
                 f.write(result)
         else:
             print(result)
