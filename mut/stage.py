@@ -55,6 +55,7 @@ import mimetypes
 import sys
 
 import boto3
+import boto3.s3.transfer
 import botocore
 import docopt
 import giza.libgiza.git
@@ -66,6 +67,7 @@ from typing import cast, Any, Callable, Dict, List, Set, Tuple, TypeVar, Pattern
 logger = logging.getLogger(__name__)
 REDIRECT_PAT = re.compile('^Redirect 30[1|2|3] (\S+)\s+(\S+)', re.M)
 FileUpdate = collections.namedtuple('FileUpdate', ('path', 'file_hash', 'new_file'))
+UPLOAD_CHUNK_SIZE = 1024 * 1024 * 8
 T = TypeVar('T')
 
 
@@ -129,6 +131,10 @@ class ChangeSet:
         self.commands_delete = []  # type: List[Tuple[str, str]]
         self.commands_redirect = []  # type: List[Tuple[str, str]]
         self.commands_upload = []  # type: List[Tuple[str, str, str]]
+
+        self.s3_config = boto3.s3.transfer.TransferConfig(
+            multipart_threshold=UPLOAD_CHUNK_SIZE,
+            multipart_chunksize=UPLOAD_CHUNK_SIZE)
 
     def delete(self, objects: List[str], tag: str='D') -> None:
         """Request deletion of a list of objects."""
@@ -217,7 +223,7 @@ class ChangeSet:
             s3.upload_file(src_path, key, ExtraArgs={
                 'StorageClass': 'REDUCED_REDUNDANCY',
                 'ContentType': mimetypes.guess_type(src_path)[0] or 'binary/octet-stream'
-            })
+            }, Config=self.s3_config)
             sys.stdout.write('.')
             sys.stdout.flush()
         except botocore.exceptions.ClientError as err:
@@ -242,31 +248,39 @@ class ChangeSet:
 
 
 def md5_file(path: str) -> str:
-    """Return the MD5 hash of the given file path as a hex string."""
-    hasher = hashlib.md5()
+    """Return the S3-style MD5 hash of the given file path as a hex string."""
+    parts = []
 
     # Read the input file in chunks, and add each chunk to the hash state.
     with open(path, 'rb') as input_file:
         while True:
-            data = input_file.read(8192)
+            data = input_file.read(UPLOAD_CHUNK_SIZE)
             if not data:
                 break
 
+            hasher = hashlib.md5()
             hasher.update(data)
+            parts.append(hasher)
 
-    return hasher.hexdigest()
+    if len(parts) == 1:
+        return parts[0].hexdigest()
+
+    hasher = hashlib.md5()
+    for part in parts:
+        hasher.update(part.digest())
+
+    return '{}-{}'.format(hasher.hexdigest(), len(parts))
 
 
-def translate_htaccess(path: str) -> Dict[str, str]:
+def translate_htaccess(path: str) -> Iterable[Tuple[str, str]]:
     """Read a .htaccess file, and transform redirects into a mapping of redirects."""
     try:
         with open(path, 'r') as f:
             data = f.read()
-            raw_redirects = [(x.lstrip('/'), y) for x, y in REDIRECT_PAT.findall(data)]
-            return dict(raw_redirects)
+            for match in REDIRECT_PAT.finditer(data):
+                yield (match.group(1), match.group(2))
     except IOError:
         logger.warn('Failed to open %s', path)
-        return {}
 
 
 class Config:
@@ -471,7 +485,8 @@ class Staging:
 
         redirects = {}  # type: Dict[str, str]
         if self.config.branch == 'master':
-            redirects = translate_htaccess(htaccess_path)
+            for (src, dest) in translate_htaccess(htaccess_path):
+                redirects[self.normalize_key(src)] = dest
 
         # Ensure that the root ends with a trailing slash to make future
         # manipulations more predictable.
@@ -544,8 +559,8 @@ class Staging:
             if entry.size != 0:
                 continue
 
-            # Redirects are written /foo/bar/, not /foo/bar/index.html
-            redirect_key = entry.key.rsplit(self.PAGE_SUFFIX, 1)[0]
+            # Redirects are written /foo/bar/index.html or /foo/bar
+            redirect_key = self.normalize_key(entry.key)
 
             # If it doesn't start with our namespace, ignore it
             if not redirect_key.startswith(self.namespace):
@@ -561,7 +576,14 @@ class Staging:
         self.changes.delete_redirects(removed)
 
         for src in redirects:
-            self.changes.redirect(src, redirects[src])
+            self.changes.redirect(self.normalize_key(src), redirects[src])
+
+    @classmethod
+    def normalize_key(cls, key: str) -> str:
+        if os.path.splitext(key)[1] in ('.gz', '.pdf', '.epub', '.html'):
+            return key.lstrip('/')
+
+        return key.strip('/') + cls.PAGE_SUFFIX
 
 
 class DeployStaging(Staging):
