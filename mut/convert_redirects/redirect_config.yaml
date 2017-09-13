@@ -1,0 +1,114 @@
+name: atlas
+output: atlas-results.txt
+file: atlas-htaccess.yaml
+base: https://docs.atlas.mongodb.com/
+---
+name: compass
+output: compass-results.txt
+file: compass-htaccess.yaml
+base: https://docs.mongodb.com/compass/
+---
+name: stitch
+output: stitch-results.txt
+file: stitch-htaccess.yaml
+base: https://docs.mongodb.com/stitch/
+---
+name: bi-connector
+output: bi-connector-results.txt
+file: bi-connector-htaccess.yaml
+base: https://docs.mongodb.com/bi-connector/
+versions:
+  - master
+  - 2.1
+  - 2.0
+  - 1.1
+symlinks:
+  - v2.2 -> master
+  - current -> master
+---
+name: spark-connector
+output: spark-connector-results.txt
+file: spark-connector-htaccess.yaml
+base: https://docs.mongodb.com/spark-connector/
+versions:
+  - master
+  - 2.1
+  - 2.0
+  - 1.1
+symlinks:
+  - v2.2 -> master
+  - current -> master
+---
+name: manual
+output: manual-results.txt
+file:
+  - server-htaccess.yaml
+  - server-htaccess-operators.yaml
+  - server-redirects-contributors-guide.yaml
+  - server-redirects-internal-commands.yaml
+  - server-redirects-meta-driver.yaml
+  - server-redirects-next.yaml
+  - server-redirects-pdfs.yaml
+  - server-redirects-products.yaml
+  - server-redirects-tar-gz.yaml
+  - server-redirects.yaml
+
+base: https://docs.mongodb.com/
+versions:
+  - master
+  - 3.4
+  - 3.2
+  - 3.0
+  - 2.6
+  - 2.4
+  - 2.2
+symlinks:
+  - v3.6 -> master
+  - manual -> v3.4
+  - v2.8 -> v3.0
+---
+name: ecosystem
+output: ecosystem-results.txt
+file: ecosystem-htaccess.yaml
+base: https://docs.mongodb.com/ecosystem/
+---
+name: ruby-driver
+output: ruby-results.txt
+file: /Users/nick/mongodb/docs-ruby/config/htaccess.yaml
+base: https://docs.mongodb.com/ruby-driver/
+versions:
+  - 2.4
+  - 2.3
+  - 2.2
+  - 2.0
+  - 1.x
+symlinks:
+  - master -> 2.4
+---
+name: ops-manager
+output: ops-manager-results.txt
+file:
+  - redirects-hosted.yaml
+  - redirects-next-hosted.yaml
+  - redirects-api.yaml
+  - redirects-pdfs-onprem.yaml
+base: https://docs.opsmanager.mongodb.com/
+versions:
+  - master
+  - 3.4
+  - 2.0
+  - 1.8
+  - 1.6
+  - 1.5
+  - 1.4
+  - 1.3
+  - 1.2
+  - 1.1
+symlinks:
+  - upcoming -> master
+  - current -> 3.4
+---
+name: cloud-manager
+output: cloud-manager-results.txt
+file: redirects-cloud.yaml
+base: https://docs.cloudmanager.mongodb.com/

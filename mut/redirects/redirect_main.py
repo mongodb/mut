@@ -101,7 +101,7 @@ def parse_source_file(source_path: str, output: str) -> None:
             line = line.strip()
 
             # regex to see if we are dealing with a keyword - define, symlink, or raw
-            if re.search('(define|symlink|raw)', line):
+            if re.search('(define|symlink|raw)(?:\:.*)', line):
                 keyword_split = line.split(':', 1)
 
                 # define:
@@ -201,6 +201,7 @@ def parse_source_file(source_path: str, output: str) -> None:
                                         # right version is *
                                         # (v2 - *]
                                         if (match.group(3) == '*'):
+
                                             for x in range(begin_index + 1, len(rc.versions)):
                                                 version = rc.versions[x]
                                                 rc.generate_rule(is_temp, version, old_url, new_url)
