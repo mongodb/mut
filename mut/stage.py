@@ -47,11 +47,12 @@ import configparser
 import functools
 import hashlib
 import logging
+import mimetypes
 import os
+import posixpath
 import pwd
 import re
 import stat
-import mimetypes
 import sys
 
 import boto3
@@ -334,7 +335,7 @@ class Path:
         if cur.startswith(prefix):
             return Path(str(self))
 
-        return Path('/'.join((prefix, cur)))
+        return Path(posixpath.join(prefix, cur.lstrip('/')))
 
     def __str__(self) -> str:
         """Format this path as a Unix-style path string."""
@@ -509,21 +510,7 @@ class Staging:
         for entry in self.collector.collect(root, self.s3.objects.filter(Prefix=self.namespace)):
             src = entry.path.replace(root, '', 1)
 
-            if os.path.islink(entry.path):
-                # If redirecting from a directory, make sure we end it with a '/'
-                suffix = self.PAGE_SUFFIX if os.path.isdir(entry.path) and not entry.path.endswith('/') else ''
-
-                resolved = os.path.join(os.path.dirname(entry.path), os.readlink(entry.path))
-                if os.path.islink(resolved):
-                    logger.warn('Multiple layers of symbolic link: %s', resolved)
-
-                if not os.path.exists(resolved):
-                    logger.warn('Dead link: %s -> %s', entry.path, resolved)
-
-                if not resolved.startswith(root):
-                    logger.warn('Skipping symbolic link %s: outside of root %s', resolved, root)
-
-                redirects[str(Path(src + suffix).ensure_prefix(self.namespace))] = resolved.replace(root, '/', 1)
+            if not os.path.isfile(entry.path):
                 continue
 
             full_name = '/'.join((self.namespace, src))
