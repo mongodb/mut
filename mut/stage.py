@@ -636,8 +636,14 @@ def main() -> None:
         staging.changes.print()
 
         if not dry_run:
-            if mode_stage or input('Commit? (y/n): ') == 'y':
+            if mode_stage:
                 staging.changes.commit(staging.s3)
+            else:
+                if input('Commit? (y/n): ') == 'y':
+                    staging.changes.commit(staging.s3)
+                else:
+                    sys.exit(1)
+
     except botocore.exceptions.ClientError as err:
         if err.status == 403:
             logger.error('Failed to upload to S3: Permission denied.')
