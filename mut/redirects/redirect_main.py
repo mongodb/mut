@@ -90,13 +90,13 @@ def write_to_file(rules: List[RuleDefinition], output_path: str) -> None:
 
 
 def parse_source_file(source_path: str, output: str) -> None:
-    version_regex = re.compile('([\[\(])([\w.\*]+)(?:-([\w.\*]+))?([\]\)])')
+    version_regex = re.compile('([\[\(])([\w.\*]+)(?:-([\w.\*]+))?([\]\)](.))')
     url_regex = re.compile(':(?:[ \t\f\v])(.*)(?:[ \t\f\v]->)(.*)')
     dict_regex = '{(.*?)}'
     rc = RedirectContext()
 
     with open(source_path) as file:
-        for line_num, line in enumerate(file):
+        for line_num, line in enumerate(file, start=1):
             # strip \n from line
             line = line.strip()
 
@@ -153,6 +153,11 @@ def parse_source_file(source_path: str, output: str) -> None:
             else:
                 match = version_regex.search(line)
                 if match:
+                    # Syntax check:
+                    # Make sure there is a colon after the version
+                    if match.group(5) != ':':
+                        raise ValueError('ERROR in line {}: Bad rule syntax'.format(line_num))
+
                     # see if we are dealing with a temporary redirect:
                     is_temp = False
                     if (line.split(' ')[0] == 'temporary'):
@@ -175,16 +180,19 @@ def parse_source_file(source_path: str, output: str) -> None:
                         # Group 2: Left version number
                         # Group 3: Right version number
                         # Group 4: Closing container - ) or ]
+                        # Group 5: Char after Group 4. Must be a colon.
 
                         # Error checking:
                         # Check if group 2 and/or 3 are '*' or in version array
                         # If not, error.
                         # Process accordingly based on brackets in groups 1 and 4
                         if (match.group(2) not in rc.versions and match.group(2) != '*'):
-                            raise ValueError('ERROR: Bad version in line ' + str(line_num))
+                            raise ValueError('ERROR in line {}: Version {} not present in version list'
+                                             .format(line_num, match.group(2)))
                         elif match.group(3):
                             if (match.group(3) not in rc.versions and match.group(3) != '*'):
-                                raise ValueError('ERROR: Bad version in line ' + str(line_num))
+                                raise ValueError('ERROR in line {}: Version {} not present in version list'
+                                                 .format(line_num, match.group(3)))
 
                             # if we've made it this far, there are two versions provided and they are both valid
                             else:
