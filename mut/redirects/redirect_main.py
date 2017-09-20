@@ -12,7 +12,7 @@ Usage:
 import re
 import collections
 import os
-from typing import List, Optional, Dict, Tuple
+from typing import List, Optional, Dict, Tuple, Pattern
 from docopt import docopt
 
 RuleDefinition = collections.namedtuple('RuleDefinition', ('is_temp', 'version', 'old_url', 'new_url', 'is_symlink'))
@@ -89,219 +89,196 @@ def write_to_file(rules: List[RuleDefinition], output_path: str) -> None:
             f.write('\n')
 
 
+def parse_line(line: str, rc: RedirectContext, line_num: int, version_regex: Pattern, url_regex: Pattern):
+    # strip \n from line
+    line = line.strip()
+    # regex to see if we are dealing with a keyword - define, symlink, or raw
+    if re.search('^(define|symlink|raw)', line):
+        keyword_split = line.split(':', 1)
+
+        # define:
+        if keyword_split[0] == 'define':
+            value = ''
+            type_split = keyword_split[1].split(' ')
+            key = type_split[1]
+
+            if len(type_split) > 3:
+                for x in range(2, len(type_split)):
+                    value = value + type_split[x] + ' '
+            else:
+                value = type_split[2]
+
+            value = value.strip()
+            value = rc.rule_substitute(value)
+            rc.add_definition(key, value)
+
+        # grab symlinks:
+        if keyword_split[0] == 'symlink':
+            type_split = line.split(':', 1)
+            sym_split = [sym.strip() for sym in type_split[1].split('->')]
+            alias, origin = sym_split
+            alias_path = os.path.join('build/public/', alias)
+
+            try:
+                os.remove(alias_path)
+            except FileNotFoundError:
+                pass
+
+            os.symlink(origin, alias_path)
+            rc.symlinks.append((alias, origin))
+
+        # raw redirects:
+        if keyword_split[0] == 'raw':
+            p = re.compile('(?:[ \t\f\v])(.*)(?:[ \t\f\v]->)(.*)')
+            match = p.search(line)
+
+            if match:
+                old_url = match.group(1)
+                new_url = match.group(2)
+
+                # get version from new_url
+                new_url_s = new_url.split('/')
+                rc.generate_rule(False, 'raw', old_url, new_url)
+
+    # for versioning rules:
+    else:
+        match = version_regex.search(line)
+        if match:
+            # Syntax check:
+            # Make sure there is a colon after the version
+            if match.group(5) != ':':
+                raise ValueError('ERROR in line {}: Bad rule syntax'.format(line_num))
+
+            # see if we are dealing with a temporary redirect:
+            is_temp = False
+            if (line.split(' ')[0] == 'temporary'):
+                is_temp = True
+
+            # some more regex hieroglyphs to get the old and new redirect urls:
+            old_url = None
+            new_url = None
+
+            url_match = url_regex.search(line)
+
+            if url_match.group(1):
+                old_url = url_match.group(1)
+            if url_match.group(2):
+                new_url = url_match.group(2)
+
+            # match regex groups:
+            # Group 1: Opening container - ( or [
+            # Group 2: Left version number
+            # Group 3: Right version number
+            # Group 4: Closing container - ) or ]
+            # Group 5: Char after Group 4. Must be a colon.
+
+            # Error checking:
+            # Check if group 2 and/or 3 are '*' or in version array
+            # If not, error.
+            # Process accordingly based on brackets in groups 1 and 4
+            if (match.group(2) not in rc.versions and match.group(2) != '*'):
+                raise ValueError('ERROR in line {}: Version {} not present in version list'
+                                 .format(line_num, match.group(2)))
+            elif match.group(3):
+                if (match.group(3) not in rc.versions and match.group(3) != '*'):
+                    raise ValueError('ERROR in line {}: Version {} not present in version list'
+                                     .format(line_num, match.group(3)))
+                if match.group(2) != '*':
+                    begin_index = rc.versions.index(match.group(2))
+                if match.group(3) != '*':
+                    end_index = rc.versions.index(match.group(3))
+
+                if (match.group(1) == '(' and match.group(2) == '*') or \
+                   (match.group(3) == '*' and match.group(4)[0] == ')'):
+                    # this should throw an error based on the spec
+                    raise ValueError('ERROR: Bad formatting in line ' + str(line_num))
+
+                # (v2.0 - *]
+                elif match.group(1) == '(' and match.group(2) != '*' and \
+                        match.group(3) == '*' and match.group(4)[0] == ']':
+                    for x in range(begin_index + 1, len(rc.versions)):
+                        version = rc.versions[x]
+                        rc.generate_rule(is_temp, version, old_url, new_url)
+
+                # (v2.0 - v3.0) ERROR
+                elif match.group(1) == '(' and match.group(2) != '*' and \
+                        match.group(3) != '*' and match.group(4)[0] == ')':
+                    # make sure we are actually including at least one version:
+                    if begin_index == end_index:
+                        raise ValueError('ERROR: No versions included in line ' +
+                                         str(line_num))
+
+                    for x in range(begin_index + 1, end_index):
+                        version = rc.versions[x]
+                        rc.generate_rule(is_temp, version, old_url, new_url)
+
+                # (v2.0 - v3.0]
+                elif match.group(1) == '(' and match.group(2) != '*' and \
+                        match.group(3) != '*' and match.group(4)[0] == ']':
+                    for x in range(begin_index + 1, end_index + 1):
+                        version = rc.versions[x]
+                        rc.generate_rule(is_temp, version, old_url, new_url)
+
+                # [* - *] ERROR
+                elif match.group(1) == '[' and match.group(2) == '*' and match.group(3) == '*':
+                    # raise an error here because [* - * should be a raw redirect
+                    raise ValueError('ERROR: Bad formatting in line ' + str(line_num))
+
+                # [* - v3.0)
+                elif match.group(1) == '[' and match.group(2) == '*' and \
+                        match.group(3) != '*' and match.group(4)[0] == ')':
+                    for x in range(0, end_index):
+                        version = rc.versions[x]
+                        rc.generate_rule(is_temp, version, old_url, new_url)
+
+                # [* - v3.0]
+                elif match.group(1) == '[' and match.group(2) == '*' and \
+                        match.group(3) != '*' and match.group(4)[0] == ']':
+                    for x in range(0, end_index + 1):
+                        version = rc.versions[x]
+                        rc.generate_rule(is_temp, version, old_url, new_url)
+
+                # [v2.0 - *]
+                elif match.group(1) == '[' and match.group(2) != '*' and \
+                        match.group(3) == '*' and match.group(4)[0] == ']':
+                    for x in range(begin_index, len(rc.versions)):
+                        version = rc.versions[x]
+                        rc.generate_rule(is_temp, version, old_url, new_url)
+
+                # [v2.0 - v3.0)
+                elif match.group(1) == '[' and match.group(2) != '*' and \
+                        match.group(3) != '*' and match.group(4)[0] == ')':
+                    for x in range(begin_index, end_index):
+                        version = rc.versions[x]
+                        rc.generate_rule(is_temp, version, old_url, new_url)
+
+                # [v2.0 - v3.0]
+                elif match.group(1) == '[' and match.group(2) != '*' and \
+                        match.group(3) != '*' and match.group(4)[0] == ']':
+                    for x in range(begin_index, end_index + 1):
+                        version = rc.versions[x]
+                        rc.generate_rule(is_temp, version, old_url, new_url)
+
+            # only one version number provided
+            else:
+                version = match.group(2)
+                if version == '*':
+                    for ver in rc.versions:
+                        rc.generate_rule(is_temp, ver, old_url, new_url)
+                else:
+                    rc.generate_rule(is_temp, version, old_url, new_url)
+
+
 def parse_source_file(source_path: str, output: str) -> None:
     version_regex = re.compile('([\[\(])([\w.\*]+)(?:-([\w.\*]+))?([\]\)](.))')
     url_regex = re.compile(':(?:[ \t\f\v])(.*)(?:[ \t\f\v]->)(.*)')
-    dict_regex = '{(.*?)}'
-    rc = RedirectContext()
 
+    rc = RedirectContext()
     with open(source_path) as file:
         for line_num, line in enumerate(file, start=1):
-            # strip \n from line
-            line = line.strip()
-
-            # regex to see if we are dealing with a keyword - define, symlink, or raw
-            if re.search('(define|symlink|raw)', line):
-                keyword_split = line.split(':', 1)
-
-                # define:
-                if keyword_split[0] == 'define':
-                    value = ''
-                    type_split = keyword_split[1].split(' ')
-                    key = type_split[1]
-
-                    if len(type_split) > 3:
-                        for x in range(2, len(type_split)):
-                            value = value + type_split[x] + ' '
-                    else:
-                        value = type_split[2]
-
-                    value = value.strip()
-                    value = rc.rule_substitute(value)
-                    rc.add_definition(key, value)
-
-                # grab symlinks:
-                if keyword_split[0] == 'symlink':
-                    type_split = line.split(':', 1)
-                    sym_split = [sym.strip() for sym in type_split[1].split('->')]
-                    alias = sym_split[0]  # did not exist previously
-                    origin = sym_split[1]  # original folder
-                    alias_path = os.path.join('build/public/', alias)
-
-                    try:
-                        os.remove(alias_path)
-                    except FileNotFoundError:
-                        pass
-
-                    os.symlink(origin, alias_path)
-                    rc.symlinks.append((alias, origin))
-
-                # raw redirects:
-                if keyword_split[0] == 'raw':
-                    p = re.compile('(?:[ \t\f\v])(.*)(?:[ \t\f\v]->)(.*)')
-                    match = p.search(line)
-
-                    if match:
-                        old_url = match.group(1)
-                        new_url = match.group(2)
-
-                        # get version from new_url
-                        new_url_s = new_url.split('/')
-                        rc.generate_rule(False, 'raw', old_url, new_url)
-
-            # for versioning rules:
-            else:
-                match = version_regex.search(line)
-                if match:
-                    # Syntax check:
-                    # Make sure there is a colon after the version
-                    if match.group(5) != ':':
-                        raise ValueError('ERROR in line {}: Bad rule syntax'.format(line_num))
-
-                    # see if we are dealing with a temporary redirect:
-                    is_temp = False
-                    if (line.split(' ')[0] == 'temporary'):
-                        is_temp = True
-
-                    # some more regex hieroglyphs to get the old and new redirect urls:
-                    old_url = None
-                    new_url = None
-
-                    url_match = url_regex.search(line)
-
-                    if url_match:
-                        if url_match.group(1):
-                            old_url = url_match.group(1)
-                        if url_match.group(2):
-                            new_url = url_match.group(2)
-
-                        # match regex groups:
-                        # Group 1: Opening container - ( or [
-                        # Group 2: Left version number
-                        # Group 3: Right version number
-                        # Group 4: Closing container - ) or ]
-                        # Group 5: Char after Group 4. Must be a colon.
-
-                        # Error checking:
-                        # Check if group 2 and/or 3 are '*' or in version array
-                        # If not, error.
-                        # Process accordingly based on brackets in groups 1 and 4
-                        if (match.group(2) not in rc.versions and match.group(2) != '*'):
-                            raise ValueError('ERROR in line {}: Version {} not present in version list'
-                                             .format(line_num, match.group(2)))
-                        elif match.group(3):
-                            if (match.group(3) not in rc.versions and match.group(3) != '*'):
-                                raise ValueError('ERROR in line {}: Version {} not present in version list'
-                                                 .format(line_num, match.group(3)))
-
-                            # if we've made it this far, there are two versions provided and they are both valid
-                            else:
-                                # non-inclusive begin_index
-                                if match.group(1) == '(':
-                                    # left version is *
-                                    if match.group(2) == '*':
-                                        # this should throw an error based on the spec
-                                        raise ValueError('ERROR: Bad formatting in line ' + str(line_num))
-
-                                    # left version is a number, not *
-                                    else:
-                                        begin_index = rc.versions.index(match.group(2))
-                                        # right version is *
-                                        # (v2 - *]
-                                        if (match.group(3) == '*'):
-                                            for x in range(begin_index + 1, len(rc.versions)):
-                                                version = rc.versions[x]
-                                                rc.generate_rule(is_temp, version, old_url, new_url)
-
-                                        # right version is a number, not *
-                                        # (v2 - v3
-                                        else:
-                                            end_index = rc.versions.index(match.group(3))
-                                            # non-inclusive end_index
-                                            # (v2 - v3)
-                                            if match.group(4) == ')':
-                                                # make sure we are actually including at least one version:
-                                                if begin_index == end_index:
-                                                    raise ValueError('ERROR: No versions included in line ' +
-                                                                     str(line_num))
-                                                else:
-                                                    for x in range(begin_index + 1, end_index):
-                                                        version = rc.versions[x]
-                                                        rc.generate_rule(is_temp, version, old_url, new_url)
-
-                                            # inclusive end_index
-                                            # (v2 - v3]
-                                            if match.group(4) == ']':
-                                                for x in range(begin_index + 1, end_index + 1):
-                                                    version = rc.versions[x]
-                                                    rc.generate_rule(is_temp, version, old_url, new_url)
-
-                                # inclusive begin_index
-                                elif match.group(1) == '[':
-                                    # left version is *
-                                    # [* -
-                                    if match.group(2) == '*':
-                                        end_index = rc.versions.index(match.group(3))
-
-                                        # raise an error here because [* - * should be a raw redirect
-                                        if match.group(3) == '*':
-                                            raise ValueError('ERROR: Bad formatting in line ' + str(line_num))
-
-                                        else:
-                                            # [* - v3)
-                                            if (match.group(4) == ')'):
-                                                for x in range(0, end_index):
-                                                    version = rc.versions[x]
-                                                    rc.generate_rule(is_temp, version, old_url, new_url)
-
-                                            # [* - v3]
-                                            elif (match.group(4) == ']'):
-                                                for x in range(0, end_index + 1):
-                                                    version = rc.versions[x]
-                                                    rc.generate_rule(is_temp, version, old_url, new_url)
-                                    # left version is a number, not *
-                                    # [v2 -
-                                    else:
-                                        begin_index = rc.versions.index(match.group(2))
-
-                                        if match.group(3) == '*':
-                                            # right version is *
-                                            # [v2 - *]
-                                            if (match.group(4) == ')'):
-                                                raise ValueError('ERROR: Bad formatting in line ' + str(line_num))
-
-                                            elif (match.group(4) == ']'):
-                                                for x in range(begin_index, len(rc.versions)):
-                                                    version = rc.versions[x]
-                                                    rc.generate_rule(is_temp, version, old_url, new_url)
-
-                                        # right version is a number, not *
-                                        else:
-                                            end_index = rc.versions.index(match.group(3))
-
-                                            # non-inclusive end_index
-                                            # [v2 - v3)
-                                            if match.group(4) == ')':
-                                                for x in range(begin_index, end_index):
-                                                    version = rc.versions[x]
-                                                    rc.generate_rule(is_temp, version, old_url, new_url)
-
-                                            # inclusive end_index
-                                            # [v2 - v3]
-                                            elif match.group(4) == ']':
-                                                for x in range(begin_index, end_index + 1):
-                                                    version = rc.versions[x]
-                                                    rc.generate_rule(is_temp, version, old_url, new_url)
-
-                        # only one version number provided
-                        # [v2]
-                        elif not match.group(3):
-                            version = match.group(2)
-                            if version == '*':
-                                for ver in rc.versions:
-                                    rc.generate_rule(is_temp, ver, old_url, new_url)
-                            else:
-                                rc.generate_rule(is_temp, version, old_url, new_url)
+            if not line or line.startswith('#'):
+                continue
+            parse_line(line, rc, line_num, version_regex, url_regex)
 
     # write all our rules to the file
     write_to_file(rc.rules, output)
