@@ -1,6 +1,6 @@
 """
 Usage:
-    mut-redirects <source_path> -o <output>
+    mut-redirects <source_path> [-o <output>]
 
     -h, --help             List CLI prototype, arguments, and options.
     <source_path>          Path to the file(s) containing redirect rules.
@@ -9,17 +9,19 @@ Usage:
 
 # Spec URL: https://docs.google.com/document/d/1oI2boFmtzvbbvt-uQawY9k_gLSLbW7LQO2RjVkvtRgg/edit?ts=57caf48b#
 
-import re
 import collections
 import os
-from typing import List, Optional, Dict, Tuple, Pattern
+import re
+import sys
+from typing import List, Optional, Dict, Tuple, Pattern, IO
 from docopt import docopt
 
 RuleDefinition = collections.namedtuple('RuleDefinition', ('is_temp', 'version', 'old_url', 'new_url', 'is_symlink'))
 
 
 class RedirectContext:
-    def __init__(self) -> None:
+    def __init__(self, root: Optional[str]) -> None:
+        self.root = root
         self.rules = []  # type: List[RuleDefinition]
         self.symlinks = []  # type: List[Tuple[str, str]]
         self.definitions = {}  # type: Dict[str, str]
@@ -74,19 +76,18 @@ class RedirectContext:
         return input_string
 
 
-def write_to_file(rules: List[RuleDefinition], output_path: str) -> None:
-    with open(output_path, 'w') as f:
-        for rule in rules:
-            line = 'Redirect '
+def write_to_file(rules: List[RuleDefinition], f: IO[str]) -> None:
+    for rule in rules:
+        line = 'Redirect '
 
-            if rule.is_temp:
-                line += '302 '
-            else:
-                line += '301 '
+        if rule.is_temp:
+            line += '302 '
+        else:
+            line += '301 '
 
-            line += str(rule.old_url) + ' ' + str(rule.new_url)
-            f.write(line)
-            f.write('\n')
+        line += str(rule.old_url) + ' ' + str(rule.new_url)
+        f.write(line)
+        f.write('\n')
 
 
 def parse_line(line: str, rc: RedirectContext, line_num: int, version_regex: Pattern, url_regex: Pattern):
@@ -113,11 +114,11 @@ def parse_line(line: str, rc: RedirectContext, line_num: int, version_regex: Pat
             rc.add_definition(key, value)
 
         # grab symlinks:
-        if keyword_split[0] == 'symlink':
+        if keyword_split[0] == 'symlink' and rc.root is not None:
             type_split = line.split(':', 1)
             sym_split = [sym.strip() for sym in type_split[1].split('->')]
             alias, origin = sym_split
-            alias_path = os.path.join('build/public/', alias)
+            alias_path = os.path.join(rc.root, alias)
 
             try:
                 os.remove(alias_path)
@@ -269,19 +270,41 @@ def parse_line(line: str, rc: RedirectContext, line_num: int, version_regex: Pat
                     rc.generate_rule(is_temp, version, old_url, new_url)
 
 
-def parse_source_file(source_path: str, output: str) -> None:
+def parse_source_file(source_path: str, output: Optional[str]) -> None:
     version_regex = re.compile('([\[\(])([\w.\*]+)(?:-([\w.\*]+))?([\]\)](.))')
     url_regex = re.compile(':(?:[ \t\f\v])(.*)(?:[ \t\f\v]->)(.*)')
 
-    rc = RedirectContext()
+    root = None
+    if output is not None:
+        root = os.path.dirname(output) or './'
+
+    rc = RedirectContext(root)
     with open(source_path) as file:
         for line_num, line in enumerate(file, start=1):
             if not line or line.startswith('#'):
                 continue
             parse_line(line, rc, line_num, version_regex, url_regex)
 
-    # write all our rules to the file
-    write_to_file(rc.rules, output)
+    # Remove unknown symlinks
+    if root is not None:
+        for path in os.listdir(root):
+            if not os.path.islink(path):
+                continue
+
+            if os.path.basename(path) in rc.symlinks:
+                continue
+
+            try:
+                os.remove(path)
+            except FileNotFoundError:
+                pass
+
+    # Write all our rules to the file
+    if output is None:
+        write_to_file(rc.rules, sys.stdout)
+    else:
+        with open(output, 'w') as f:
+            write_to_file(rc.rules, f)
 
 
 def main() -> None:
