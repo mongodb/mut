@@ -198,14 +198,17 @@ class ChangeSet:
 
     def commit(self, s3: Any) -> None:
         """Apply the set of operations stored in this instance."""
+        changes = set()  # type: Set[str]
         tasks = []
         for command in self.commands_upload:
             _, src_path, key = command
+            changes.add(key)
             task = functools.partial(self.__upload, s3, src_path, key)
             tasks.append(cast(Callable[[None], None], task))
 
         for redirect in self.commands_redirect:
             src, dest = redirect
+            changes.add(src)
             task = functools.partial(self.__redirect, s3, src, dest)
             tasks.append(cast(Callable[[None], None], task))
 
@@ -214,7 +217,7 @@ class ChangeSet:
         # S3 caps delete requests to 1,000 keys.
         for chunk in chunks(self.commands_delete, 999):
             s3.delete_objects(Delete={
-                'Objects': [{'Key': key} for _, key in chunk],
+                'Objects': [{'Key': key} for _, key in chunk if key not in changes],
                 'Quiet': True
             })
 
@@ -298,7 +301,7 @@ class Config:
         self.all_subdirectories = False
         self.redirect_dirs = []  # type: List[Pattern]
         if prefix:
-            self.redirect_dirs.append(re.compile(prefix))
+            self.redirect_dirs.append(re.compile(prefix.rstrip('/') + '/'))
 
         # Path to find the .htaccess file. None indicates to find it under
         # the build root.
@@ -535,9 +538,6 @@ class Staging:
 
     def sync_redirects(self, redirects: Dict[str, str]) -> None:
         """Upload the given path->url redirect mapping to the remote bucket."""
-
-        if not self.config.redirect_dirs:
-            logger.warn('No "redirect_dirs" listed for this project. Not removing any redirects')
 
         logger.debug('Finding redirects to remove')
         removed = []
