@@ -107,7 +107,7 @@ dependencies_openbsd() {
 }
 
 dependencies_debian() {
-    prompt 'Install dependencies' sudo apt-get update && sudo apt-get install libyaml-dev python3 python3-pip python3-venv git pkg-config
+    prompt 'Install dependencies' sudo apt-get update && sudo apt-get install libyaml-dev python3 python3-pip python3-venv git pkg-config libxml2-dev
 }
 
 dependencies_osx() {
