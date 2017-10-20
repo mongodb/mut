@@ -133,7 +133,7 @@ create_venv() {
     venv "${MUT_PATH}/venv"
     . "${MUT_PATH}/venv/bin/activate"
 
-    pip3 install --upgrade pip
+    pip3 install -qqq --upgrade pip || true
 
     (   cd "${MUT_PATH}"
         rm -rf dev
