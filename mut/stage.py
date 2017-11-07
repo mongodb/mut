@@ -595,8 +595,8 @@ def main() -> None:
     options = docopt.docopt(__doc__)
 
     if options.get('--version', False):
-        import mut
-        print('mut ' + mut.__version__)
+        from mut import __version__
+        print('mut ' + __version__)
         return
 
     root = options['<source>']
@@ -645,7 +645,7 @@ def main() -> None:
                     sys.exit(1)
 
     except botocore.exceptions.ClientError as err:
-        if err.status == 403:
+        if err.response['ResponseMetadata']['HTTPStatusCode'] == 403:
             logger.error('Failed to upload to S3: Permission denied.')
             logger.info('Check your authentication configuration at %s.',
                         mut.AuthenticationInfo.CONFIG_PATH)
