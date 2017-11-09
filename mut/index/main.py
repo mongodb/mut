@@ -1,7 +1,7 @@
 '''
 Usage:
     mut-index <root> -o <output> -u <url> [-g -s --exclude <paths> --aliases <aliases>]
-    mut-index upload [-b <bucket> -p <prefix> --no-backup] <root> -o <output> -u <url>
+    mut-index upload [-b <bucket> -p <prefix>] <root> -o <output> -u <url>
                      [-g -s --exclude <paths> --aliases <aliases>]
 
     -h, --help             List CLI prototype, arguments, and options.
@@ -15,7 +15,6 @@ Usage:
 
     -b, --bucket <bucket>  Name of the s3 bucket to upload the index manifest to. [default: docs-mongodb-org-prod]
     -p, --prefix <prefix>  Name of the s3 prefix to attached to the manifest. [default: search-indexes]
-    --no-backup            Disables automatic backup and restore of previous manifest versions.
 '''
 from docopt import docopt
 from mut.index.Manifest import generate_manifest
@@ -40,16 +39,9 @@ def main() -> None:
     if options['upload']:
         bucket = options['--bucket']
         prefix = options['--prefix']
-        do_backup = not options['--no-backup']
 
-        backup = upload_manifest_to_s3(bucket, prefix, output,
-                                       manifest, do_backup)
-        try:
-            refresh_marian()
-            print('\nAll according to plan!')
-        except FailedRefreshError:
-            if backup and do_backup:
-                backup.restore()
+        upload_manifest_to_s3(bucket, prefix, output, manifest)
+        refresh_marian()
     else:
         with open('./' + output, 'w') as file:
             file.write(manifest)

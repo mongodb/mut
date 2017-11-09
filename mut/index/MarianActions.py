@@ -28,8 +28,5 @@ def refresh_marian() -> None:
 
 class FailedRefreshError(Exception):
     '''Failed to refresh Marian.'''
-    def __init__(self, exception, message) -> None:
+    def __init__(self, exception, message: str) -> None:
         super(FailedRefreshError, self).__init__()
-        log_unsuccessful('refresh')(message=message,
-                                    exception=exception,
-                                    exit=False)

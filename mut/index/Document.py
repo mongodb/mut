@@ -22,7 +22,7 @@ def return_text_from_node(func) -> Callable[[Any], str]:
     return textify
 
 
-def is_element_of_type(candidate, element_type):
+def is_element_of_type(candidate, element_type: str) -> bool:
     '''Return True if the candidate element is an element of the given type.'''
     is_element = isinstance(candidate, etree._Element)
     if element_type == '_any':
@@ -49,7 +49,7 @@ class Document:
         self.tags = self.get_page_tags()
         self.links = self.get_page_links()
 
-    def parse_html(self, fh: IO):
+    def parse_html(self, fh: IO) -> Dict[str, Any]:
         '''Return head and content elements of the document.'''
         capsule = html_parser.parse(fh.read(), maybe_xhtml=True)
         doc = etree.adopt_external_document(capsule).getroot()
@@ -78,7 +78,7 @@ class Document:
         '''Return the title of the page.'''
         return self.html['head'].cssselect('title')[0]
 
-    def get_page_headings(self):
+    def get_page_headings(self) -> List[str]:
         '''Return all headings (<h1>, <h2>, <h3>).'''
         all_headings = []
         for heading in self.html['main_content'].iter('h1', 'h2', 'h3'):
@@ -96,9 +96,9 @@ class Document:
     def get_page_preview(self) -> str:
         '''Return a summary of the page.'''
 
-        def test_page_preview(preview) -> bool:
+        def test_page_preview(preview: str) -> bool:
             '''Return False if bad preview.'''
-            def blacklisted(slug) -> bool:
+            def blacklisted(slug: str) -> bool:
                 '''Return True if the file should not have a preview.'''
                 blacklist = [
                     '/reference/api.',

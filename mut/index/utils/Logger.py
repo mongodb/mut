@@ -1,9 +1,10 @@
 import sys
 from functools import partial
+from typing import NoReturn
 import textwrap
 
 
-def _log_unsuccessful_action(message, exception, action, exit=True):
+def log_unsuccessful(action: str, message: str, exception) -> NoReturn:
     '''Logs a specified unsuccessful action as well as the exception raised.'''
     message = ''.join([
         action.upper(), ' UNSUCCESSFUL:\n',
@@ -19,10 +20,4 @@ def _log_unsuccessful_action(message, exception, action, exit=True):
         ])
         message = '\n'.join([message, exception])
     print(message)
-    if exit:
-        sys.exit()
-
-
-def log_unsuccessful(a):
-    '''Returns _log_unsuccessful_action for a specific action.'''
-    return partial(_log_unsuccessful_action, action=a)
+    sys.exit()

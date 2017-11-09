@@ -68,7 +68,7 @@ def generate_manifest(url: str, aliases: List[str], root_dir: str,
 
 def _get_html_path_info(root_dir: str, exclude: List[str], url: str) -> List[FileInfo]:
     '''Return a list of parsed path_info for html files.'''
-    def should_index(file) -> bool:
+    def should_index(file: str) -> bool:
         '''Returns True the file should be indexed.'''
         for exclusion in exclude:
             if file.startswith(exclusion):
@@ -99,7 +99,7 @@ def _get_html_path_info(root_dir: str, exclude: List[str], url: str) -> List[Fil
     return path_info
 
 
-def _parse_html_file(path_info: FileInfo):
+def _parse_html_file(path_info: FileInfo) -> Optional[Dict[str, Any]]:
     '''Open the html file with the given path then parse the file.'''
     root_dir, path, url = path_info
     with open(path, 'r') as html:
@@ -108,11 +108,12 @@ def _parse_html_file(path_info: FileInfo):
             return document
         except Exception as ex:
             message = 'Problem parsing file ' + path
-            log_unsuccessful('parse')(message=message,
-                                      exception=ex)
+            log_unsuccessful('parse', message=message, exception=ex)
 
 
-def _process_html_files(html_path_info: List[FileInfo], manifest: Manifest, progress_bar: Optional[ProgressBar]=None):
+def _process_html_files(html_path_info: List[FileInfo],
+                        manifest: Manifest,
+                        progress_bar: Optional[ProgressBar]=None) -> None:
     '''Apply a function to a list of .html file paths in parallel.'''
     with concurrent.futures.ProcessPoolExecutor() as executor:
         for document in executor.map(_parse_html_file, html_path_info):
@@ -132,5 +133,4 @@ def _summarize_build(num_documents: int, start_time: float) -> None:
 class NothingIndexedError(Exception):
     def __init__(self) -> None:
         message = 'No documents were found.'
-        log_unsuccessful('index')(message=message,
-                                  exception=None)
+        log_unsuccessful('index', message=message, exception=None)
