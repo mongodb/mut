@@ -128,7 +128,9 @@ def run_pool(tasks: List[Callable[[None], None]], n_workers: int=5, retries: int
 
 class ChangeSet:
     """Stores a list of S3 bucket operations."""
-    def __init__(self) -> None:
+    def __init__(self, verbose: bool) -> None:
+        self.verbose = verbose
+
         self.commands_delete = []  # type: List[Tuple[str, str]]
         self.commands_redirect = []  # type: List[Tuple[str, str]]
         self.commands_upload = []  # type: List[Tuple[str, str, str]]
@@ -175,8 +177,9 @@ class ChangeSet:
 
             print('{}  {}'.format(flag, key))
 
-        for redirect in self.commands_redirect:
-            print('R  {} -> {}'.format(redirect[0], redirect[1]))
+        if self.verbose:
+            for redirect in self.commands_redirect:
+                print('R  {} -> {}'.format(redirect[0], redirect[1]))
 
         for deletion in self.commands_delete:
             flag, key = deletion
@@ -462,7 +465,7 @@ class Staging:
         self.config = config
 
         auth = config.authentication
-        self.changes = ChangeSet()
+        self.changes = ChangeSet(config.verbose)
         self.s3 = boto3.session.Session(
             aws_access_key_id=auth.access_key,
             aws_secret_access_key=auth.secret_key).resource('s3').Bucket(config.bucket)
