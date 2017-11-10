@@ -3,12 +3,18 @@ import re
 
 import yaml
 import rstcloth.rstcloth
-from typing import Any, Callable, Dict, List, TypeVar, Union
+from typing import Any, Callable, Dict, List, TypeVar, Union, Iterable
 
 import mut
 
 T = TypeVar('T')
 PAT_SUBSTITUTION = re.compile(r'{{(.+?)}}')
+VT100 = {
+    'red': '31',
+    'green': '32',
+    'yellow': '33',
+    'bright': '1'
+}
 
 
 def compare_mtimes(target: str, dependencies: List[str]) -> bool:
@@ -115,3 +121,10 @@ def save_rstcloth_if_changed(cloth, path: str) -> bool:
 
 def save_rstcloth_table_if_changed(table_builder, path: str) -> bool:
     return save_if_changed('\n'.join(table_builder.output), path)
+
+
+def color(message: str, options: Iterable[str]) -> str:
+    composite = []
+    for option in options:
+        composite.append('{0}'.format(VT100[option]))
+    return '\x1b[{0}m{1}\x1b[0m'.format(';'.join(composite), message)

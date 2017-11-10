@@ -62,6 +62,7 @@ import docopt
 import giza.libgiza.git
 
 import mut.AuthenticationInfo
+from mut.util import color
 
 from typing import cast, Any, Callable, Dict, List, Set, Tuple, TypeVar, Pattern, Iterable
 
@@ -69,6 +70,8 @@ logger = logging.getLogger(__name__)
 REDIRECT_PAT = re.compile('^Redirect 30[1|2|3] (\S+)\s+(\S+)', re.M)
 FileUpdate = collections.namedtuple('FileUpdate', ('path', 'file_hash', 'new_file'))
 UPLOAD_CHUNK_SIZE = 1024 * 1024 * 8
+DELETION_WARNING_THRESHOLD = 10
+DELETION_DANGER_THRESHOLD = 350
 T = TypeVar('T')
 
 
@@ -126,6 +129,28 @@ def run_pool(tasks: List[Callable[[None], None]], n_workers: int=5, retries: int
     run_pool([r[0] for r in results], n_workers, retries-1)
 
 
+class ChangeSummary:
+    def __init__(self) -> None:
+        self.files_deleted = 0
+        self.redirects_deleted = 0
+        self.files_modified = 0
+        self.files_created = 0
+        self.redirects = 0
+
+    def print(self) -> None:
+        print('\nSummary\n=======')
+
+        files_deleted_string = 'Files Deleted:     {}'.format(self.files_deleted)
+        if self.files_deleted > DELETION_WARNING_THRESHOLD:
+            files_deleted_string = color(files_deleted_string, ('red', 'bright'))
+
+        print(files_deleted_string)
+        print('Redirects Deleted: {}'.format(self.redirects_deleted))
+        print('Files Modified:    {}'.format(self.files_modified))
+        print('Files Created:     {}'.format(self.files_created))
+        print('Redirects Created: {}'.format(self.redirects))
+
+
 class ChangeSet:
     """Stores a list of S3 bucket operations."""
     def __init__(self, verbose: bool) -> None:
@@ -159,19 +184,16 @@ class ChangeSet:
         from_key = from_key.lstrip('/')
         self.commands_redirect.append((from_key, to_url))
 
-    def print(self) -> None:
+    def print(self) -> ChangeSummary:
         """Print to stdout all actions that will be taken by ChangeSet.commit()."""
-        files_deleted = 0
-        redirects_deleted = 0
-        files_modified = 0
-        files_created = 0
+        summary = ChangeSummary()
 
         for command in self.commands_upload:
             flag, _, key = command
             if flag is 'C':
-                files_created += 1
+                summary.files_created += 1
             elif flag is 'M':
-                files_modified += 1
+                summary.files_modified += 1
             else:
                 raise ValueError('Unknown upload flag {}'.format(repr(flag)))
 
@@ -184,20 +206,18 @@ class ChangeSet:
         for deletion in self.commands_delete:
             flag, key = deletion
             if flag is 'D':
-                files_deleted += 1
+                summary.files_deleted += 1
             elif flag is 'DR':
-                redirects_deleted += 1
+                summary.redirects_deleted += 1
             else:
                 raise ValueError('Unknown deletion flag {}'.format(repr(flag)))
 
             print('{:<2} {}'.format(flag, key))
 
-        print('\nSummary\n=======')
-        print('Files Deleted:     {}'.format(files_deleted))
-        print('Redirects Deleted: {}'.format(redirects_deleted))
-        print('Files Modified:    {}'.format(files_modified))
-        print('Files Created:     {}'.format(files_created))
-        print('Redirects Created: {}'.format(len(self.commands_redirect)))
+        summary.redirects = len(self.commands_redirect)
+        summary.print()
+
+        return summary
 
     def commit(self, s3: Any) -> None:
         """Apply the set of operations stored in this instance."""
@@ -636,13 +656,18 @@ def main() -> None:
 
     try:
         do_stage(root, staging)
-        staging.changes.print()
+        summary = staging.changes.print()
+
+        if summary.files_deleted <= DELETION_DANGER_THRESHOLD:
+            (prompt, confirmation) = ('Commit? (y/n): ', 'y')
+        else:
+            (prompt, confirmation) = (color('Commit? (yes, commit/n): ', ('red', 'bright')), 'yes, commit')
 
         if not dry_run:
             if mode_stage:
                 staging.changes.commit(staging.s3)
             else:
-                if input('Commit? (y/n): ') == 'y':
+                if input(prompt) == confirmation:
                     staging.changes.commit(staging.s3)
                 else:
                     sys.exit(1)
