@@ -109,6 +109,7 @@ def _parse_html_file(path_info: FileInfo) -> Optional[Dict[str, Any]]:
         except Exception as ex:
             message = 'Problem parsing file ' + path
             log_unsuccessful('parse', message=message, exception=ex)
+            return None
 
 
 def _process_html_files(html_path_info: List[FileInfo],
