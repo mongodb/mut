@@ -101,6 +101,10 @@ class SyncException(StagingException):
         self.errors = errors
 
 
+def remove_beginning(beginning: str, s: str) -> str:
+    return s[len(beginning):] if s.startswith(beginning) else s
+
+
 def chunks(l: List[T], n: int) -> Iterable[List[T]]:
     """Split a list into chunks of at most length n."""
     for i in range(0, len(l), n):
@@ -395,12 +399,14 @@ class StagingCollector:
         # List all current redirects
         remote_keys = list(remote_keys)
         for key in remote_keys:
-            local_key = key.key.replace(self.namespace, '', 1)
-            local_key = local_key.lstrip('/')
-
             # Don't register redirects for deletion in this stage
             if key.size == 0:
                 continue
+
+            if key.key.startswith('/'):
+                logger.warn('Path begins with a /: "%s". This is likely unintentional.', key.key)
+
+            local_key = remove_beginning(self.namespace, key.key).lstrip('/')
 
             # To process this path, either it must be:
             # - A file or a symlink to a file, or
