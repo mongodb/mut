@@ -661,7 +661,7 @@ def main() -> None:
         if summary.files_deleted <= DELETION_DANGER_THRESHOLD:
             (prompt, confirmation) = ('Commit? (y/n): ', 'y')
         else:
-            (prompt, confirmation) = (color('Commit? (yes, commit/n): ', ('red', 'bright')), 'yes, commit')
+            (prompt, confirmation) = (color('Commit? (YES/n): ', ('red', 'bright')), 'YES')
 
         if not dry_run:
             if mode_stage:
