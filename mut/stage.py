@@ -135,11 +135,17 @@ def run_pool(tasks: List[Callable[[None], None]], n_workers: int=5, retries: int
 
 class ChangeSummary:
     def __init__(self) -> None:
+        self.suspicious_files = []  # type: List[str]
+
         self.files_deleted = 0
         self.redirects_deleted = 0
         self.files_modified = 0
         self.files_created = 0
         self.redirects = 0
+
+    @property
+    def suspicious(self) -> bool:
+        return len(self.suspicious_files) > 0 or self.files_deleted > DELETION_DANGER_THRESHOLD
 
     def print(self) -> None:
         print('\nSummary\n=======')
@@ -147,6 +153,9 @@ class ChangeSummary:
         files_deleted_string = 'Files Deleted:     {}'.format(self.files_deleted)
         if self.files_deleted > DELETION_WARNING_THRESHOLD:
             files_deleted_string = color(files_deleted_string, ('red', 'bright'))
+
+        for key in self.suspicious_files:
+            logger.warn('Suspicious upload: %s', key)
 
         print(files_deleted_string)
         print('Redirects Deleted: {}'.format(self.redirects_deleted))
@@ -159,6 +168,7 @@ class ChangeSet:
     """Stores a list of S3 bucket operations."""
     def __init__(self, verbose: bool) -> None:
         self.verbose = verbose
+        self.suspicious_files = []  # type: List[str]
 
         self.commands_delete = []  # type: List[Tuple[str, str]]
         self.commands_redirect = []  # type: List[Tuple[str, str]]
@@ -181,6 +191,10 @@ class ChangeSet:
         """Upload a local path into the bucket. new_file is informational for ChangeSet.print()."""
         flag = 'C' if new_file else 'M'
         key = key.lstrip('/')
+
+        if 'master/master' in key:
+            self.suspicious_files.append(key)
+
         self.commands_upload.append((flag, path, key))
 
     def redirect(self, from_key: str, to_url: str) -> None:
@@ -191,6 +205,7 @@ class ChangeSet:
     def print(self) -> ChangeSummary:
         """Print to stdout all actions that will be taken by ChangeSet.commit()."""
         summary = ChangeSummary()
+        summary.suspicious_files = self.suspicious_files
 
         for command in self.commands_upload:
             flag, _, key = command
@@ -664,10 +679,10 @@ def main() -> None:
         do_stage(root, staging)
         summary = staging.changes.print()
 
-        if summary.files_deleted <= DELETION_DANGER_THRESHOLD:
-            (prompt, confirmation) = ('Commit? (y/n): ', 'y')
-        else:
+        if summary.suspicious:
             (prompt, confirmation) = (color('Commit? (YES/n): ', ('red', 'bright')), 'YES')
+        else:
+            (prompt, confirmation) = ('Commit? (y/n): ', 'y')
 
         if not dry_run:
             if mode_stage:
