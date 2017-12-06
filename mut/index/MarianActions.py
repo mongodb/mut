@@ -15,7 +15,6 @@ def refresh_marian() -> None:
             'Attempting to refresh Marian',
             requests.post, refresh_url, data={})
         res.raise_for_status()
-        print('Succesfully refreshed Marian.')
         if res.status_code != 200:
             message = ' '.join(['...but received unexpected response:',
                                 str(res.status_code)])

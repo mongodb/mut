@@ -1,14 +1,15 @@
+
 '''Create and export an index manifest.'''
 import concurrent.futures
 import json
 import os
 import re
+import sys
 import time
 
 from typing import Any, Dict, List, Tuple, Optional
 
 from mut.index.utils.Logger import log_unsuccessful
-from mut.index.utils.ProgressBar import ProgressBar
 from mut.index.Document import Document
 
 BLACKLIST = set([
@@ -52,21 +53,16 @@ def generate_manifest(url: str, aliases: List[str], root_dir: str,
     '''Build the index and compile a manifest.'''
     start_time = time.time()
     manifest = Manifest(url, aliases, globally)
-    html_path_info = _get_html_path_info(root_dir, exclude, url)
+    html_path_info = get_html_path_info(root_dir, exclude, url)
     if not html_path_info:
         raise NothingIndexedError()
     num_documents = len(html_path_info)
-    if show_progress:
-        progress_bar = ProgressBar(start_time=start_time,
-                                   num_documents=num_documents)
-    else:
-        progress_bar = None
-    _process_html_files(html_path_info, manifest, progress_bar)
-    _summarize_build(num_documents, start_time)
+    process_html_files(html_path_info, manifest, show_progress)
+    summarize_build(num_documents, start_time)
     return manifest.json()
 
 
-def _get_html_path_info(root_dir: str, exclude: List[str], url: str) -> List[FileInfo]:
+def get_html_path_info(root_dir: str, exclude: List[str], url: str) -> List[FileInfo]:
     '''Return a list of parsed path_info for html files.'''
     def should_index(file: str) -> bool:
         '''Returns True the file should be indexed.'''
@@ -99,7 +95,7 @@ def _get_html_path_info(root_dir: str, exclude: List[str], url: str) -> List[Fil
     return path_info
 
 
-def _parse_html_file(path_info: FileInfo) -> Optional[Dict[str, Any]]:
+def parse_html_file(path_info: FileInfo) -> Optional[Dict[str, Any]]:
     '''Open the html file with the given path then parse the file.'''
     root_dir, path, url = path_info
     with open(path, 'r') as html:
@@ -112,20 +108,19 @@ def _parse_html_file(path_info: FileInfo) -> Optional[Dict[str, Any]]:
             return None
 
 
-def _process_html_files(html_path_info: List[FileInfo],
-                        manifest: Manifest,
-                        progress_bar: Optional[ProgressBar]=None) -> None:
+def process_html_files(html_path_info: List[FileInfo],
+                       manifest: Manifest,
+                       show_progress: bool) -> None:
     '''Apply a function to a list of .html file paths in parallel.'''
     with concurrent.futures.ProcessPoolExecutor() as executor:
-        for document in executor.map(_parse_html_file, html_path_info):
+        for document in executor.map(parse_html_file, html_path_info):
             manifest.add_document(document)
-            if progress_bar:
-                progress_bar.update(document['slug'])
+            if show_progress:
+                sys.stdout.write('.')
 
 
-def _summarize_build(num_documents: int, start_time: float) -> None:
-    summary = ('\nFinished indexing!\n'
-               'Indexed {num_docs} documents in {time} seconds.')
+def summarize_build(num_documents: int, start_time: float) -> None:
+    summary = '\nIndexed {num_docs} documents in {time} seconds.'
     summary = summary.format(num_docs=num_documents,
                              time=str(time.time() - start_time))
     print(summary)

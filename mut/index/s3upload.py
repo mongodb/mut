@@ -20,7 +20,6 @@ def _connect_to_s3():
             session.resource,
             's3'
         )
-        print('Successfully connected to s3.')
         return s3
     except ClientError as ex:
         message = 'Unable to connect to s3.'
