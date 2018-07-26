@@ -14,6 +14,8 @@ Mut provides an automatic installation script requiring only ``bash`` and
      - Requires you to install or configure ``bash``, ``pkg_add``, and
        ``doas``.
 
+The automatic installation script can configure ``bash`` and ``zsh`` shells.
+
 .. code-block:: sh
 
    bash -c "$(curl -fsSL https://raw.githubusercontent.com/mongodb/mut/master/install.sh)"
