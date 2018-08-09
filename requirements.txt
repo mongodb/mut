@@ -27,7 +27,6 @@ jmespath==0.9.3
 jsx-lexer==0.0.6
 lxml==4.2.3
 MarkupSafe==1.0
-mut==0.5.2.dev0
 oauthlib==2.1.0
 onetimepass==1.0.1
 packaging==17.1
