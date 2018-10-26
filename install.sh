@@ -3,26 +3,6 @@ set -e
 
 MUT_PATH=~/.local/mut
 
-_try_venv() {
-    local name=$1
-    if which "${name}" > /dev/null; then
-        shift 1
-        "${name}" "$@"
-        return $!
-    fi
-
-    return 1
-}
-
-# Automatically choose an available pyvenv program
-# venv(path)
-venv() {
-    if _try_venv pyvenv "$@"; then return; fi
-    if _try_venv pyvenv-3.5 "$@"; then return; fi
-    if _try_venv pyvenv-3.6 "$@"; then return; fi
-    pyvenv-3.4 "$@"
-}
-
 # Ask the user for permission to do something
 # ask(description)
 ask() {
@@ -72,17 +52,7 @@ install_helper() {
 
 dependencies_unknown() {
     echo "Unable to setup dependencies automatically on this system"
-    echo "Depends on: python 3.3+, pip3, git"
-
-    if ! which pyvenv > /dev/null ; then
-        echo "Could not find pyvenv; please install Python 3.3 or later"
-        exit 1
-    fi
-
-    if ! which pip3 > /dev/null ; then
-        echo "Could not find pip3; please install it"
-        exit 1
-    fi
+    echo "Depends on: python 3.3+, git, libxml2, libyaml"
 
     if ! which git > /dev/null ; then
         echo "Could not find git; please install it"
@@ -103,7 +73,7 @@ dependencies_unknown() {
 }
 
 dependencies_openbsd() {
-    prompt 'Install dependencies' doas pkg_add libyaml py3-pip git libxml2
+    prompt 'Install dependencies' doas pkg_add libyaml py3-pip git libxml
 }
 
 dependencies_debian() {
@@ -113,7 +83,7 @@ dependencies_debian() {
 dependencies_osx() {
     INSTALL_PYTHON=''
     if ! which python3 > /dev/null; then
-        INSTALL_PYTHON='python3'
+        INSTALL_PYTHON='python'
     fi
 
     set +e
@@ -121,19 +91,15 @@ dependencies_osx() {
     set -e
 
     prompt 'Install dependencies' "brew update && brew install libyaml libxml2 pkgconfig ${INSTALL_PYTHON}"
-
-    if ! which pip3 > /dev/null; then
-        prompt 'Install pip' sudo python3 -m ensurepip
-    fi
 }
 
 create_venv() {
     mkdir -p "${MUT_PATH}/bin"
     rm -rf "${MUT_PATH}/venv"
-    venv "${MUT_PATH}/venv"
+    python3 -m venv "${MUT_PATH}/venv"
     . "${MUT_PATH}/venv/bin/activate"
 
-    pip3 install -qqq --upgrade pip || true
+    python3 -m pip install -qqq --upgrade pip || true
 
     (   cd "${MUT_PATH}"
         rm -rf dev
@@ -141,7 +107,8 @@ create_venv() {
         cd dev
 
         git clone --depth=1 https://github.com/mongodb/mut.git
-        ( cd mut && pip install -r requirements.txt . )
+
+        ( cd mut && python3 -m pip install -r requirements.txt . )
     )
 
     install_helper mut
@@ -195,6 +162,9 @@ create_venv() {
 case "$(uname -s)" in
 Darwin)
   dependencies_osx
+  # Starting in Mojave, XCode starts bundling libxml2 in a way that breaks
+  # builds. Workaround.
+  export CPPFLAGS="-I/usr/local/opt/libxml2/include/libxml2"
   ;;
 Linux)
   if [ -x /usr/bin/apt-get ]; then
