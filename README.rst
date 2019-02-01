@@ -1,5 +1,14 @@
-Automatic Installation
-----------------------
+Installing with Pip
+-------------------
+
+Ensure that you have libxml2 installed, and run:
+
+.. code-block:: sh
+
+   python3 -m pip install mut
+
+Automatic Installation (Old)
+----------------------------
 
 Mut provides an automatic installation script requiring only ``bash`` and
 ``curl``, supporting the following platforms:
@@ -10,9 +19,6 @@ Mut provides an automatic installation script requiring only ``bash`` and
      - Requires `Brew <http://brew.sh/>`_
    * - Debian/Ubuntu
      -
-   * - OpenBSD
-     - Requires you to install or configure ``bash``, ``pkg_add``, and
-       ``doas``.
 
 The automatic installation script can configure ``bash`` and ``zsh`` shells.
 
