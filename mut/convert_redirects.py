@@ -19,6 +19,7 @@ def transform_version_rule(rule: str) -> str:
         return '[*]'
 
     match = re.match(r'((?:after)|(?:before)|)-?(.*)', rule)
+    assert match
     if match.group(1) == 'after':
         return '({}-*]'.format(match.group(2))
     elif match.group(2) == 'before':
@@ -49,14 +50,17 @@ def convert_file(path: str) -> List[str]:
                     base_component = output[0]
                 else:
                     version = transform_version_rule(output[0])
-                    base_component = output[1] if isinstance(output[1], str) else list(output[1].keys())[0]
+                    base_component = output[1] if isinstance(output[1], str) \
+                        else list(output[1].keys())[0]
 
             if version is 'raw':
                 rule['from'] = '/'.join((base_component.rstrip('/'), rule['from'].lstrip('/')))
                 rule['to'] = '/'.join((base_component.rstrip('/'), rule['to'].lstrip('/')))
             else:
-                rule['from'] = '/'.join((base_component.rstrip('/'), r'${version}', rule['from'].lstrip('/')))
-                rule['to'] = '/'.join((base_component.rstrip('/'), r'${version}', rule['to'].lstrip('/')))
+                rule['from'] = '/'.join(
+                    (base_component.rstrip('/'), r'${version}', rule['from'].lstrip('/')))
+                rule['to'] = '/'.join(
+                    (base_component.rstrip('/'), r'${version}', rule['to'].lstrip('/')))
 
             result.append('{}: {} -> {}'.format(version, rule['from'], rule['to']))
 
@@ -72,6 +76,7 @@ def main() -> None:
             f.write(result)
     else:
         print(result)
+
 
 if __name__ == '__main__':
     main()

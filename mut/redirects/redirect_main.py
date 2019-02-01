@@ -7,7 +7,8 @@ Usage:
     -o, --output <output>  File path for the output .htaccess file.
 """
 
-# Spec URL: https://docs.google.com/document/d/1oI2boFmtzvbbvt-uQawY9k_gLSLbW7LQO2RjVkvtRgg/edit?ts=57caf48b#
+# Spec URL:
+# https://docs.google.com/document/d/1oI2boFmtzvbbvt-uQawY9k_gLSLbW7LQO2RjVkvtRgg/edit?ts=57caf48b
 
 import collections
 import os
@@ -16,7 +17,9 @@ import sys
 from typing import List, Optional, Dict, Tuple, Pattern, IO
 from docopt import docopt
 
-RuleDefinition = collections.namedtuple('RuleDefinition', ('is_temp', 'version', 'old_url', 'new_url', 'is_symlink'))
+RuleDefinition = collections.namedtuple(
+    'RuleDefinition',
+    ('is_temp', 'version', 'old_url', 'new_url', 'is_symlink'))
 
 
 class RedirectContext:
@@ -37,7 +40,12 @@ class RedirectContext:
     def add_definition(self, key: str, value: str) -> None:
         self.definitions[key] = value
 
-    def generate_rule(self, is_temp: bool, version: str, old_url: str, new_url: str, is_symlink: bool = False) -> None:
+    def generate_rule(self,
+                      is_temp: bool,
+                      version: str,
+                      old_url: str,
+                      new_url: str,
+                      is_symlink: bool = False) -> None:
         # if url contains {version} - substitute in the correct version
         old_url_sub = self.rule_substitute(old_url, version)
         new_url_sub = self.rule_substitute(new_url, version)
@@ -90,7 +98,11 @@ def write_to_file(rules: List[RuleDefinition], f: IO[str]) -> None:
         f.write('\n')
 
 
-def parse_line(line: str, rc: RedirectContext, line_num: int, version_regex: Pattern, url_regex: Pattern):
+def parse_line(line: str,
+               rc: RedirectContext,
+               line_num: int,
+               version_regex: Pattern,
+               url_regex: Pattern) -> None:
     # strip \n from line
     line = line.strip()
     # regex to see if we are dealing with a keyword - define, symlink, or raw
@@ -138,7 +150,6 @@ def parse_line(line: str, rc: RedirectContext, line_num: int, version_regex: Pat
                 new_url = match.group(2)
 
                 # get version from new_url
-                new_url_s = new_url.split('/')
                 rc.generate_rule(False, 'raw', old_url, new_url)
 
     # for versioning rules:
@@ -156,11 +167,12 @@ def parse_line(line: str, rc: RedirectContext, line_num: int, version_regex: Pat
                 is_temp = True
 
             # some more regex hieroglyphs to get the old and new redirect urls:
-            old_url = None
-            new_url = None
+            old_url = ''
+            new_url = ''
 
             url_match = url_regex.search(line)
 
+            assert url_match
             if url_match.group(1):
                 old_url = url_match.group(1)
             if url_match.group(2):
@@ -271,8 +283,8 @@ def parse_line(line: str, rc: RedirectContext, line_num: int, version_regex: Pat
 
 
 def parse_source_file(source_path: str, output: Optional[str]) -> None:
-    version_regex = re.compile('([\[\(])([\w.\*]+)(?:-([\w.\*]+))?([\]\)](.))')
-    url_regex = re.compile(':(?:[ \t\f\v])(.*)(?:[ \t\f\v]->)(.*)')
+    version_regex = re.compile(r'([\[\(])([\w.\*]+)(?:-([\w.\*]+))?([\]\)](.))')
+    url_regex = re.compile(r':(?:[ \t\f\v])(.*)(?:[ \t\f\v]->)(.*)')
 
     root = None
     if output is not None:
@@ -315,6 +327,7 @@ def main() -> None:
 
     # Parse source_path and write to file
     parse_source_file(source_path, output)
+
 
 if __name__ == '__main__':
     main()

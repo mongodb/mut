@@ -1,13 +1,14 @@
 import os.path
 import re
+import subprocess
 
 import yaml
 import rstcloth.rstcloth
-from typing import Any, Callable, Dict, List, TypeVar, Union, Iterable
+from typing import Any, Callable, Dict, List, Optional, TypeVar, Union, Iterable, NamedTuple
 
-import mut
+from . import MutYAMLError
 
-T = TypeVar('T')
+_T = TypeVar('_T')
 PAT_SUBSTITUTION = re.compile(r'{{(.+?)}}')
 VT100 = {
     'red': '31',
@@ -39,7 +40,10 @@ def substitute_rstcloth(cloth: rstcloth.rstcloth.RstCloth,
     return substitute('\n'.join(cloth.data), replacements)
 
 
-def withdraw(dictionary: Dict[str, Any], key: str, checker: Callable[[Any], T], default: T=None) -> T:
+def withdraw(dictionary: Dict[str, Any],
+             key: str,
+             checker: Callable[[Any], _T],
+             default: Optional[_T] = None) -> Optional[_T]:
     """Removes a value from a dictionary, after transforming it with a given
        checker function. Returns either the value, or None if it does
        not exist."""
@@ -96,7 +100,7 @@ def load_yaml(path: str) -> List[Dict[str, Any]]:
         with open(path, 'r') as f:
             return list(yaml.load_all(f, Loader=yaml.CLoader))
     except yaml.error.YAMLError as error:
-        raise mut.MutYAMLError(path, str(error)) from error
+        raise MutYAMLError(path, str(error)) from error
 
 
 def save_if_changed(text: str, path: str) -> bool:
@@ -128,3 +132,19 @@ def color(message: str, options: Iterable[str]) -> str:
     for option in options:
         composite.append('{0}'.format(VT100[option]))
     return '\x1b[{0}m{1}\x1b[0m'.format(';'.join(composite), message)
+
+
+GitInfo = NamedTuple('GitInfo', (
+    ('current_branch', str),
+    ('sha', str),
+    ('top_level', str)))
+
+
+def git_learn() -> GitInfo:
+    def run(args: List[str]) -> str:
+        return subprocess.check_output(['git'] + args, text=True).strip()
+
+    current_branch = run(['rev-parse', '--abbrev-ref', 'HEAD'])
+    sha = run(['rev-parse', '--verify', 'HEAD'])
+    top_level = run(['rev-parse', '--show-toplevel'])
+    return GitInfo(current_branch, sha, top_level)

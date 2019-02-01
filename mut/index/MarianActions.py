@@ -1,7 +1,6 @@
 import requests
-from requests.exceptions import Timeout, HTTPError
+from requests.exceptions import HTTPError
 from mut.index.utils.AwaitResponse import wait_for_response
-from mut.index.utils.Logger import log_unsuccessful
 
 MARIAN_URL = 'https://marian.mongodb.com/'
 
@@ -13,7 +12,7 @@ def refresh_marian() -> None:
     try:
         res = wait_for_response(
             'Attempting to refresh Marian',
-            requests.post, refresh_url, data={})
+            lambda: requests.post(refresh_url, data={}))
         res.raise_for_status()
         if res.status_code != 200:
             message = ' '.join(['...but received unexpected response:',

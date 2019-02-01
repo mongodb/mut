@@ -52,37 +52,33 @@ install_helper() {
 
 dependencies_unknown() {
     echo "Unable to setup dependencies automatically on this system"
-    echo "Depends on: python 3.3+, git, libxml2, libyaml"
+    echo "Depends on: python 3.5+, git, libxml2, libyaml"
 
-    if ! which git > /dev/null ; then
+    if ! command -v git > /dev/null ; then
         echo "Could not find git; please install it"
         exit 1
     fi
 
-    if ! which inkscape > /dev/null ; then
+    if ! command -v inkscape > /dev/null ; then
         echo "Could not find inkscape; you will not be able to run mut-images"
     fi
 
-    if ! which pngcrush > /dev/null ; then
+    if ! command -v pngcrush > /dev/null ; then
         echo "Could not find pngcrush; you will not be able to run mut-images"
     fi
 
-    if ! which svgo > /dev/null ; then
+    if ! command -v svgo > /dev/null ; then
         echo "Could not find svgo; you will not be able to run mut-images"
     fi
 }
 
-dependencies_openbsd() {
-    prompt 'Install dependencies' doas pkg_add libyaml py3-pip git libxml
-}
-
 dependencies_debian() {
-    prompt 'Install dependencies' sudo apt-get update && sudo apt-get install libyaml-dev python3 python3-pip python3-venv git pkg-config libxml2-dev
+    prompt 'Install dependencies' "sudo apt-get update && sudo apt-get install libyaml-dev python3 python3-pip python3-venv git pkg-config libxml2-dev"
 }
 
 dependencies_osx() {
     INSTALL_PYTHON=''
-    if ! which python3 > /dev/null; then
+    if ! command -v python3 > /dev/null; then
         INSTALL_PYTHON='python'
     fi
 
@@ -112,12 +108,10 @@ create_venv() {
     )
 
     install_helper mut
-    install_helper mut-build
     install_helper mut-convert-redirects
     install_helper mut-images
     install_helper mut-index
     install_helper mut-intersphinx
-    install_helper mut-lint
     install_helper mut-publish
     install_helper mut-redirects
 
@@ -135,7 +129,7 @@ create_venv() {
             rc_files+=(~/.zshrc)
         fi
 
-        if [ ! -z "${rc_files[0]}" ] && ask 'Add PATH environment variable?'; then
+        if [ -n "${rc_files[0]}" ] && ask 'Add PATH environment variable?'; then
             for rc in "${rc_files[@]}"; do
                 printf "\nPATH=\$PATH:%s/bin\n" "${MUT_PATH}" >> "${rc}"
             done
@@ -149,12 +143,10 @@ create_venv() {
 
     echo "Installed:"
     echo "  mut"
-    echo "  mut-build"
     echo "  mut-convert-redirects"
     echo "  mut-images"
     echo "  mut-index"
     echo "  mut-intersphinx"
-    echo "  mut-lint"
     echo "  mut-publish"
     echo "  mut-redirects"
 }
@@ -172,9 +164,6 @@ Linux)
   else
     dependencies_unknown
   fi
-  ;;
-OpenBSD)
-  dependencies_openbsd
   ;;
 *)
   dependencies_unknown

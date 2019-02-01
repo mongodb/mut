@@ -1,9 +1,7 @@
 """
-Usage: mut build [...]
-       mut convert-redirects [...]
+Usage: mut convert-redirects [...]
        mut images [...]
        mut intersphinx [...]
-       mut lint [...]
        mut publish [...]
        mut index [...]
 """
@@ -22,6 +20,7 @@ def main() -> None:
     except (IndexError, FileNotFoundError):
         print(__doc__.strip())
         sys.exit(1)
+
 
 if __name__ == '__main__':
     main()

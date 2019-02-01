@@ -1,20 +1,13 @@
-import abc
-
-__version__ = '0.5.2.dev0'
+__version__ = '0.6.0.dev0'
 
 
-class MutInputError(Exception, metaclass=abc.ABCMeta):
+class MutInputError(Exception):
     """Base class for reporting malformed input files."""
-    def __init__(self, path: str, ref: str, message: str, verbose: str='') -> None:
+    def __init__(self, path: str, ref: str, message: str, verbose: str = '') -> None:
         self._path = path
         self._ref = ref
         self._message = message
         self.verbose = verbose
-
-    @abc.abstractproperty
-    def plugin_name(self) -> str:
-        """Return the name of the transform plugin that reported this error."""
-        pass
 
     @property
     def path(self) -> str:

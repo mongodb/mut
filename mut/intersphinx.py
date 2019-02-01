@@ -103,5 +103,6 @@ def main():
                 logger.error('Error reading %s: Need both a "name" field and a "url" field',
                              update_path)
 
+
 if __name__ == '__main__':
     main()

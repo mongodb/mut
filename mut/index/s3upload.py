@@ -1,14 +1,14 @@
 '''Upload a json manifest to Amazon s3.'''
-import os
 import boto3
 from botocore.exceptions import ClientError, ParamValidationError
+from typing import Any
 
 from mut.AuthenticationInfo import AuthenticationInfo
 from mut.index.utils.AwaitResponse import wait_for_response
 from mut.index.utils.Logger import log_unsuccessful
 
 
-def _connect_to_s3():
+def _connect_to_s3() -> Any:
     authentication_info = AuthenticationInfo.load()
     session = boto3.session.Session(
         aws_access_key_id=authentication_info.access_key,
@@ -17,8 +17,7 @@ def _connect_to_s3():
     try:
         s3 = wait_for_response(
             'Opening connection to s3',
-            session.resource,
-            's3'
+            lambda: session.resource('s3')
         )
         return s3
     except ClientError as ex:
@@ -30,10 +29,8 @@ def _upload(s3, bucket: str, key: str, manifest: str) -> None:
     try:
         wait_for_response(
             'Attempting to upload to s3 with key: ' + key,
-            s3.Bucket(bucket).put_object,
-            Key=key,
-            Body=manifest,
-            ContentType='application/json'
+            lambda: s3.Bucket(bucket).put_object(
+                Key=key, Body=manifest, ContentType='application/json')
         )
         success_message = ('Successfully uploaded manifest '
                            'to {0} as {1}').format(bucket, key)

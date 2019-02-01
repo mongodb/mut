@@ -114,6 +114,9 @@ def process_html_files(html_path_info: List[FileInfo],
     '''Apply a function to a list of .html file paths in parallel.'''
     with concurrent.futures.ProcessPoolExecutor() as executor:
         for document in executor.map(parse_html_file, html_path_info):
+            if not document:
+                continue
+
             manifest.add_document(document)
             if show_progress:
                 sys.stdout.write('.')

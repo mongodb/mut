@@ -43,32 +43,29 @@ mut-publish --version
 
 import collections
 import concurrent.futures
-import configparser
 import functools
 import hashlib
 import logging
 import mimetypes
 import os
 import posixpath
-import pwd
 import re
-import stat
 import sys
 
 import boto3
 import boto3.s3.transfer
 import botocore
 import docopt
-import giza.libgiza.git
 
-import mut.AuthenticationInfo
-from mut.util import color
+from . import AuthenticationInfo
+from . import util
 
-from typing import cast, Any, Callable, Dict, List, Set, Tuple, TypeVar, Pattern, Iterable
+from typing import cast, Any, Callable, Dict, List, Set, Tuple, \
+    TypeVar, Iterable, Pattern, NamedTuple, Optional
 
 logger = logging.getLogger(__name__)
-REDIRECT_PAT = re.compile('^Redirect 30[1|2|3] (\S+)\s+(\S+)', re.M)
-FileUpdate = collections.namedtuple('FileUpdate', ('path', 'file_hash', 'new_file'))
+REDIRECT_PAT = re.compile(r'^Redirect 30[1|2|3] (\S+)\s+(\S+)', re.M)
+FileUpdate = NamedTuple('FileUpdate', (('path', str), ('file_hash', str), ('new_file', bool)))
 UPLOAD_CHUNK_SIZE = 1024 * 1024 * 8
 DELETION_WARNING_THRESHOLD = 10
 DELETION_DANGER_THRESHOLD = 350
@@ -111,7 +108,7 @@ def chunks(l: List[T], n: int) -> Iterable[List[T]]:
         yield l[i:(i + n)]
 
 
-def run_pool(tasks: List[Callable[[None], None]], n_workers: int=5, retries: int=1) -> None:
+def run_pool(tasks: List[Callable[[None], None]], n_workers: int = 5, retries: int = 1) -> None:
     """Run a list of tasks using a pool of threads."""
     assert retries >= 0
 
@@ -122,7 +119,11 @@ def run_pool(tasks: List[Callable[[None], None]], n_workers: int=5, retries: int
         for task in tasks:
             futures.append(pool.submit(task))
 
-        results = [(task, f.exception()) for f, task in zip(futures, tasks) if f.exception()]
+        # Collect erroring tasks and the error which terminanted them. The "or exception" clause
+        # satisfies the type checker.
+        results = [
+            (task, f.exception() or Exception()) for f, task in zip(futures, tasks) if f.exception()
+        ]
 
     if not results:
         return
@@ -152,7 +153,7 @@ class ChangeSummary:
 
         files_deleted_string = 'Files Deleted:     {}'.format(self.files_deleted)
         if self.files_deleted > DELETION_WARNING_THRESHOLD:
-            files_deleted_string = color(files_deleted_string, ('red', 'bright'))
+            files_deleted_string = util.color(files_deleted_string, ('red', 'bright'))
 
         for key in self.suspicious_files:
             logger.warn('Suspicious upload: %s', key)
@@ -178,7 +179,7 @@ class ChangeSet:
             multipart_threshold=UPLOAD_CHUNK_SIZE,
             multipart_chunksize=UPLOAD_CHUNK_SIZE)
 
-    def delete(self, objects: List[str], tag: str='D') -> None:
+    def delete(self, objects: List[str], tag: str = 'D') -> None:
         """Request deletion of a list of objects."""
         self.commands_delete.extend((tag, x) for x in objects)
 
@@ -332,13 +333,14 @@ def translate_htaccess(path: str) -> Iterable[Tuple[str, str]]:
 class Config:
     """Staging and deployment runtime configuration."""
     def __init__(self, bucket: str, prefix: str) -> None:
-        repo = giza.libgiza.git.GitRepo()
+        repo = util.git_learn()
+
         self.builder = 'html'
-        self.branch = repo.current_branch()
+        self.branch = repo.current_branch
         self.bucket = bucket
         self.prefix = prefix
 
-        self.root_path = repo.top_level()
+        self.root_path = repo.top_level
         self.build_path = os.path.join(self.root_path, 'build', self.branch, self.builder)
         self.all_subdirectories = False
         self.redirect_dirs = []  # type: List[Pattern]
@@ -347,16 +349,16 @@ class Config:
 
         # Path to find the .htaccess file. None indicates to find it under
         # the build root.
-        self.redirect_path = None  # type: str
+        self.redirect_path = None  # type: Optional[str]
 
         self.verbose = False
 
-        self._authentication = None  # type: mut.AuthenticationInfo.AuthenticationInfo
+        self._authentication = None  # type: Optional[AuthenticationInfo.AuthenticationInfo]
 
     @property
-    def authentication(self) -> mut.AuthenticationInfo.AuthenticationInfo:
+    def authentication(self) -> AuthenticationInfo.AuthenticationInfo:
         if not self._authentication:
-            self._authentication = mut.AuthenticationInfo.AuthenticationInfo.load()
+            self._authentication = AuthenticationInfo.AuthenticationInfo.load()
 
         return self._authentication
 
@@ -510,7 +512,10 @@ class Staging:
         self.s3 = boto3.session.Session(
             aws_access_key_id=auth.access_key,
             aws_secret_access_key=auth.secret_key).resource('s3').Bucket(config.bucket)
-        self.collector = self.Collector(self.config.branch, self.config.all_subdirectories, self.namespace)
+        self.collector = self.Collector(
+            self.config.branch,
+            self.config.all_subdirectories,
+            self.namespace)
 
     @property
     def namespace(self) -> str:
@@ -525,8 +530,6 @@ class Staging:
     def stage(self, root: str) -> None:
         """Synchronize the build directory with the staging bucket under
            the namespace [username]/[branch]/"""
-        tasks = []  # type: List[Callable[[None], None]]
-
         htaccess_path = self.config.redirect_path
         if htaccess_path is None:
             htaccess_path = os.path.join(root, '.htaccess')
@@ -549,7 +552,8 @@ class Staging:
         # If this is the case, warn and delete the redirect.
         for src, dest in redirects.items():
             src_path = os.path.join(root, src)
-            if os.path.isfile(src_path) and os.path.basename(src_path) in os.listdir(os.path.dirname(src_path)):
+            if os.path.isfile(src_path) and \
+                    os.path.basename(src_path) in os.listdir(os.path.dirname(src_path)):
                 logger.warn('Would ignore redirect that will mask file: %s', src)
 #                del redirects[src]
 
@@ -680,7 +684,7 @@ def main() -> None:
         summary = staging.changes.print()
 
         if summary.suspicious:
-            (prompt, confirmation) = (color('Commit? (YES/n): ', ('red', 'bright')), 'YES')
+            (prompt, confirmation) = (util.color('Commit? (YES/n): ', ('red', 'bright')), 'YES')
         else:
             (prompt, confirmation) = ('Commit? (y/n): ', 'y')
 
@@ -697,7 +701,7 @@ def main() -> None:
         if err.response['ResponseMetadata']['HTTPStatusCode'] == 403:
             logger.error('Failed to upload to S3: Permission denied.')
             logger.info('Check your authentication configuration at %s.',
-                        mut.AuthenticationInfo.CONFIG_PATH)
+                        AuthenticationInfo.CONFIG_PATH)
             return
 
         raise err
@@ -708,6 +712,7 @@ def main() -> None:
                 raise sub_err from err
             except SyncFileException as sync_err:
                 logger.error('%s: %s', sync_err.path, sync_err.reason)
+
 
 if __name__ == '__main__':
     main()

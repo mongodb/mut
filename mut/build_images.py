@@ -34,8 +34,8 @@ from typing import List
 
 import docopt
 
-import mut
-import mut.util
+from . import __version__
+from . import util
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +77,7 @@ def generate_svg(input_path: str, output_path: str) -> None:
 def main() -> None:
     options = docopt.docopt(__doc__)
     if options.get('--version', False):
-        print('mut ' + mut.__version__)
+        print('mut ' + __version__)
         return
 
     root = str(options['<root>'] or '.')
@@ -107,7 +107,7 @@ def main() -> None:
         for path in paths:
             bare_path, _ = os.path.splitext(path)
             output_filename = bare_path + '.bakedsvg.svg'
-            if not mut.util.compare_mtimes(output_filename, [path]):
+            if not util.compare_mtimes(output_filename, [path]):
                 continue
 
             futures.append(pool.submit(
@@ -119,6 +119,7 @@ def main() -> None:
             exception = f.exception()
             if exception:
                 logger.error(str(exception))
+
 
 if __name__ == '__main__':
     main()

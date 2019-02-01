@@ -7,15 +7,11 @@ REQUIRES = [
     'certifi',
     'cssselect',
     'docopt',
-    'docutils',
-    'dominate',
-    'giza>=0.5.14',
     'html5-parser',
     'lxml',
     'PyYAML',
     'requests',
-    'rstcloth>=0.2.6',
-    'sphinx>=1.5',
+    'rstcloth>=0.2.6'
 ]
 
 # Need a fallback for the typing module
@@ -42,12 +38,10 @@ setup(
     entry_points={
         'console_scripts': [
             'mut = mut.helper:main',
-            'mut-build = mut.main:main',
             'mut-convert-redirects = mut.convert_redirects:main',
             'mut-images = mut.build_images:main',
             'mut-index = mut.index.main:main',
             'mut-intersphinx = mut.intersphinx:main',
-            'mut-lint = mut.lint:main',
             'mut-publish = mut.stage:main',
             'mut-redirects = mut.redirects.redirect_main:main',
             ],
