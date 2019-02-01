@@ -16,7 +16,7 @@ REQUIRES = [
 
 # Need a fallback for the typing module
 if sys.version < '3.5':
-    REQUIRES.append('mypy-lang')
+    REQUIRES.append('mypy')
 
 setup(
     name='mut',

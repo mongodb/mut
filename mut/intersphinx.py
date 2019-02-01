@@ -22,6 +22,7 @@ import urllib.request
 import yaml
 
 import docopt
+from . import __version__
 
 MAX_AGE = 60 * 60 * 24 * 1  # One day
 logger = logging.getLogger(__name__)
@@ -74,8 +75,7 @@ def main():
     options = docopt.docopt(__doc__)
 
     if options.get('--version', False):
-        import mut
-        print('mut ' + mut.__version__)
+        print('mut ' + __version__)
         return
 
     update_path = str(options['--update'])
