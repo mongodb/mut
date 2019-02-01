@@ -13,14 +13,14 @@ ask() {
 
         case "${ok}" in
         y | yes)
-          return 0
-          ;;
+            return 0
+            ;;
         '')
             continue
             ;;
         *)
-          return 1
-          ;;
+            return 1
+            ;;
         esac
     done
 }
@@ -52,7 +52,7 @@ install_helper() {
 
 dependencies_unknown() {
     echo "Unable to setup dependencies automatically on this system"
-    echo "Depends on: python 3.5+, git, libxml2, libyaml"
+    echo "Depends on: python 3.5+, git, libxml2"
 
     if ! command -v git > /dev/null ; then
         echo "Could not find git; please install it"
@@ -73,7 +73,7 @@ dependencies_unknown() {
 }
 
 dependencies_debian() {
-    prompt 'Install dependencies' "sudo apt-get update && sudo apt-get install libyaml-dev python3 python3-pip python3-venv git pkg-config libxml2-dev"
+    prompt 'Install dependencies' "sudo apt-get update && sudo apt-get install python3 python3-pip python3-venv git pkg-config libxml2-dev"
 }
 
 dependencies_osx() {
@@ -86,7 +86,7 @@ dependencies_osx() {
     prompt 'Setup Xcode command line tools' "sudo xcode-select --install; sudo xcode-select -r"
     set -e
 
-    prompt 'Install dependencies' "brew update && brew install libyaml libxml2 pkgconfig ${INSTALL_PYTHON}"
+    prompt 'Install dependencies' "brew update && brew install libxml2 pkgconfig ${INSTALL_PYTHON}"
 }
 
 create_venv() {
