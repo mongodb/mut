@@ -70,7 +70,7 @@ GitInfo = NamedTuple('GitInfo', (
 
 def git_learn() -> GitInfo:
     def run(args: List[str]) -> str:
-        return subprocess.check_output(['git'] + args, text=True).strip()
+        return subprocess.check_output(['git'] + args, universal_newlines=True).strip()
 
     current_branch = run(['rev-parse', '--abbrev-ref', 'HEAD'])
     sha = run(['rev-parse', '--verify', 'HEAD'])
