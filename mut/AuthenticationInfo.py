@@ -2,9 +2,9 @@ import configparser
 import logging
 import os
 import pwd
-import stat
+from pathlib import Path
 
-CONFIG_PATH = '~/.config/giza-aws-authentication.conf'
+DEFAULT_CONFIG_PATH = Path('~/.config/giza-aws-authentication.conf').expanduser()
 SAMPLE_CONFIG = '''[authentication]
 accesskey=<AWS access key>
 secretkey=<AWS secret key>
@@ -13,7 +13,7 @@ secretkey=<AWS secret key>
 logger = logging.getLogger(__name__)
 
 
-def create_config_framework(path: str) -> None:
+def create_config_framework(path: Path) -> None:
     """Create a skeleton configuration file with appropriately locked-down
        permissions."""
     try:
@@ -39,36 +39,36 @@ class AuthenticationInfo:
         self.username = username
 
     @classmethod
-    def load(cls) -> 'AuthenticationInfo':
+    def load(cls, path: Path = DEFAULT_CONFIG_PATH) -> 'AuthenticationInfo':
         """Returns an AuthenticationInfo instance giving any necessary S3 login
            information."""
-        cfg_path = os.path.expanduser(CONFIG_PATH)
-        cfg = configparser.ConfigParser()
-        cfg.read(cfg_path)
+        access_key = os.environ.get('AWS_ACCESS_KEY_ID', None)
+        secret_key = os.environ.get('AWS_SECRET_ACCESS_KEY', None)
+        username = os.environ.get('STAGING_USERNAME', None)
 
-        # Warn the user if config permissions are too lax
-        try:
-            if os.name == 'posix' and stat.S_IMODE(os.stat(cfg_path).st_mode) != 0o600:
-                logger.warn('Your AWS authentication file is poorly protected! You should run')
-                logger.warn('    chmod 600 %s', cfg_path)
-        except OSError:
-            pass
+        cfg = configparser.ConfigParser()
+        cfg.read(path)
 
         # Load S3 authentication information
         try:
-            access_key = cfg.get('authentication', 'accesskey')
-            secret_key = cfg.get('authentication', 'secretkey')
+            if not access_key:
+                access_key = cfg.get('authentication', 'accesskey')
+
+            if not secret_key:
+                secret_key = cfg.get('authentication', 'secretkey')
         except (configparser.NoSectionError, configparser.NoOptionError):
             print('No staging authentication found. Create a file at {0} with '
-                  'contents like the following:\n'.format(cfg_path))
+                  'contents like the following:\n'.format(path))
             print(SAMPLE_CONFIG)
-            create_config_framework(cfg_path)
+            create_config_framework(path)
             raise ValueError('Missing authentication information')
 
         # Get the user's preferred name; we use this as part of our S3 namespaces
-        try:
-            username = cfg.get('personal', 'username')
-        except (configparser.NoSectionError, configparser.NoOptionError):
-            username = pwd.getpwuid(os.getuid()).pw_name
+        if not username:
+            try:
+                username = cfg.get('personal', 'username')
+            except (configparser.NoSectionError, configparser.NoOptionError):
+                username = pwd.getpwuid(os.getuid()).pw_name
 
+        logger.info('Authentication: access_key="%s", username="%s"', access_key, username)
         return AuthenticationInfo(access_key, secret_key, username)

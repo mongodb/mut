@@ -700,8 +700,7 @@ def main() -> None:
     except botocore.exceptions.ClientError as err:
         if err.response['ResponseMetadata']['HTTPStatusCode'] == 403:
             logger.error('Failed to upload to S3: Permission denied.')
-            logger.info('Check your authentication configuration at %s.',
-                        AuthenticationInfo.CONFIG_PATH)
+            logger.info('Check your authentication configuration')
             return
 
         raise err
