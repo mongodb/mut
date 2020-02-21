@@ -617,6 +617,27 @@ class Staging:
         timer.lap("Files removed")
 
     def sync_redirects(self, redirects: Dict[str, str]) -> None:
+        """Upload the given path->url redirect mapping to the remote bucket. In staging
+           mode, do nothing."""
+        pass
+
+    @classmethod
+    def normalize_key(cls, key: str) -> str:
+        if os.path.splitext(key)[1] in ('.gz', '.pdf', '.epub', '.html'):
+            return key.lstrip('/')
+
+        return key.strip('/') + cls.PAGE_SUFFIX
+
+
+class DeployStaging(Staging):
+    PAGE_SUFFIX = '/index.html'
+    Collector = DeployCollector
+
+    @property
+    def namespace(self) -> str:
+        return self.config.prefix
+
+    def sync_redirects(self, redirects: Dict[str, str]) -> None:
         """Upload the given path->url redirect mapping to the remote bucket."""
 
         logger.debug('Finding redirects to remove')
@@ -644,22 +665,6 @@ class Staging:
 
         for src in redirects:
             self.changes.redirect(self.normalize_key(src), redirects[src])
-
-    @classmethod
-    def normalize_key(cls, key: str) -> str:
-        if os.path.splitext(key)[1] in ('.gz', '.pdf', '.epub', '.html'):
-            return key.lstrip('/')
-
-        return key.strip('/') + cls.PAGE_SUFFIX
-
-
-class DeployStaging(Staging):
-    PAGE_SUFFIX = '/index.html'
-    Collector = DeployCollector
-
-    @property
-    def namespace(self) -> str:
-        return self.config.prefix
 
 
 def do_stage(root: str, staging: Staging) -> None:
