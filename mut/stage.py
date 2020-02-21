@@ -46,6 +46,7 @@ import concurrent.futures
 import functools
 import hashlib
 import logging
+import time
 import mimetypes
 import os
 import posixpath
@@ -70,6 +71,18 @@ UPLOAD_CHUNK_SIZE = 1024 * 1024 * 8
 DELETION_WARNING_THRESHOLD = 10
 DELETION_DANGER_THRESHOLD = 350
 T = TypeVar('T')
+
+
+class Timer:
+    def __init__(self, name: str) -> None:
+        self.name = name
+        self.time = time.perf_counter()
+
+    def lap(self, name: str) -> None:
+        """Log the time since the last lap() call or the instance construction."""
+        old_time = self.time
+        self.time = time.perf_counter()
+        logger.info("%s: %s: %ss", self.name, name, self.time - old_time)
 
 
 class StagingException(Exception):
@@ -407,6 +420,7 @@ class StagingCollector:
 
     def collect(self, top_root: str, remote_keys: Iterable[Any]) -> Iterable[FileUpdate]:
         """Yield FileUpdate instances, indicating file paths that must be updated."""
+        timer = Timer("collect")
         self.removed_files = []
         remote_hashes = {}
         roots = self.get_upload_set(top_root)
@@ -415,6 +429,8 @@ class StagingCollector:
 
         # List all current redirects
         remote_keys = list(remote_keys)
+        timer.lap("listed")
+        logger.info("%d entries", len(remote_keys))
         for key in remote_keys:
             # Don't register redirects for deletion in this stage
             if key.size == 0:
@@ -440,6 +456,8 @@ class StagingCollector:
                 logger.warn('Removing %s because %s does not exist',
                             key.key, local_path)
                 self.removed_files.append(key.key)
+
+        timer.lap("remote set scanned")
 
         logger.debug('Done. Scanning local filesystem')
 
@@ -467,6 +485,8 @@ class StagingCollector:
 
                 is_new_file = remote_hash is None
                 yield FileUpdate(path, local_hash, is_new_file)
+
+        timer.lap("filesystem scanned")
 
 
 class DeployCollector(StagingCollector):
@@ -530,6 +550,7 @@ class Staging:
     def stage(self, root: str) -> None:
         """Synchronize the build directory with the staging bucket under
            the namespace [username]/[branch]/"""
+        timer = Timer("stage")
         htaccess_path = self.config.redirect_path
         if htaccess_path is None:
             htaccess_path = os.path.join(root, '.htaccess')
@@ -557,8 +578,13 @@ class Staging:
                 logger.warn('Would ignore redirect that will mask file: %s', src)
 #                del redirects[src]
 
+        timer.lap("initial staging setup")
+
         # Collect files that need to be uploaded
-        for entry in self.collector.collect(root, self.s3.objects.filter(Prefix=self.namespace)):
+        logger.info("namespace: %s", self.namespace)
+        filtered = self.s3.objects.filter(Prefix=self.namespace)
+        timer.lap("S3 filter created")
+        for entry in self.collector.collect(root, filtered):
             src = entry.path.replace(root, '', 1)
 
             if not os.path.isfile(entry.path):
@@ -566,6 +592,8 @@ class Staging:
 
             full_name = '/'.join((self.namespace, src))
             self.changes.upload(os.path.join(root, src), full_name, entry.new_file)
+
+        timer.lap("S3 collection completed")
 
         # XXX Right now we only sync redirects on master.
         #     Why: Master has the "canonical" .htaccess, and we'd need to attach
@@ -576,6 +604,8 @@ class Staging:
         if self.config.branch == 'master':
             self.sync_redirects(redirects)
 
+        timer.lap("Sync redirects")
+
         # Remove from staging any files that our FileCollector thinks have been
         # deleted locally.
         remove_keys = [str(path.replace_prefix(root, '').ensure_prefix(self.namespace))
@@ -583,6 +613,8 @@ class Staging:
 
         if remove_keys:
             self.changes.delete(remove_keys)
+
+        timer.lap("Files removed")
 
     def sync_redirects(self, redirects: Dict[str, str]) -> None:
         """Upload the given path->url redirect mapping to the remote bucket."""
