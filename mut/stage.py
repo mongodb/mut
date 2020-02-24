@@ -223,9 +223,9 @@ class ChangeSet:
 
         for command in self.commands_upload:
             flag, _, key = command
-            if flag is 'C':
+            if flag == 'C':
                 summary.files_created += 1
-            elif flag is 'M':
+            elif flag == 'M':
                 summary.files_modified += 1
             else:
                 raise ValueError('Unknown upload flag {}'.format(repr(flag)))
@@ -238,9 +238,9 @@ class ChangeSet:
 
         for deletion in self.commands_delete:
             flag, key = deletion
-            if flag is 'D':
+            if flag == 'D':
                 summary.files_deleted += 1
-            elif flag is 'DR':
+            elif flag == 'DR':
                 summary.redirects_deleted += 1
             else:
                 raise ValueError('Unknown deletion flag {}'.format(repr(flag)))
@@ -272,8 +272,11 @@ class ChangeSet:
 
         # S3 caps delete requests to 1,000 keys.
         for chunk in chunks(self.commands_delete, 999):
+            objects = [{'Key': key} for _, key in chunk if key not in changes]
+            if not objects:
+                continue
             s3.delete_objects(Delete={
-                'Objects': [{'Key': key} for _, key in chunk if key not in changes],
+                'Objects': objects,
                 'Quiet': True
             })
 
