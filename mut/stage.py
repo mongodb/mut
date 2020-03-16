@@ -28,7 +28,7 @@ mut-publish --version
 --all-subdirectories    recurse into all subdirectories under <source>.
                         By default, mut-publish will only sync the top-level
                         files, as well as the subdirectory given by the current
-                        git branch.
+                        git branch.     
 
 --redirects=htaccess    use the redirects from the given .htaccess file
 
@@ -36,6 +36,9 @@ mut-publish --version
                         mut-publish may remove redirects. You may provide this
                         option multiple times.
 
+--deployed-url-prefix   print the full url where files were published to  
+
+--json                  print published urls as json
 --dry-run               do not actually do anything
 --verbose               print more verbose debugging information
 --version               show mut version
@@ -180,8 +183,9 @@ class ChangeSummary:
 
 class ChangeSet:
     """Stores a list of S3 bucket operations."""
-    def __init__(self, verbose: bool) -> None:
+    def __init__(self, verbose: bool, deployedUrlPrefix: str) -> None:
         self.verbose = verbose
+        self.deployedUrlPrefix = deployedUrlPrefix
         self.suspicious_files = []  # type: List[str]
 
         self.commands_delete = []  # type: List[Tuple[str, str]]
@@ -209,7 +213,7 @@ class ChangeSet:
         if 'master/master' in key:
             self.suspicious_files.append(key)
 
-        self.commands_upload.append((flag, path, key))
+        self.commands_upload.append((flag, self.deployedUrlPrefix + path, key))
 
     def redirect(self, from_key: str, to_url: str) -> None:
         """Create an S3 redirect."""
@@ -368,6 +372,8 @@ class Config:
         self.redirect_path = None  # type: Optional[str]
 
         self.verbose = False
+
+        self.deployed_url_prefix = ''
 
         self._authentication = None  # type: Optional[AuthenticationInfo.AuthenticationInfo]
 
@@ -531,7 +537,7 @@ class Staging:
         self.config = config
 
         auth = config.authentication
-        self.changes = ChangeSet(config.verbose)
+        self.changes = ChangeSet(config.verbose, config.deployed_url_prefix)
         self.s3 = boto3.session.Session(
             aws_access_key_id=auth.access_key,
             aws_secret_access_key=auth.secret_key).resource('s3').Bucket(config.bucket)
@@ -690,6 +696,8 @@ def main() -> None:
     root = options['<source>']
     bucket = options['<bucket>']
     prefix = options['--prefix']
+    deployed_url_prefix = options['--deployed-url-prefix']
+    return_json = options['--json']
     redirect_path = options.get('--redirects', None)
     redirect_prefixes = cast(List[str], options['--redirect-prefix'])
     mode_stage = bool(options.get('--stage', False))
@@ -708,6 +716,9 @@ def main() -> None:
     config.all_subdirectories = all_subdirectories
     config.redirect_path = redirect_path
 
+    if deployed_url_prefix:
+        config.deployed_url_prefix = deployed_url_prefix
+
     try:
         config.redirect_dirs += [re.compile(pat) for pat in redirect_prefixes]
     except re.error as err:
@@ -721,7 +732,12 @@ def main() -> None:
 
     try:
         do_stage(root, staging)
-        summary = staging.changes.print()
+
+        # todo, print json outputs here with full urls?
+        if return_json:
+            pass
+        else:
+            summary = staging.changes.print()
 
         if summary.suspicious:
             (prompt, confirmation) = (util.color('Commit? (YES/n): ', ('red', 'bright')), 'YES')
