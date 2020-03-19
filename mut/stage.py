@@ -185,12 +185,11 @@ class ChangeSummary:
 
 class ChangeSet:
     """Stores a list of S3 bucket operations."""
-    def __init__(self, verbose: bool, deployed_url_prefix: str, return_json: bool) -> None:
+    def __init__(self, verbose: bool, deployed_url_prefix: str) -> None:
         self.verbose = verbose
         self.suspicious_files = []  # type: List[str]
         self.full_deploy_urls = []  # type: List[str]
         self.deployed_url_prefix = deployed_url_prefix
-        self.return_json = return_json
 
         self.commands_delete = []  # type: List[Tuple[str, str]]
         self.commands_redirect = []  # type: List[Tuple[str, str]]
@@ -227,13 +226,13 @@ class ChangeSet:
         from_key = from_key.lstrip('/')
         self.commands_redirect.append((from_key, to_url))
 
-    def print(self) -> ChangeSummary:
+    def print(self, return_json: bool) -> ChangeSummary:
         """Print to stdout all actions that will be taken by ChangeSet.commit()."""
         summary = ChangeSummary()
         summary.suspicious_files = self.suspicious_files
 
         # convert full urls with deploy prefix to json
-        if self.return_json:
+        if return_json:
             json_obj = { 'urls': [] }
             for command in self.full_deploy_urls:
                 flag, path = command
@@ -268,7 +267,7 @@ class ChangeSet:
 
         summary.redirects = len(self.commands_redirect)
 
-        if not self.return_json:
+        if not return_json:
             summary.print()
 
         return summary
@@ -391,8 +390,6 @@ class Config:
         self.verbose = False
 
         self.deployed_url_prefix = ''
-
-        self.return_json = False
 
         self._authentication = None  # type: Optional[AuthenticationInfo.AuthenticationInfo]
 
@@ -556,7 +553,7 @@ class Staging:
         self.config = config
 
         auth = config.authentication
-        self.changes = ChangeSet(config.verbose, config.deployed_url_prefix, config.return_json)
+        self.changes = ChangeSet(config.verbose, config.deployed_url_prefix)
         self.s3 = boto3.session.Session(
             aws_access_key_id=auth.access_key,
             aws_secret_access_key=auth.secret_key).resource('s3').Bucket(config.bucket)
@@ -734,7 +731,6 @@ def main() -> None:
     config.verbose = verbose
     config.all_subdirectories = all_subdirectories
     config.redirect_path = redirect_path
-    config.return_json = return_json
 
     if deployed_url_prefix:
         config.deployed_url_prefix = deployed_url_prefix
@@ -753,7 +749,7 @@ def main() -> None:
     try:
         do_stage(root, staging)
 
-        summary = staging.changes.print()
+        summary = staging.changes.print(return_json)
 
         if summary.suspicious:
             (prompt, confirmation) = (util.color('Commit? (YES/n): ', ('red', 'bright')), 'YES')
