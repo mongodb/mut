@@ -63,7 +63,6 @@ import boto3.s3.transfer
 import botocore
 import docopt
 
-from . import FastlyConnection
 from . import AuthenticationInfo
 from . import util
 
@@ -219,8 +218,7 @@ class ChangeSet:
             self.suspicious_files.append(key)
 
         # full url with deploy prefix in a separate list from the list of files to actually upload
-        if self.deployed_url_prefix != '':
-            self.full_deploy_urls.append((flag, self.deployed_url_prefix + path))
+        self.full_deploy_urls.append((flag, self.deployed_url_prefix + path))
 
         self.commands_upload.append((flag, path, key))
 
@@ -234,17 +232,6 @@ class ChangeSet:
         summary = ChangeSummary()
         summary.suspicious_files = self.suspicious_files
 
-        for command in self.commands_upload:
-            flag, _, key = command
-            if flag == 'C':
-                summary.files_created += 1
-            elif flag == 'M':
-                summary.files_modified += 1
-            else:
-                raise ValueError('Unknown upload flag {}'.format(repr(flag)))
-
-            print('{}  {}'.format(flag, key))
-
         # convert full urls with deploy prefix to json
         if self.return_json:
             json_obj = { 'urls': [] }
@@ -254,9 +241,16 @@ class ChangeSet:
                 flag, path = command
             print(json.dumps(json_obj))
         else:
-            for command in self.full_deploy_urls:
-                flag, path = command
-                print('{}  {}'.format(flag, path))
+            for command in self.commands_upload:
+                flag, _, key = command
+                if flag == 'C':
+                    summary.files_created += 1
+                elif flag == 'M':
+                    summary.files_modified += 1
+                else:
+                    raise ValueError('Unknown upload flag {}'.format(repr(flag)))
+
+                print('{}  {}'.format(flag, key))
 
         if self.verbose:
             for redirect in self.commands_redirect:
@@ -274,7 +268,9 @@ class ChangeSet:
             print('{:<2} {}'.format(flag, key))
 
         summary.redirects = len(self.commands_redirect)
-        summary.print()
+
+        if not self.return_json:
+            summary.print()
 
         return summary
 
