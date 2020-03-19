@@ -238,7 +238,6 @@ class ChangeSet:
             for command in self.full_deploy_urls:
                 flag, path = command
                 json_obj['urls'].append(path)
-                flag, path = command
             print(json.dumps(json_obj))
         else:
             for command in self.commands_upload:
