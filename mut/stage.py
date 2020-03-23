@@ -217,7 +217,7 @@ class ChangeSet:
             self.suspicious_files.append(key)
 
         # full url with deploy prefix in a separate list from the list of files to actually upload
-        self.full_deploy_urls.append((flag, self.deployed_url_prefix + path))
+        self.full_deploy_urls.append((flag, self.deployed_url_prefix + '/' + path.lstrip('/')))
 
         self.commands_upload.append((flag, path, key))
 
@@ -733,7 +733,7 @@ def main() -> None:
     config.redirect_path = redirect_path
 
     if deployed_url_prefix:
-        config.deployed_url_prefix = deployed_url_prefix
+        config.deployed_url_prefix = deployed_url_prefix.rstrip('/')
 
     try:
         config.redirect_dirs += [re.compile(pat) for pat in redirect_prefixes]
