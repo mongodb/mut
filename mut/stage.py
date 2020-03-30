@@ -16,29 +16,33 @@
                       (--stage|--deploy)
                       [--all-subdirectories]
                       [--redirects=htaccess]
+                      [--deployed-url-prefix=prefix]
                       [--redirect-prefix=prefix]...
-                      [--dry-run] [--verbose]
+                      [--dry-run] [--verbose] [--json]
 mut-publish --version
 
--h --help               show this help message
---prefix=prefix         the prefix under which to upload in the given bucket
---stage                 apply staging behavior: upload under a prefix
---deploy                apply deploy behavior: upload into the bucket root
+-h --help                       show this help message
+--prefix=prefix                 the prefix under which to upload in the given bucket
+--stage                         apply staging behavior: upload under a prefix
+--deploy                        apply deploy behavior: upload into the bucket root
 
---all-subdirectories    recurse into all subdirectories under <source>.
-                        By default, mut-publish will only sync the top-level
-                        files, as well as the subdirectory given by the current
-                        git branch.
+--all-subdirectories            recurse into all subdirectories under <source>.
+                                By default, mut-publish will only sync the top-level
+                                files, as well as the subdirectory given by the current
+                                git branch.
 
---redirects=htaccess    use the redirects from the given .htaccess file
+--redirects=htaccess            use the redirects from the given .htaccess file
 
---redirect-prefix=<re>  regular expression specifying a prefix under which
-                        mut-publish may remove redirects. You may provide this
-                        option multiple times.
+--redirect-prefix=<re>          regular expression specifying a prefix under which
+                                mut-publish may remove redirects. You may provide this
+                                option multiple times.
 
---dry-run               do not actually do anything
---verbose               print more verbose debugging information
---version               show mut version
+--deployed-url-prefix=prefix    print the full url where files were published to
+
+--json                          print published urls as json
+--dry-run                       do not actually do anything
+--verbose                       print more verbose debugging information
+--version                       show mut version
 """
 
 import collections
@@ -52,6 +56,7 @@ import os
 import posixpath
 import re
 import sys
+import json
 
 import boto3
 import boto3.s3.transfer
@@ -180,9 +185,11 @@ class ChangeSummary:
 
 class ChangeSet:
     """Stores a list of S3 bucket operations."""
-    def __init__(self, verbose: bool) -> None:
+    def __init__(self, verbose: bool, deployed_url_prefix: str) -> None:
         self.verbose = verbose
         self.suspicious_files = []  # type: List[str]
+        self.full_deploy_urls = []  # type: List[Tuple[str, str]]
+        self.deployed_url_prefix = deployed_url_prefix
 
         self.commands_delete = []  # type: List[Tuple[str, str]]
         self.commands_redirect = []  # type: List[Tuple[str, str]]
@@ -209,6 +216,9 @@ class ChangeSet:
         if 'master/master' in key:
             self.suspicious_files.append(key)
 
+        # full url with deploy prefix in a separate list from the list of files to actually upload
+        self.full_deploy_urls.append((flag, self.deployed_url_prefix + '/' + path.lstrip('/')))
+
         self.commands_upload.append((flag, path, key))
 
     def redirect(self, from_key: str, to_url: str) -> None:
@@ -216,21 +226,29 @@ class ChangeSet:
         from_key = from_key.lstrip('/')
         self.commands_redirect.append((from_key, to_url))
 
-    def print(self) -> ChangeSummary:
+    def print(self, return_json: bool) -> ChangeSummary:
         """Print to stdout all actions that will be taken by ChangeSet.commit()."""
         summary = ChangeSummary()
         summary.suspicious_files = self.suspicious_files
 
-        for command in self.commands_upload:
-            flag, _, key = command
-            if flag == 'C':
-                summary.files_created += 1
-            elif flag == 'M':
-                summary.files_modified += 1
-            else:
-                raise ValueError('Unknown upload flag {}'.format(repr(flag)))
+        # convert full urls with deploy prefix to json
+        if return_json:
+            json_obj = {'urls': []}  # type: Dict[str, List[str]]
+            for command in self.full_deploy_urls:
+                flag, path = command
+                json_obj['urls'].append(path)
+            print(json.dumps(json_obj))
+        else:
+            for upload_command in self.commands_upload:
+                flag, path, key = upload_command
+                if flag == 'C':
+                    summary.files_created += 1
+                elif flag == 'M':
+                    summary.files_modified += 1
+                else:
+                    raise ValueError('Unknown upload flag {}'.format(repr(flag)))
 
-            print('{}  {}'.format(flag, key))
+                print('{}  {}'.format(flag, key))
 
         if self.verbose:
             for redirect in self.commands_redirect:
@@ -248,7 +266,9 @@ class ChangeSet:
             print('{:<2} {}'.format(flag, key))
 
         summary.redirects = len(self.commands_redirect)
-        summary.print()
+
+        if not return_json:
+            summary.print()
 
         return summary
 
@@ -368,6 +388,8 @@ class Config:
         self.redirect_path = None  # type: Optional[str]
 
         self.verbose = False
+
+        self.deployed_url_prefix = ''
 
         self._authentication = None  # type: Optional[AuthenticationInfo.AuthenticationInfo]
 
@@ -531,7 +553,7 @@ class Staging:
         self.config = config
 
         auth = config.authentication
-        self.changes = ChangeSet(config.verbose)
+        self.changes = ChangeSet(config.verbose, config.deployed_url_prefix)
         self.s3 = boto3.session.Session(
             aws_access_key_id=auth.access_key,
             aws_secret_access_key=auth.secret_key).resource('s3').Bucket(config.bucket)
@@ -690,6 +712,8 @@ def main() -> None:
     root = options['<source>']
     bucket = options['<bucket>']
     prefix = options['--prefix']
+    deployed_url_prefix = options['--deployed-url-prefix']
+    return_json = bool(options.get('--json', False))
     redirect_path = options.get('--redirects', None)
     redirect_prefixes = cast(List[str], options['--redirect-prefix'])
     mode_stage = bool(options.get('--stage', False))
@@ -708,6 +732,9 @@ def main() -> None:
     config.all_subdirectories = all_subdirectories
     config.redirect_path = redirect_path
 
+    if deployed_url_prefix:
+        config.deployed_url_prefix = deployed_url_prefix.rstrip('/')
+
     try:
         config.redirect_dirs += [re.compile(pat) for pat in redirect_prefixes]
     except re.error as err:
@@ -721,7 +748,8 @@ def main() -> None:
 
     try:
         do_stage(root, staging)
-        summary = staging.changes.print()
+
+        summary = staging.changes.print(return_json)
 
         if summary.suspicious:
             (prompt, confirmation) = (util.color('Commit? (YES/n): ', ('red', 'bright')), 'YES')
