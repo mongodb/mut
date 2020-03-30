@@ -29,7 +29,7 @@ mut-publish --version
 --all-subdirectories            recurse into all subdirectories under <source>.
                                 By default, mut-publish will only sync the top-level
                                 files, as well as the subdirectory given by the current
-                                git branch.     
+                                git branch.
 
 --redirects=htaccess            use the redirects from the given .htaccess file
 
@@ -37,7 +37,7 @@ mut-publish --version
                                 mut-publish may remove redirects. You may provide this
                                 option multiple times.
 
---deployed-url-prefix=prefix    print the full url where files were published to  
+--deployed-url-prefix=prefix    print the full url where files were published to
 
 --json                          print published urls as json
 --dry-run                       do not actually do anything
@@ -188,7 +188,7 @@ class ChangeSet:
     def __init__(self, verbose: bool, deployed_url_prefix: str) -> None:
         self.verbose = verbose
         self.suspicious_files = []  # type: List[str]
-        self.full_deploy_urls = []  # type: List[str]
+        self.full_deploy_urls = []  # type: List[Tuple[str, str]]
         self.deployed_url_prefix = deployed_url_prefix
 
         self.commands_delete = []  # type: List[Tuple[str, str]]
@@ -233,14 +233,14 @@ class ChangeSet:
 
         # convert full urls with deploy prefix to json
         if return_json:
-            json_obj = { 'urls': [] }
+            json_obj = {'urls': []}  # type: Dict[str, List[str]]
             for command in self.full_deploy_urls:
                 flag, path = command
                 json_obj['urls'].append(path)
             print(json.dumps(json_obj))
         else:
-            for command in self.commands_upload:
-                flag, _, key = command
+            for upload_command in self.commands_upload:
+                flag, path, key = upload_command
                 if flag == 'C':
                     summary.files_created += 1
                 elif flag == 'M':
