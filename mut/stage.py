@@ -217,7 +217,7 @@ class ChangeSet:
             self.suspicious_files.append(key)
 
         # full url with deploy prefix in a separate list from the list of files to actually upload
-        self.full_deploy_urls.append((flag, self.deployed_url_prefix + '/' + path.lstrip('/')))
+        self.full_deploy_urls.append((flag, self.deployed_url_prefix + '/' + key))
 
         self.commands_upload.append((flag, path, key))
 
