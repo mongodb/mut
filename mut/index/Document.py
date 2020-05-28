@@ -8,7 +8,7 @@ from typing import Any, Callable, Dict, List, Optional, IO
 
 def node_to_text(node) -> str:
     '''Convert an lxml node to text.'''
-    return ''.join(node.itertext())
+    return ' '.join(node.itertext())
 
 
 def return_text_from_node(func) -> Callable[[Any], str]:
@@ -54,10 +54,14 @@ class Document:
         capsule = html_parser.parse(fh.read(), maybe_xhtml=True)
         doc = etree.adopt_external_document(capsule).getroot()
 
+        # Remove <style> tags
+        for style in list(doc.iter("style")):
+            style.getparent().remove(style)
+
         result = {}
         result['head'] = doc.cssselect('head')[0]
 
-        for candidate in ('.main-column .section', '.main__content'):
+        for candidate in ('.main-column .section', '.main-column section', '.main__content'):
             elements = doc.cssselect(candidate)
             if elements:
                 result['main_content'] = elements[0]
