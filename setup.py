@@ -14,22 +14,18 @@ REQUIRES = [
     'rstcloth>=0.2.6'
 ]
 
-# Need a fallback for the typing module
-if sys.version < '3.5':
-    REQUIRES.append('mypy')
-
 setup(
     name='mut',
     description='',
     version=mut.__version__,
+    python_requires='>=3.5',
     author='Andrew Aldridge',
     author_email='i80and@foxquill.com',
     license='Apache',
     packages=find_packages(),
     install_requires=REQUIRES,
     classifiers=[
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3 :: Only',
         'License :: OSI Approved :: Apache Software License',
         'Topic :: Software Development :: Build Tools',
         'Topic :: Documentation',
