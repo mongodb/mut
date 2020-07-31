@@ -47,7 +47,8 @@ class AuthenticationInfo:
         username = os.environ.get('STAGING_USERNAME', None)
 
         cfg = configparser.ConfigParser()
-        cfg.read(path)
+        if os.path.exists(str(path)):
+            cfg.read(path)
 
         # Load S3 authentication information
         try:
