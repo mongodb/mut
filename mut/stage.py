@@ -43,6 +43,11 @@ mut-publish --version
 --dry-run                       do not actually do anything
 --verbose                       print more verbose debugging information
 --version                       show mut version
+
+Environment Variables:
+MUT_CACHE_CONTROL               A value for the Cache-Control header to be attached to
+                                each file. If not provided, it defaults to 8 hours
+                                (max-age=28800).
 """
 
 import collections
@@ -303,9 +308,11 @@ class ChangeSet:
     def __upload(self, s3: Any, src_path: str, key: str) -> None:
         """Thread worker helper to handle uploading a single file to S3."""
         try:
+            # Default to 8-hour TTL
+            cache_control = os.environ.get('MUT_CACHE_CONTROL', 'max-age=28800')
             s3.upload_file(src_path, key, ExtraArgs={
-                'StorageClass': 'REDUCED_REDUNDANCY',
-                'ContentType': mimetypes.guess_type(src_path)[0] or 'binary/octet-stream'
+                'ContentType': mimetypes.guess_type(src_path)[0] or 'binary/octet-stream',
+                'CacheControl': cache_control
             }, Config=self.s3_config)
             sys.stdout.write('.')
             sys.stdout.flush()
