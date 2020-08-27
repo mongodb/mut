@@ -46,8 +46,9 @@ mut-publish --version
 
 Environment Variables:
 MUT_CACHE_CONTROL               A value for the Cache-Control header to be attached to
-                                each file. If not provided, it defaults to 8 hours
-                                (max-age=28800).
+                                each file when in deploy mode. If not provided, it
+                                defaults to 8 hours (max-age=28800). Staging always
+                                uses no-cache.
 """
 
 import collections
@@ -204,6 +205,8 @@ class ChangeSet:
             multipart_threshold=UPLOAD_CHUNK_SIZE,
             multipart_chunksize=UPLOAD_CHUNK_SIZE)
 
+        self.cache_control = "no-cache"
+
     def delete(self, objects: List[str], tag: str = 'D') -> None:
         """Request deletion of a list of objects."""
         self.commands_delete.extend((tag, x) for x in objects)
@@ -309,10 +312,9 @@ class ChangeSet:
         """Thread worker helper to handle uploading a single file to S3."""
         try:
             # Default to 8-hour TTL
-            cache_control = os.environ.get('MUT_CACHE_CONTROL', 'max-age=28800')
             s3.upload_file(src_path, key, ExtraArgs={
                 'ContentType': mimetypes.guess_type(src_path)[0] or 'binary/octet-stream',
-                'CacheControl': cache_control
+                'CacheControl': self.cache_control
             }, Config=self.s3_config)
             sys.stdout.write('.')
             sys.stdout.flush()
@@ -664,6 +666,10 @@ class Staging:
 class DeployStaging(Staging):
     PAGE_SUFFIX = '/index.html'
     Collector = DeployCollector
+
+    def __init__(self, config: Config) -> None:
+        super().__init__(config)
+        self.changes.cache_control = os.environ.get('MUT_CACHE_CONTROL', 'max-age=28800')
 
     @property
     def namespace(self) -> str:
