@@ -46,8 +46,9 @@ mut-publish --version
 
 Environment Variables:
 MUT_CACHE_CONTROL               A value for the Cache-Control header to be attached to
-                                each file. If not provided, it defaults to 8 hours
-                                (max-age=28800).
+                                each file when in deploy mode. If not provided, it
+                                defaults to 8 hours (max-age=28800). Staging always
+                                uses no-cache.
 """
 
 import collections
