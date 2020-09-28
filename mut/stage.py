@@ -87,8 +87,12 @@ T = TypeVar('T')
 
 class CacheControl:
     """A manager for cache-control headers. When constructed it takes a list of stanzas,
-       each of the type Tuple[List[str], str]: this maps a set of shell-style wildcards
-       to a cache-control header. See the DEFAULT_PATTERN for an example.
+       each of the type Tuple[List[str], str]: this maps a set of wildcard patterns
+       to a cache-control header, following the Python fnmatch rules[1].
+
+       See the DEFAULT_PATTERN for an example.
+
+       [1]: https://docs.python.org/3/library/fnmatch.html
     """
     # Based on https://www.gatsbyjs.com/docs/caching/
     DEFAULT_PATTERN = '''[
