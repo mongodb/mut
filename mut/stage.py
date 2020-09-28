@@ -47,22 +47,23 @@ mut-publish --version
 Environment Variables:
 MUT_CACHE_CONTROL               A value for the Cache-Control header to be attached to
                                 each file when in deploy mode. If not provided, it
-                                defaults to 8 hours (max-age=28800). Staging always
-                                uses no-cache.
+                                uses a set of defaults derived from the Gatsby documentation.
+                                Staging always uses no-cache.
 """
 
 import collections
 import concurrent.futures
+import fnmatch
 import functools
 import hashlib
+import json
 import logging
-import time
 import mimetypes
 import os
 import posixpath
 import re
 import sys
-import json
+import time
 
 import boto3
 import boto3.s3.transfer
@@ -82,6 +83,33 @@ UPLOAD_CHUNK_SIZE = 1024 * 1024 * 8
 DELETION_WARNING_THRESHOLD = 10
 DELETION_DANGER_THRESHOLD = 350
 T = TypeVar('T')
+
+
+class CacheControl:
+    """A manager for cache-control headers. When constructed it takes a list of stanzas,
+       each of the type Tuple[List[str], str]: this maps a set of shell-style wildcards
+       to a cache-control header. See the DEFAULT_PATTERN for an example.
+    """
+    # Based on https://www.gatsbyjs.com/docs/caching/
+    DEFAULT_PATTERN = '''[
+        [["*.html", "*/page-data/*.json", "*/sw.js"],
+            "public, max-age=0, must-revalidate"
+        ],
+        [["*"], "public, max-age=28800"]
+    ]'''
+
+    def __init__(self, stanzas: List[Tuple[List[str], str]]) -> None:
+        self.stanzas: List[Tuple[List[re.Pattern[str]], str]] = [
+            ([re.compile(fnmatch.translate(pat)) for pat in stanza[0]], stanza[1]) for stanza in stanzas
+        ]
+
+    def __getitem__(self, key: str) -> str:
+        """Return a Cache-Control header value for a given key."""
+        for patterns, cache_control in self.stanzas:
+            if any(pat.match(key) for pat in patterns):
+                return cache_control
+
+        return "no-cache"
 
 
 class Timer:
@@ -205,7 +233,7 @@ class ChangeSet:
             multipart_threshold=UPLOAD_CHUNK_SIZE,
             multipart_chunksize=UPLOAD_CHUNK_SIZE)
 
-        self.cache_control = "no-cache"
+        self.cache_control = CacheControl([])
 
     def delete(self, objects: List[str], tag: str = 'D') -> None:
         """Request deletion of a list of objects."""
@@ -314,7 +342,7 @@ class ChangeSet:
             # Default to 8-hour TTL
             s3.upload_file(src_path, key, ExtraArgs={
                 'ContentType': mimetypes.guess_type(src_path)[0] or 'binary/octet-stream',
-                'CacheControl': self.cache_control
+                'CacheControl': self.cache_control[key]
             }, Config=self.s3_config)
             sys.stdout.write('.')
             sys.stdout.flush()
@@ -669,7 +697,8 @@ class DeployStaging(Staging):
 
     def __init__(self, config: Config) -> None:
         super().__init__(config)
-        self.changes.cache_control = os.environ.get('MUT_CACHE_CONTROL', 'max-age=28800')
+        parsed_stanzas = json.loads(os.environ.get('MUT_CACHE_CONTROL', CacheControl.DEFAULT_PATTERN))
+        self.changes.cache_control = CacheControl(parsed_stanzas)
 
     @property
     def namespace(self) -> str:
