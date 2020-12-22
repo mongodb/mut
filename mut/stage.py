@@ -239,14 +239,16 @@ class ChangeSet:
 
         self.cache_control = CacheControl([])
 
-    def delete(self, objects: List[str], tag: str = 'D') -> None:
-        """Request deletion of a list of objects."""
-        self.commands_delete.extend((tag, x) for x in objects)
+    def delete(self, keys: List[str], flag: str = 'D') -> None:
+        """Request deletion of a list of keys."""
+        for key in keys:
+            self.commands_delete.append((flag, key))
+            self.full_deploy_urls.append((flag, self.deployed_url_prefix + '/' + key))
 
-    def delete_redirects(self, objects: List[str]) -> None:
+    def delete_redirects(self, keys: List[str]) -> None:
         """Request deletion of a list of redirects. Behavior is the same as ChangeSet.delete():
            the distinction is informational for ChangeSet.print()."""
-        self.delete(objects, tag='DR')
+        self.delete(keys, flag='DR')
 
     def upload(self, path: str, key: str, new_file: bool) -> None:
         """Upload a local path into the bucket. new_file is informational for ChangeSet.print()."""
@@ -606,7 +608,7 @@ class Staging:
     @property
     def namespace(self) -> str:
         """Staging places each stage under a unique namespace computed from an
-           arbitrary username and branch This helper returns such a
+           arbitrary username and branch. This helper returns such a
            namespace, appropriate for constructing a new Staging instance."""
         # The S3 prefix for this staging site
         return '/'.join([x for x in (self.config.prefix,
