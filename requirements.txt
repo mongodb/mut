@@ -8,7 +8,7 @@ docutils==0.14
 html5-parser==0.4.5
 idna==2.8
 jmespath==0.9.4
-lxml==4.3.3
+lxml==4.6.2
 mut==0.6.2.dev0
 python-dateutil==2.8.0
 PyYAML==5.1
