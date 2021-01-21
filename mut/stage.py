@@ -158,10 +158,10 @@ def remove_beginning(beginning: str, s: str) -> str:
     return s[len(beginning):] if s.startswith(beginning) else s
 
 
-def chunks(l: List[T], n: int) -> Iterable[List[T]]:
+def chunks(data: List[T], n: int) -> Iterable[List[T]]:
     """Split a list into chunks of at most length n."""
-    for i in range(0, len(l), n):
-        yield l[i:(i + n)]
+    for i in range(0, len(data), n):
+        yield data[i:(i + n)]
 
 
 def run_pool(tasks: List[Callable[[None], None]], n_workers: int = 5, retries: int = 1) -> None:
