@@ -1,7 +1,6 @@
 import os.path
 import subprocess
 
-import rstcloth.rstcloth
 from typing import Any, Callable, Dict, List, Optional, TypeVar, Union, Iterable, NamedTuple
 
 _T = TypeVar('_T')

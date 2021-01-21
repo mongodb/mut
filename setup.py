@@ -10,8 +10,7 @@ REQUIRES = [
     'html5-parser',
     'lxml',
     'PyYAML',
-    'requests',
-    'rstcloth>=0.2.6'
+    'requests'
 ]
 
 setup(
