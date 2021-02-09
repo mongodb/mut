@@ -49,6 +49,8 @@ class Document:
         self.tags = self.get_page_tags()
         self.links = self.get_page_links()
 
+        self.noindex = self.get_noindex()
+
     def parse_html(self, fh: IO) -> Dict[str, Any]:
         '''Return head and content elements of the document.'''
         capsule = html_parser.parse(fh.read(), maybe_xhtml=True)
@@ -164,8 +166,18 @@ class Document:
                 links.add(re.sub('#.*$', '', href))
         return list(links)
 
-    def export(self) -> Dict[str, Any]:
+    def get_noindex(self) -> bool:
+        meta_robots = self.html['head'].cssselect('meta[name="robots"]')
+        if not meta_robots:
+            return False
+
+        return any("noindex" in meta.get("content") for meta in meta_robots)
+
+    def export(self) -> Optional[Dict[str, Any]]:
         '''Generate the manifest dictionary for an html page.'''
+        if self.noindex:
+            return None
+
         document = {
             "slug": self.slug,
             "title": self.title,
