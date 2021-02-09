@@ -344,11 +344,22 @@ class ChangeSet:
 
     def __upload(self, s3: Any, src_path: str, key: str) -> None:
         """Thread worker helper to handle uploading a single file to S3."""
+        # Deduce a mimetype and content encoding
+        guessed_type, guessed_content_encoding = mimetypes.guess_type(src_path)
+        if guessed_type:
+            mimetype_headers: Dict[str, str] = {
+                'ContentType': guessed_type
+            }
+            if guessed_content_encoding:
+                mimetype_headers['ContentEncoding'] = guessed_content_encoding
+        else:
+            mimetype_headers = {'ContentType': 'binary/octet-stream'}
+
         try:
             # Default to 8-hour TTL
             s3.upload_file(src_path, key, ExtraArgs={
-                'ContentType': mimetypes.guess_type(src_path)[0] or 'binary/octet-stream',
-                'CacheControl': self.cache_control[key]
+                'CacheControl': self.cache_control[key],
+                **mimetype_headers
             }, Config=self.s3_config)
             sys.stdout.write('.')
             sys.stdout.flush()
