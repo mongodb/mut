@@ -18,4 +18,3 @@ def log_unsuccessful(action: str, message: str, exception) -> None:
         ])
         message = '\n'.join([message, exception])
     print(message)
-    sys.exit()
