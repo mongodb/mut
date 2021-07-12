@@ -811,7 +811,7 @@ def main() -> None:
         summary = staging.changes.print(return_json)
 
         if summary.suspicious:
-            (prompt, confirmation) = (util.color('Commit? (YES/n): ', ('red', 'bright')), 'YES')
+            (prompt, confirmation) = (util.color('Commit? (y/n): ', ('red', 'bright')), 'y')
         else:
             (prompt, confirmation) = ('Commit? (y/n): ', 'y')
 
