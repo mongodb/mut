@@ -15,7 +15,6 @@ Usage:
     -s, --show-progress    Shows a progress bar and other information via stdout.
 
     -b, --bucket <bucket>  Name of the s3 bucket to upload the index manifest to.
-                           [default: docs-mongodb-org-prod]
     -p, --prefix <prefix>  Name of the s3 prefix to attached to the manifest.
                            [default: search-indexes]
 '''
