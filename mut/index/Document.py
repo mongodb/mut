@@ -57,13 +57,15 @@ class Document:
         doc = etree.adopt_external_document(capsule).getroot()
 
         # Remove <style> tags
-        for style in list(doc.iter("style")):
-            style.getparent().remove(style)
+        # XXX: doc.iter(tag="style") should work, but returns an empty list
+        for style in list(doc.iter()):
+            if style.tag == "style":
+                style.getparent().remove(style)
 
         result = {}
         result['head'] = doc.cssselect('head')[0]
 
-        for candidate in ('.main-column .section', '.main-column section', '.main__content'):
+        for candidate in ('.main-column .section', '.main-column section', '.main__content', '.body section'):
             elements = doc.cssselect(candidate)
             if elements:
                 result['main_content'] = elements[0]
