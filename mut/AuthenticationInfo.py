@@ -13,6 +13,15 @@ secretkey=<AWS secret key>
 logger = logging.getLogger(__name__)
 
 
+def print_config_error():
+    print(
+        "No staging authentication found. Create a file at {0} with "
+        "contents like the following:\n".format(DEFAULT_CONFIG_PATH)
+    )
+    print(SAMPLE_CONFIG)
+    create_config_framework(DEFAULT_CONFIG_PATH)
+
+
 def create_config_framework(path: Path) -> None:
     """Create a skeleton configuration file with appropriately locked-down
     permissions."""
@@ -43,30 +52,33 @@ class AuthenticationInfo:
     def load(cls, path: Path = DEFAULT_CONFIG_PATH) -> "AuthenticationInfo":
         """Returns an AuthenticationInfo instance giving any necessary S3 login
         information."""
-        username = os.environ.get("STAGING_USERNAME", None)
-
         cfg = configparser.ConfigParser()
-        cfg.read(path)
+        # Read the config file if it exists.
+        if os.path.exists(str(path)):
+            cfg.read(path)
 
-        # Load S3 authentication information
-        try:
-            access_key = cfg.get("authentication", "accesskey")
-            secret_key = cfg.get("authentication", "secretkey")
-        except (configparser.NoSectionError, configparser.NoOptionError):
-            print(
-                "No staging authentication found. Create a file at {0} with "
-                "contents like the following:\n".format(path)
-            )
-            print(SAMPLE_CONFIG)
-            create_config_framework(path)
-            raise ValueError("Missing authentication information")
+            # Load S3 authentication information
+            try:
+                access_key = cfg.get("authentication", "accesskey", None)
+                secret_key = cfg.get("authentication", "secretkey", None)
+            except (configparser.NoSectionError, configparser.NoOptionError):
+                print_config_error()
+                raise ValueError("Missing authentication information")
 
-        # Get the user's preferred name; we use this as part of our S3 namespaces
-        if not username:
+            # Get the user's preferred name; we use this as part of our S3 namespaces
             try:
                 username = cfg.get("personal", "username")
             except (configparser.NoSectionError, configparser.NoOptionError):
                 username = pwd.getpwuid(os.getuid()).pw_name
+        # otherwise check the environment for default AWS credentials
+        else:
+            access_key = os.environ.get("AWS_ACCESS_KEY_ID", None)
+            secret_key = os.environ.get("AWS_SECRET_ACCESS_KEY", None)
+            username = os.environ.get("STAGING_USERNAME", None)
+        # these credentials are required and we can't continue without them
+        if not access_key or not secret_key:
+            print_config_error()
+            raise ValueError("Missing authentication information")
 
         logger.info(
             'Authentication: access_key="%s", username="%s"', access_key, username
