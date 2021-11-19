@@ -59,8 +59,8 @@ class AuthenticationInfo:
 
             # Load S3 authentication information
             try:
-                access_key = cfg.get("authentication", "accesskey", None)
-                secret_key = cfg.get("authentication", "secretkey", None)
+                access_key = cfg.get("authentication", "accesskey")
+                secret_key = cfg.get("authentication", "secretkey")
             except (configparser.NoSectionError, configparser.NoOptionError):
                 print_config_error()
                 raise ValueError("Missing authentication information")
@@ -72,9 +72,9 @@ class AuthenticationInfo:
                 username = pwd.getpwuid(os.getuid()).pw_name
         # otherwise check the environment for default AWS credentials
         else:
-            access_key = os.environ.get("AWS_ACCESS_KEY_ID", None)
-            secret_key = os.environ.get("AWS_SECRET_ACCESS_KEY", None)
-            username = os.environ.get("STAGING_USERNAME", None)
+            access_key = os.environ.get("AWS_ACCESS_KEY_ID")
+            secret_key = os.environ.get("AWS_SECRET_ACCESS_KEY")
+            username = os.environ.get("STAGING_USERNAME")
         # these credentials are required and we can't continue without them
         if not access_key or not secret_key:
             print_config_error()
