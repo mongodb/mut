@@ -226,7 +226,6 @@ class ChangeSet:
     def __init__(self, verbose: bool, deployed_url_prefix: str) -> None:
         self.verbose = verbose
         self.suspicious_files = []  # type: List[str]
-        self.modified_full_urls = []  # type: List[Tuple[str, str]]
         self.deployed_url_prefix = deployed_url_prefix
 
         self.commands_delete = []  # type: List[Tuple[str, str]]
@@ -243,7 +242,6 @@ class ChangeSet:
         """Request deletion of a list of keys."""
         for key in keys:
             self.commands_delete.append((flag, key))
-            self.modified_full_urls.append((flag, self.deployed_url_prefix + '/' + key))
 
     def delete_redirects(self, keys: List[str]) -> None:
         """Request deletion of a list of redirects. Behavior is the same as ChangeSet.delete():
@@ -257,9 +255,6 @@ class ChangeSet:
 
         if 'master/master' in key:
             self.suspicious_files.append(key)
-
-        # full url with deploy prefix in a separate list from the list of files to actually upload
-        self.modified_full_urls.append((flag, self.deployed_url_prefix + '/' + key))
 
         self.commands_upload.append((flag, path, key))
 
@@ -276,9 +271,9 @@ class ChangeSet:
         # convert full urls with deploy prefix to json
         if return_json:
             json_obj = {'urls': []}  # type: Dict[str, List[str]]
-            for command in self.modified_full_urls:
-                flag, path = command
-                json_obj['urls'].append(path)
+            for command in self.commands_upload:
+                flag, path, key = command
+                json_obj['urls'].append(key)
             print(json.dumps(json_obj))
         else:
             for upload_command in self.commands_upload:
