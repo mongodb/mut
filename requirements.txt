@@ -8,7 +8,7 @@ html5-parser==0.4.9
 idna==2.10
 jmespath==0.10.0
 lxml==4.6.3
-mut==0.7.0
+mut==0.8.0
 python-dateutil==2.8.1
 PyYAML==5.4.1
 requests==2.25.1
