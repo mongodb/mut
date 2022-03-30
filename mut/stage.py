@@ -738,7 +738,10 @@ class DeployStaging(Staging):
                 continue
 
             if redirect_key not in redirects:
-                removed.append(entry.key)
+                logger.debug('Attempting to remove:')
+                logger.debug(entry.key)
+                # Commented out for incident resolution on 3/30/2022
+                # removed.append(entry.key)
 
         self.changes.delete_redirects(removed)
 
