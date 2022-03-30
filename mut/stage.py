@@ -721,6 +721,7 @@ class DeployStaging(Staging):
 
         logger.debug('Finding redirects to remove')
         removed = []
+        logger.warn('Attempting to remove:')
         for entry in self.s3.objects.all():
             # Make sure this is a redirect
             if entry.size != 0:
@@ -738,7 +739,9 @@ class DeployStaging(Staging):
                 continue
 
             if redirect_key not in redirects:
-                removed.append(entry.key)
+                logger.warn(entry.key)
+                # Commented out for incident resolution on 3/30/2022
+                # removed.append(entry.key)
 
         self.changes.delete_redirects(removed)
 
