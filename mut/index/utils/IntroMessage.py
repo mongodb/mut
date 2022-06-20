@@ -2,15 +2,13 @@
 from typing import List
 
 
-def print_intro_message(root: str, exclude: List[str], output: str,
-                        aliases: List[str], url: str, include_in_global_search: bool) -> None:
+def print_intro_message(root: str,output: str,
+                        url: str, include_in_global_search: bool) -> None:
     '''Print the intro header.'''
     print('\n### Generating Index Manifest\n')
     lines = {
         'file': output,
-        'aliases': str(aliases),
         'root': root,
-        'exclude': str(exclude),
         'url': url,
         'global': 'True' if include_in_global_search else 'False'
     }

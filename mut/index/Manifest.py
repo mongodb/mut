@@ -1,5 +1,3 @@
-
-'''Create and export an index manifest.'''
 import concurrent.futures
 import json
 import os
