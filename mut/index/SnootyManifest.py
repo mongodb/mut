@@ -5,14 +5,20 @@ from os.path import join
 import json
 from datetime import datetime
 from concurrent.futures import ProcessPoolExecutor
+from pprint import pprint
 
 from typing import Any, Dict, Optional, List
 
 class Document:
     '''Return indexing data from a page's AST for search purposes.'''
-    def __init__(self, data) -> None:
-        
+    def __init__(self, data, metadata_parser, paragraph_parser, code_parser, heading_parser) -> None:
+
+        self.metadata_parser = metadata_parser
+        self.paragraph_parser = paragraph_parser
+        self.code_parser = code_parser
+        self.heading_parser = heading_parser
         self.tree = data[0]
+
         self.paragraphs = self.findParagraphs()
         self.code = self.findCode()
         self.title, self.headings = self.findHeadings()
@@ -22,13 +28,15 @@ class Document:
         self.robots, self.keywords = self.findMetadata()
         self.noindex, self.reasons = self.get_noindex()
 
+
+
     def findMetadata(self):
         logger("\tFinding metadata")
         robots = True
         keywords = None
 
-        jsonpath_expr = parse('$..children[?(@.name==\'meta\')]..options')
-        results=jsonpath_expr.find(self.tree)
+        # jsonpath_expr = parse('$..children[?(@.name==\'meta\')]..options')
+        results=self.metadata_parser.find(self.tree)
         if results:
             results = results[0].value
             if "robots" in results and results["robots"] == "None":
@@ -40,18 +48,21 @@ class Document:
 
     def findParagraphs(self) -> str:
         logger("\tFinding paragraphs")
-        jsonpath_expr = parse('$..children[?(@.type==\'paragraph\')]..value')
-        results = jsonpath_expr.find(self.tree)
-        paragraph_contents = ""
-        i = 0
+        # jsonpath_expr = parse('$..children[?(@.type==\'paragraph\')]..value')
+        results = self.paragraph_parser.find(self.tree)
+        
+        #Joining an array will be faster than repeatedly concatonating strings
+        str_list = []
+        
         for r in results:
-            paragraph_contents = f"{paragraph_contents} {r.value}"
-        return paragraph_contents
+            str_list.append(r.value)
+            
+        return ''.join(str_list)
 
     def findCode(self):
         logger("\tFinding code")
-        jsonpath_expr = parse('$..children[?(@.type==\'code\')]')
-        results = jsonpath_expr.find(self.tree)
+        # jsonpath_expr = parse('$..children[?(@.type==\'code\')]')
+        results = self.code_parser.find(self.tree)
         code_contents = []
         for r in results:
             lang = r.value.get("lang", None)
@@ -61,8 +72,8 @@ class Document:
 
     def findHeadings(self):
         logger("\tFinding headings and title")
-        jsonpath_expr = parse('$..children[?(@.type==\'heading\')]..value')
-        results = jsonpath_expr.find(self.tree)
+        # jsonpath_expr = parse('$..children[?(@.type==\'heading\')]..value')
+        results = self.heading_parser.find(self.tree)
         headings = []
         title = results[0].value
         results.pop(0)
@@ -135,9 +146,16 @@ class Manifest:
 
 def process_snooty_manifest_bson(path: str) -> Any:
     '''Generates index info given path to unzipped snooty manifest BSON'''
+
+    metadata_parser = parse('$..children[?(@.name==\'meta\')]..options')
+    paragraph_parser = parse('$..children[?(@.type==\'paragraph\')]..value')
+    code_parser = parse('$..children[?(@.type==\'code\')]')
+    heading_parser = parse('$..children[?(@.type==\'heading\')]..value')
+
     with open(path, 'rb') as f:
+        logger(path)
         data = decode_all(f.read())
-        document = Document(data).export()
+        document = Document(data, metadata_parser, paragraph_parser, code_parser, heading_parser).export()
     return document
 
 def generate_manifest(ast_source: str, url: str, includeInGlobalSearch: bool) -> str:
@@ -145,6 +163,10 @@ def generate_manifest(ast_source: str, url: str, includeInGlobalSearch: bool) ->
     manifest = Manifest(url, includeInGlobalSearch)
     print("Building manifests for {} documents".format(len(ast_source)))
     
+    # for bson_doc in ast_source:
+    #     manifest.add_document(process_snooty_manifest_bson(bson_doc))
+    # return manifest.export()
+
     with ProcessPoolExecutor() as executor:
         for bson_doc in executor.map(process_snooty_manifest_bson, ast_source):
             manifest.add_document(bson_doc)
@@ -168,5 +190,16 @@ def get_ast_list(walk_dir: str) -> List[str]:
     return ast_source_paths
 
 def logger(message: str) -> None:
-    #print(f"{datetime.now()} {message}")
     return
+    print(f"{datetime.now()} {message}")
+    return
+
+
+# print("Getting AST list: {}".format(datetime.now()))
+# # compass: ast_source = get_ast_list('/Users/allison/Desktop/compass-manifest/documents/')
+# ast_source = get_ast_list('/Users/allison/Desktop/manual/documents')
+# print("staring manifest generation: {}".format(datetime.now()))
+# manifest = generate_manifest(ast_source, 'www.mongodb.com/docs/manual', True)
+# with open('./' + 'TESTWRITEROUTER', 'w') as file:
+#     file.write(manifest)
+# print("Finish time: {}".format(datetime.now()))
