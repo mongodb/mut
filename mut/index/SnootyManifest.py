@@ -2,10 +2,9 @@ from bson import decode_all
 from jsonpath_ng.ext import parse
 from os import walk
 from os.path import join
-import json
+from json import dumps
 from datetime import datetime
 from concurrent.futures import ProcessPoolExecutor
-from pprint import pprint
 
 from typing import Any, Dict, Optional, List
 
@@ -13,47 +12,24 @@ class Document:
     '''Return indexing data from a page's AST for search purposes.'''
     def __init__(self, data) -> None:
 
-        # self.metadata_parser = metadata_parser
-        # self.paragraph_parser = paragraph_parser
-        # self.code_parser = code_parser
-        # self.heading_parser = heading_parser
         self.tree = data[0]
 
         self.paragraphs = self.findParagraphs()
         self.code = self.findCode()
         self.title, self.headings = self.findHeadings()
-        self.slug = "implement this later"
-        self.preview = "implement this later"
+        self.slug = "implement this later" # TODO: this
+        self.preview = "implement this later" # TODO: this
 
         self.robots, self.keywords = self.findMetadata()
         self.noindex, self.reasons = self.get_noindex()
-
-
-
-    def findMetadata(self):
-        logger("\tFinding metadata")
-        robots = True
-        keywords = None
-
-        jsonpath_expr = parse('$..children[?(@.name==\'meta\')]..options')
-        results = jsonpath_expr.find(self.tree)
-        if results:
-            results = results[0].value
-            if "robots" in results and results["robots"] == "None":
-                robots = False
-            if "keywords" in results:
-                keywords = results["keywords"]
-
-        return robots, keywords
 
     def findParagraphs(self) -> str:
         logger("\tFinding paragraphs")
         jsonpath_expr = parse('$..children[?(@.type==\'paragraph\')]..value')
         results = jsonpath_expr.find(self.tree)
         
-        #Joining an array will be faster than repeatedly concatonating strings
+        # Appending to then joining an array is faster than repeatedly concatenating strings
         str_list = []
-        
         for r in results:
             str_list.append(r.value)
             
@@ -84,6 +60,21 @@ class Document:
     def derivePreview(self) -> str:
         logger("\tDeriving document search preview")
         
+    def findMetadata(self):
+        logger("\tFinding metadata")
+        robots = True
+        keywords = None
+
+        jsonpath_expr = parse('$..children[?(@.name==\'meta\')]..options')
+        results = jsonpath_expr.find(self.tree)
+        if results:
+            results = results[0].value
+            if "robots" in results and results["robots"] == "None":
+                robots = False
+            if "keywords" in results:
+                keywords = results["keywords"]
+
+        return robots, keywords
 
     def get_noindex(self) -> bool:
         # TODO: determine what the index / noindex rules should be
@@ -104,9 +95,8 @@ class Document:
         logger("\tnoindex: {}".format(noindex))
         return noindex, reasons
 
-
     def export(self) -> Optional[Dict[str, Any]]:
-        '''Generate the manifest dictionary from the AST source.'''
+        '''Generate the manifest dictionary entry from the AST source.'''
 
         if self.noindex:
             logger("\tRefusing to index {} because: {}".format(self.slug, ' '.join(self.reasons)))
@@ -142,16 +132,10 @@ class Manifest:
             "includeInGlobalSearch": self.globally,
             "documents": self.documents
         }
-        return json.dumps(manifest, indent=4)
+        return dumps(manifest, indent=4)
 
 def process_snooty_manifest_bson(path: str) -> Any:
-    '''Generates index info given path to unzipped snooty manifest BSON'''
-
-    # metadata_parser = parse('$..children[?(@.name==\'meta\')]..options')
-    # paragraph_parser = parse('$..children[?(@.type==\'paragraph\')]..value')
-    # code_parser = parse('$..children[?(@.type==\'code\')]')
-    # heading_parser = parse('$..children[?(@.type==\'heading\')]..value')
-
+    '''Generates manifest info for a BSON document.'''
     with open(path, 'rb') as f:
         logger(path)
         data = decode_all(f.read())
@@ -159,7 +143,7 @@ def process_snooty_manifest_bson(path: str) -> Any:
     return document
 
 def generate_manifest(ast_source: str, url: str, includeInGlobalSearch: bool) -> str:
-    '''Process ast_sources and compile a manifest.'''
+    '''Process BSON files and compile a manifest.'''
     manifest = Manifest(url, includeInGlobalSearch)
     print("Building manifests for {} documents".format(len(ast_source)))
 
@@ -169,7 +153,7 @@ def generate_manifest(ast_source: str, url: str, includeInGlobalSearch: bool) ->
         return manifest.export()
 
 def get_ast_list(walk_dir: str) -> List[str]:
-    '''Get full list of BSON paths that need to be processed'''
+    '''Get full list of BSON paths that need to be processed.'''
     ast_source_paths: List[str] = []
 
     for root, dirs, files in walk(walk_dir):

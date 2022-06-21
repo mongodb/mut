@@ -1,8 +1,8 @@
 '''
 Usage:
-    mut-index <root> -o <output> -u <url> [-g -s --exclude <paths> --aliases <aliases>]
+    mut-index <root> -o <output> -u <url> [-g -s]
     mut-index upload [-b <bucket> -p <prefix>] <root> -o <output> -u <url>
-                     [-g -s --exclude <paths> --aliases <aliases>]
+                     [-g -s]
 
     -h, --help             List CLI prototype, arguments, and options.
     <root>                 Path to the directory containing html files.
@@ -17,7 +17,6 @@ Usage:
 from docopt import docopt
 from .SnootyManifest import generate_manifest, get_ast_list
 from mut.index.s3upload import upload_manifest_to_s3
-from mut.index.utils.IntroMessage import print_intro_message
 from datetime import datetime
 
 def main() -> None:
