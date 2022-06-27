@@ -1,0 +1,35 @@
+=============
+Code Examples
+=============
+
+First paragraph of text which needs more words so it'll reach the min length.
+
+.. code-block:: python
+
+    a = 1
+    b = 2
+    print(a)
+    print(b)
+
+Second paragraph of text.
+
+.. io-code-block::
+
+   .. input::
+      :language: python
+      
+      b = 1
+      c = 2
+      print(c)
+      print(b)
+
+   .. output::
+
+      2
+      1
+
+Third paragraph of text.
+
+.. important:: The end.
+
+   Final admonition to indicate endingness.

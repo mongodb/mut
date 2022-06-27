@@ -1,0 +1,228 @@
+[
+    {
+        "page_id": "test-bson/allison/snootymanifests/code-example",
+        "filename": "code-example.txt",
+        "ast": {
+            "type": "root",
+            "position": {
+                "start": {
+                    "line": 0
+                }
+            },
+            "children": [
+                {
+                    "type": "section",
+                    "position": {
+                        "start": {
+                            "line": 2
+                        }
+                    },
+                    "children": [
+                        {
+                            "type": "heading",
+                            "position": {
+                                "start": {
+                                    "line": 2
+                                }
+                            },
+                            "children": [
+                                {
+                                    "type": "text",
+                                    "position": {
+                                        "start": {
+                                            "line": 2
+                                        }
+                                    },
+                                    "value": "Code Examples"
+                                }
+                            ],
+                            "id": "code-examples"
+                        },
+                        {
+                            "type": "paragraph",
+                            "position": {
+                                "start": {
+                                    "line": 4
+                                }
+                            },
+                            "children": [
+                                {
+                                    "type": "text",
+                                    "position": {
+                                        "start": {
+                                            "line": 4
+                                        }
+                                    },
+                                    "value": "First paragraph of text."
+                                }
+                            ]
+                        },
+                        {
+                            "type": "code",
+                            "position": {
+                                "start": {
+                                    "line": 6
+                                }
+                            },
+                            "lang": "python",
+                            "copyable": true,
+                            "emphasize_lines": [],
+                            "value": "a = 1\nb = 2\nprint(a)\nprint(b)",
+                            "linenos": false
+                        },
+                        {
+                            "type": "paragraph",
+                            "position": {
+                                "start": {
+                                    "line": 13
+                                }
+                            },
+                            "children": [
+                                {
+                                    "type": "text",
+                                    "position": {
+                                        "start": {
+                                            "line": 13
+                                        }
+                                    },
+                                    "value": "Second paragraph of text."
+                                }
+                            ]
+                        },
+                        {
+                            "type": "directive",
+                            "position": {
+                                "start": {
+                                    "line": 15
+                                }
+                            },
+                            "children": [
+                                {
+                                    "type": "directive",
+                                    "position": {
+                                        "start": {
+                                            "line": 17
+                                        }
+                                    },
+                                    "children": [
+                                        {
+                                            "type": "code",
+                                            "position": {
+                                                "start": {
+                                                    "line": 17
+                                                }
+                                            },
+                                            "lang": "python",
+                                            "copyable": false,
+                                            "emphasize_lines": [],
+                                            "value": "b = 1\nc = 2\nprint(c)\nprint(b)",
+                                            "linenos": false
+                                        }
+                                    ],
+                                    "domain": "",
+                                    "name": "input",
+                                    "argument": [],
+                                    "options": {
+                                        "language": "python"
+                                    }
+                                },
+                                {
+                                    "type": "directive",
+                                    "position": {
+                                        "start": {
+                                            "line": 25
+                                        }
+                                    },
+                                    "children": [
+                                        {
+                                            "type": "code",
+                                            "position": {
+                                                "start": {
+                                                    "line": 28
+                                                }
+                                            },
+                                            "copyable": false,
+                                            "emphasize_lines": [],
+                                            "value": "2\n1",
+                                            "linenos": false
+                                        }
+                                    ],
+                                    "domain": "",
+                                    "name": "output",
+                                    "argument": []
+                                }
+                            ],
+                            "domain": "",
+                            "name": "io-code-block",
+                            "argument": []
+                        },
+                        {
+                            "type": "paragraph",
+                            "position": {
+                                "start": {
+                                    "line": 30
+                                }
+                            },
+                            "children": [
+                                {
+                                    "type": "text",
+                                    "position": {
+                                        "start": {
+                                            "line": 30
+                                        }
+                                    },
+                                    "value": "Third paragraph of text."
+                                }
+                            ]
+                        },
+                        {
+                            "type": "directive",
+                            "position": {
+                                "start": {
+                                    "line": 32
+                                }
+                            },
+                            "children": [
+                                {
+                                    "type": "paragraph",
+                                    "position": {
+                                        "start": {
+                                            "line": 34
+                                        }
+                                    },
+                                    "children": [
+                                        {
+                                            "type": "text",
+                                            "position": {
+                                                "start": {
+                                                    "line": 34
+                                                }
+                                            },
+                                            "value": "Final admonition to indicate endingness."
+                                        }
+                                    ]
+                                }
+                            ],
+                            "domain": "",
+                            "name": "important",
+                            "argument": [
+                                {
+                                    "type": "text",
+                                    "position": {
+                                        "start": {
+                                            "line": 32
+                                        }
+                                    },
+                                    "value": "The end."
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "fileid": "code-example.txt"
+        },
+        "source": "=============\nCode Examples\n=============\n\nFirst paragraph of text.\n\n.. code-block:: python\n\n    a = 1\n    b = 2\n    print(a)\n    print(b)\n\nSecond paragraph of text.\n\n.. io-code-block::\n\n   .. input::\n      :language: python\n      \n      b = 1\n      c = 2\n      print(c)\n      print(b)\n\n   .. output::\n\n      2\n      1\n\nThird paragraph of text.\n\n.. important:: The end.\n\n   Final admonition to indicate endingness.\n",
+        "static_assets": []
+    }
+]

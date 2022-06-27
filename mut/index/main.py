@@ -18,6 +18,8 @@ from docopt import docopt
 from .SnootyManifest import generate_manifest, get_ast_list
 from mut.index.s3upload import upload_manifest_to_s3
 from datetime import datetime
+from json import dumps
+from pprint import pprint
 
 def main() -> None:
     '''Generate index files.'''
@@ -30,7 +32,8 @@ def main() -> None:
     print("Getting AST list: {}".format(datetime.now()))
     ast_source = get_ast_list(root)
     print("staring manifest generation: {}".format(datetime.now()))
-    manifest = generate_manifest(ast_source, url, globally)
+    manifest = generate_manifest(ast_source, url, globally).export()
+    
     if options['upload']:
         bucket = options['--bucket']
         prefix = options['--prefix']

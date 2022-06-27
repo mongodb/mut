@@ -1,3 +1,4 @@
+from unittest.result import STDERR_LINE
 from bson import decode_all
 from jsonpath_ng.ext import parse
 from os import walk
@@ -14,17 +15,19 @@ class Document:
 
         self.tree = data[0]
 
+        self.robots, self.keywords, self.description = self.findMetadata()
+
         self.paragraphs = self.findParagraphs()
         self.code = self.findCode()
         self.title, self.headings = self.findHeadings()
-        self.slug = "implement this later" # TODO: this
-        self.preview = "implement this later" # TODO: this
+        self.slug = self.deriveSlug()
+        self.preview = self.derivePreview()
 
-        self.robots, self.keywords = self.findMetadata()
         self.noindex, self.reasons = self.get_noindex()
 
     def findParagraphs(self) -> str:
         logger("\tFinding paragraphs")
+        # NB: paragraphs include "paragraph" nodes within tables
         jsonpath_expr = parse('$..children[?(@.type==\'paragraph\')]..value')
         results = jsonpath_expr.find(self.tree)
         
@@ -33,7 +36,7 @@ class Document:
         for r in results:
             str_list.append(r.value)
             
-        return ''.join(str_list)
+        return ' '.join(str_list)
 
     def findCode(self):
         logger("\tFinding code")
@@ -48,22 +51,55 @@ class Document:
 
     def findHeadings(self):
         logger("\tFinding headings and title")
-        jsonpath_expr = parse('$..children[?(@.type==\'heading\')]..value')
+        # Get all headings nodes
+        jsonpath_expr = parse('$..children[?(@.type==\'heading\')].children')
         results = jsonpath_expr.find(self.tree)
+        if len(results) == 0:
+            return None, None
         headings = []
-        title = results[0].value
-        results.pop(0)
+        limiting_expr = parse('$..value')
+        # Some headings consist of multiple text nodes, so we need to glue them together
         for r in results:
-            headings.append(r.value)
+            heading = []
+            parts = limiting_expr.find(r.value)
+            for part in parts:
+                heading.append(part.value)
+            headings.append(''.join(heading))
+        title = headings[0]
+        headings.pop(0)
         return title, headings
-    
-    def derivePreview(self) -> str:
+
+    def deriveSlug(self):
+        logger("\t Deriving slug")
+        page_id = self.tree["page_id"]
+        return page_id
+
+    def derivePreview(self):
         logger("\tDeriving document search preview")
+        # Set preview to the meta description if one is specified.
+        if self.description: 
+            return self.description
+        
+        # Set preview to the first content paragraph on the page, excluding admonitions.
+        jsonpath_expr = parse('$..children[?(@.type==\'section\')].children[?(@.type==\'paragraph\')]')
+        results = jsonpath_expr.find(self.tree)
+        if len(results) > 0:
+            limiting_expr = parse('$..value')
+            first = limiting_expr.find(results[0].value)
+            str_list = []
+            for f in first:
+                str_list.append(f.value)
+            return ' '.join(str_list)
+        # Cowardly give up and just don't provide a preview.
+        else:
+            return None
+
         
     def findMetadata(self):
         logger("\tFinding metadata")
         robots = True
         keywords = None
+        description = None
 
         jsonpath_expr = parse('$..children[?(@.name==\'meta\')]..options')
         results = jsonpath_expr.find(self.tree)
@@ -73,8 +109,10 @@ class Document:
                 robots = False
             if "keywords" in results:
                 keywords = results["keywords"]
+            if "description" in results:
+                description = results["description"]
 
-        return robots, keywords
+        return robots, keywords, description
 
     def get_noindex(self) -> bool:
         # TODO: determine what the index / noindex rules should be
@@ -87,10 +125,10 @@ class Document:
             noindex = True
             reasons.append("robots=None in meta directive")
 
-        # If page has no paragraphs, do not index.
-        if len(self.paragraphs) < 140:
+        # If page has no title, do not index.
+        if self.title == None:
             noindex = True
-            reasons.append("document has no paragraphs")
+            reasons.append("This page has 0 headings, not even the H1")
 
         logger("\tnoindex: {}".format(noindex))
         return noindex, reasons
@@ -100,7 +138,7 @@ class Document:
 
         if self.noindex:
             logger("\tRefusing to index {} because: {}".format(self.slug, ' '.join(self.reasons)))
-            return self.reasons
+            return
 
         document = {
             "slug": self.slug,
@@ -123,7 +161,8 @@ class Manifest:
 
     def add_document(self, document: Dict[str, Any]) -> None:
         '''Add a document to the manifest'''
-        self.documents.append(document)
+        if not document == None:
+            self.documents.append(document)
     
     def export(self) -> str:
         '''Return the manifest as json.'''
@@ -150,10 +189,11 @@ def generate_manifest(ast_source: str, url: str, includeInGlobalSearch: bool) ->
     with ProcessPoolExecutor() as executor:
         for bson_doc in executor.map(process_snooty_manifest_bson, ast_source):
             manifest.add_document(bson_doc)
-        return manifest.export()
+        return manifest
 
 def get_ast_list(walk_dir: str) -> List[str]:
-    '''Get full list of BSON paths that need to be processed.'''
+    '''Get full list of BSON paths that need to be processed,
+       get rid of files that don't need to be indexed, but exist as AST.'''
     ast_source_paths: List[str] = []
 
     for root, dirs, files in walk(walk_dir):
@@ -173,13 +213,3 @@ def logger(message: str) -> None:
     return
     print(f"{datetime.now()} {message}")
     return
-
-
-# print("Getting AST list: {}".format(datetime.now()))
-# # compass: ast_source = get_ast_list('/Users/allison/Desktop/compass-manifest/documents/')
-# ast_source = get_ast_list('/Users/allison/Desktop/manual/documents')
-# print("staring manifest generation: {}".format(datetime.now()))
-# manifest = generate_manifest(ast_source, 'www.mongodb.com/docs/manual', True)
-# with open('./' + 'TESTWRITEROUTER', 'w') as file:
-#     file.write(manifest)
-# print("Finish time: {}".format(datetime.now()))

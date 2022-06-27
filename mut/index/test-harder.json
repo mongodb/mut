@@ -1,0 +1,98 @@
+{
+    "url": "www.mongodb.com/docs/test",
+    "includeInGlobalSearch": false,
+    "documents": [
+        {
+            "slug": "test-bson/allison/snootymanifests/no-paragraphs",
+            "title": "Test No Paragraphs",
+            "headings": [],
+            "paragraphs": "Heading row 1, column 1 Heading row 1, column 2 Heading row 1, column 3 Row 1, column 1 Row 1, column 3 Row 2, column 1 Row 2, column 2 Row 2, column 3",
+            "code": [],
+            "preview": null,
+            "tags": null
+        },
+        {
+            "slug": "test-bson/allison/snootymanifests/code-example",
+            "title": "Code Examples",
+            "headings": [],
+            "paragraphs": "First paragraph of text which needs more words so it'll reach the min length. Second paragraph of text. Third paragraph of text. Final admonition to indicate endingness.",
+            "code": [
+                {
+                    "lang": "python",
+                    "value": "a = 1\nb = 2\nprint(a)\nprint(b)"
+                },
+                {
+                    "lang": "python",
+                    "value": "b = 1\nc = 2\nprint(c)\nprint(b)"
+                },
+                {
+                    "lang": null,
+                    "value": "2\n1"
+                }
+            ],
+            "preview": "First paragraph of text which needs more words so it'll reach the min length.",
+            "tags": null
+        },
+        {
+            "slug": "docs/heli/master/introduction",
+            "title": "Introduction to MongoDB",
+            "headings": [
+                "Document Database",
+                "Collections/Views/On-Demand Materialized Views",
+                "Key Features",
+                "High Performance",
+                "Query API",
+                "High Availability",
+                "Horizontal Scalability",
+                "Support for Multiple Storage Engines"
+            ],
+            "paragraphs": "MongoDB 6.0 release candidates are not yet available.\nThis version of the manual is for an upcoming release and is\ncurrently a work in progress. A record in MongoDB is a document, which is a data structure composed\nof field and value pairs. MongoDB documents are similar to JSON\nobjects. The values of fields may include other documents, arrays,\nand arrays of documents. The advantages of using documents are: Documents correspond to native data types in many programming\nlanguages. Embedded documents and arrays reduce need for expensive joins. Dynamic schema supports fluent polymorphism. MongoDB stores documents in  collections .\nCollections are analogous to tables in relational databases. In addition to collections, MongoDB supports: Read-only  Views  (Starting in MongoDB 3.4) On-Demand Materialized Views  (Starting in MongoDB 4.2). MongoDB provides high performance data persistence. In particular, Support for embedded data models reduces I/O activity on database\nsystem. Indexes support faster queries and can include keys from embedded\ndocuments and arrays. The MongoDB Query API supports  read and write\noperations (CRUD)  as well as: Data Aggregation Text Search  and  Geospatial Queries . SQL to MongoDB Mapping Chart SQL to Aggregation Mapping Chart Learn about the latest query language features with the  MongoDB\nQuery Language: What's New \npresentation from  MongoDB.live 2020 . MongoDB's replication facility, called  replica set , provides: A  replica set  is a group of\nMongoDB servers that maintain the same data set, providing redundancy\nand increasing data availability. automatic  failover data redundancy. MongoDB provides horizontal scalability as part of its  core \nfunctionality: Sharding  distributes data across a\ncluster of machines. Starting in 3.4, MongoDB supports creating  zones  of data based on the  shard key . In a\nbalanced cluster, MongoDB directs reads and writes covered by a zone\nonly to those shards inside the zone. See the  Zones \nmanual page for more information. MongoDB supports  multiple storage engines : In addition, MongoDB provides pluggable storage engine API that allows\nthird parties to develop storage engines for MongoDB. WiredTiger Storage Engine  (including support for\n Encryption at Rest ) In-Memory Storage Engine .",
+            "code": [],
+            "preview": "A record in MongoDB is a document, which is a data structure composed\nof field and value pairs. MongoDB documents are similar to JSON\nobjects. The values of fields may include other documents, arrays,\nand arrays of documents.",
+            "tags": null
+        },
+        {
+            "slug": "docs/heli/master/core/2dsphere",
+            "title": "2dsphere Indexes",
+            "headings": [
+                "Overview",
+                "Versions",
+                "sparse Property",
+                "Additional GeoJSON Objects",
+                "Considerations",
+                "geoNear and $geoNear Restrictions",
+                "Shard Key Restrictions",
+                "2dsphere Indexed Field Restrictions",
+                "Limited Number of Index Keys",
+                "Create a 2dsphere Index",
+                "Create a 2dsphere Index",
+                "Create a Compound Index with 2dsphere Index Key"
+            ],
+            "paragraphs": "A  2dsphere  index supports queries that calculate geometries on an\nearth-like sphere.  2dsphere  index supports all MongoDB geospatial\nqueries: queries for inclusion, intersection and proximity.\nFor more information on geospatial queries, see\n Geospatial Queries . The  2dsphere  index supports data stored as  GeoJSON objects   and   legacy coordinate pairs  (See also  2dsphere  Indexed Field Restrictions ).\nFor legacy coordinate pairs, the index converts the data to GeoJSON\n Point . To override the default version and specify a different version,\ninclude the option  { \"2dsphereIndexVersion\": <version> }  when\ncreating the index. 2dsphere  Index Version Description Version 3 MongoDB 3.2 introduces a version 3 of  2dsphere  indexes.\nVersion 3 is the default version of  2dsphere  indexes created\nin MongoDB 3.2 and later. Version 2 MongoDB 2.6 introduces a version 2 of  2dsphere  indexes.\nVersion 2 is the default version of  2dsphere  indexes created\nin MongoDB 2.6 and 3.0 series. Version 2 and later  2dsphere  indexes are always  sparse  and ignore the  sparse  option. If a document lacks a  2dsphere  index\nfield (or the field is  null  or an empty array), MongoDB does not\nadd an entry for the document to the index. For inserts, MongoDB\ninserts the document but does not add to the  2dsphere  index. For a compound index that includes a  2dsphere  index key along with\nkeys of other types, only the  2dsphere  index field determines\nwhether the index references a document. Earlier versions of MongoDB only support  2dsphere (Version 1) \nindexes.  2dsphere (Version 1)  indexes are  not  sparse by default\nand will reject documents with  null  location fields. Version 2 and later  2dsphere  indexes includes support for additional GeoJSON\nobject:  MultiPoint ,  MultiLineString ,\n MultiPolygon , and  GeometryCollection . For\ndetails on all supported GeoJSON objects, see  GeoJSON Objects . Starting in MongoDB 4.0, you can specify a  key  option to the\n $geoNear  pipeline stage to indicate the indexed field path\nto use. This allows the  $geoNear  stage to be used on a\ncollection that has multiple  2dsphere  index  and/or multiple\n 2d  index : If your collection has multiple  2dsphere  index  and/or multiple\n 2d  index , you must use the  key  option to specify the\nindexed field path to use. If you do not specify the  key , you cannot have multiple\n 2dsphere  index  and/or multiple  2d  index  since without\nthe  key , index selection among multiple  2d  indexes or\n 2dsphere  indexes is ambiguous. If you do not specify the  key , and you have at most only one\n 2dsphere  index  and/or only one  2d  index ,\nMongoDB looks first for a  2d  index to use. If a  2d  index\ndoes not exists, then MongoDB looks for a  2dsphere  index to use. You cannot use a  2dsphere  index as a  shard key  when sharding a\ncollection. However, you can create a geospatial index\non a sharded collection by using a different field as the shard key. Fields with  2dsphere  indexes must hold geometry\ndata in the form of  coordinate pairs \nor  GeoJSON  data. If you attempt to insert a document with\nnon-geometry data in a  2dsphere  indexed field, or build a\n 2dsphere  index on a collection where the indexed field has\nnon-geometry data, the operation will fail. To generate keys for a 2dsphere index,  mongod  maps\n GeoJSON shapes  to an internal\nrepresentation. The resulting internal representation may be a large\narray of values. When  mongod  generates index keys on a field that holds an\narray,  mongod  generates an index key for each array element.\nFor compound indexes,  mongod  calculates the  cartesian product  of the sets of keys that are generated for each field. If both\nsets are large, then calculating the cartesian product could cause the\noperation to exceed memory limits. indexMaxNumGeneratedKeysPerDocument  limits the maximum\nnumber of keys generated for a single document to prevent out of\nmemory errors. The default is 100000 index keys per document. It is\npossible to raise the limit, but if an operation requires more keys\nthan the  indexMaxNumGeneratedKeysPerDocument  parameter\nspecifies, the operation will fail. Unlike a compound  2d  index which can reference one\nlocation field and one other field, a  compound   2dsphere  index can reference multiple\nlocation and non-location fields. For the following examples, consider a collection  places  with\ndocuments that store location data as  GeoJSON Point  in a field named  loc : To create a  2dsphere  index, use the\n db.collection.createIndex()  method and specify the string\nliteral  \"2dsphere\"  as the index type: where the  <location field>  is a field whose value is either a\n GeoJSON object  or a  legacy\ncoordinates pair . The following operation creates a  2dsphere \nindex on the location field  loc : A  compound index  can include a\n 2dsphere  index key in combination with non-geospatial index keys.\nFor example, the following operation creates a compound index where\nthe first key  loc  is a  2dsphere  index key, and the remaining\nkeys  category  and  names  are non-geospatial index keys,\nspecifically descending ( -1 ) and ascending ( 1 ) keys\nrespectively. Unlike the  2d  index, a compound  2dsphere  index\ndoes not require the location field to be the first field indexed. For\nexample:",
+            "code": [
+                {
+                    "lang": "javascript",
+                    "value": "db.places.insertMany( [\n   {\n      loc : { type: \"Point\", coordinates: [ -73.97, 40.77 ] },\n      name: \"Central Park\",\n      category : \"Parks\"\n   },\n   {\n      loc : { type: \"Point\", coordinates: [ -73.88, 40.78 ] },\n      name: \"La Guardia Airport\",\n      category : \"Airport\"\n   }\n] )"
+                },
+                {
+                    "lang": "javascript",
+                    "value": "db.collection.createIndex( { <location field> : \"2dsphere\" } )"
+                },
+                {
+                    "lang": "javascript",
+                    "value": "db.places.createIndex( { loc : \"2dsphere\" } )"
+                },
+                {
+                    "lang": "javascript",
+                    "value": "db.places.createIndex( { loc : \"2dsphere\" , category : -1, name: 1 } )"
+                },
+                {
+                    "lang": "javascript",
+                    "value": "db.places.createIndex( { category : 1 , loc : \"2dsphere\" } )"
+                }
+            ],
+            "preview": "A  2dsphere  index supports queries that calculate geometries on an\nearth-like sphere.  2dsphere  index supports all MongoDB geospatial\nqueries: queries for inclusion, intersection and proximity.\nFor more information on geospatial queries, see\n Geospatial Queries .",
+            "tags": null
+        }
+    ]
+}
