@@ -1,32 +1,32 @@
 from base64 import decode
-from pydoc import doc
+from pydoc import Doc, doc
 from bson import decode_all
 from json import loads
 from pathlib import Path
 
-from regex import R
-
-from .SnootyManifest import Document, generate_manifest
+from mut.index.SnootyManifest import Document, generate_manifest
 
 
 ROOT_PATH = Path("/Users/allison/snooty/mut/mut/test_data_index/documents")
 
-def test_findParagraphs() -> None:
-    data = decode_all(ROOT_PATH.joinpath(Path("introduction.bson")).read_bytes())
+def setup_doc(root_path: Path, file_path: str) -> Document:
+    data = decode_all(root_path.joinpath(Path(file_path)).read_bytes())
     document = Document(data).export()
+    return document
+
+def test_findParagraphs() -> None:
+    document = setup_doc(ROOT_PATH, "introduction.bson")
     expected = "MongoDB 6.0 release candidates are not yet available.\nThis version of the manual is for an upcoming release and is\ncurrently a work in progress. A record in MongoDB is a document, which is a data structure composed\nof field and value pairs. MongoDB documents are similar to JSON\nobjects. The values of fields may include other documents, arrays,\nand arrays of documents. The advantages of using documents are: Documents correspond to native data types in many programming\nlanguages. Embedded documents and arrays reduce need for expensive joins. Dynamic schema supports fluent polymorphism. MongoDB stores documents in  collections .\nCollections are analogous to tables in relational databases. In addition to collections, MongoDB supports: Read-only  Views  (Starting in MongoDB 3.4) On-Demand Materialized Views  (Starting in MongoDB 4.2). MongoDB provides high performance data persistence. In particular, Support for embedded data models reduces I/O activity on database\nsystem. Indexes support faster queries and can include keys from embedded\ndocuments and arrays. The MongoDB Query API supports  read and write\noperations (CRUD)  as well as: Data Aggregation Text Search  and  Geospatial Queries . SQL to MongoDB Mapping Chart SQL to Aggregation Mapping Chart Learn about the latest query language features with the  MongoDB\nQuery Language: What's New \npresentation from  MongoDB.live 2020 . MongoDB's replication facility, called  replica set , provides: A  replica set  is a group of\nMongoDB servers that maintain the same data set, providing redundancy\nand increasing data availability. automatic  failover data redundancy. MongoDB provides horizontal scalability as part of its  core \nfunctionality: Sharding  distributes data across a\ncluster of machines. Starting in 3.4, MongoDB supports creating  zones  of data based on the  shard key . In a\nbalanced cluster, MongoDB directs reads and writes covered by a zone\nonly to those shards inside the zone. See the  Zones \nmanual page for more information. MongoDB supports  multiple storage engines : In addition, MongoDB provides pluggable storage engine API that allows\nthird parties to develop storage engines for MongoDB. WiredTiger Storage Engine  (including support for\n Encryption at Rest ) In-Memory Storage Engine ."
     assert document["paragraphs"] == expected
 
 def test_findHeadings() -> None:  
     # Test h1 but no other headings
-    data = decode_all(ROOT_PATH.joinpath(Path("code-example.bson")).read_bytes())
-    document = Document(data).export()
+    document = setup_doc(ROOT_PATH, "code-example.bson")
     assert document["title"] == "Code Examples"
     assert document["headings"] == []
 
     # Test regular page format
-    data = decode_all(ROOT_PATH.joinpath(Path("introduction.bson")).read_bytes())
-    document = Document(data).export()
+    document = setup_doc(ROOT_PATH, "introduction.bson")
     expected_title = "Introduction to MongoDB"
     expected_headings = [
                 "Document Database",
@@ -42,8 +42,7 @@ def test_findHeadings() -> None:
     assert document["headings"] == expected_headings
 
     # Test headings with literals in them
-    data = decode_all(ROOT_PATH.joinpath(Path("core/2dsphere.bson")).read_bytes())
-    document = Document(data).export()
+    document = setup_doc(ROOT_PATH, "core/2dsphere.bson")
     assert document["title"] == "2dsphere Indexes"
     expected_headings = [
                 "Overview",
@@ -63,37 +62,34 @@ def test_findHeadings() -> None:
 
 def test_derivePreview() -> None:
     # Test standard preview generation.
-    data = decode_all(ROOT_PATH.joinpath(Path("core/2dsphere.bson")).read_bytes())
-    document = Document(data).export()    
+    document = setup_doc(ROOT_PATH, "core/2dsphere.bson")
     assert document["preview"] == "A  2dsphere  index supports queries that calculate geometries on an\nearth-like sphere.  2dsphere  index supports all MongoDB geospatial\nqueries: queries for inclusion, intersection and proximity.\nFor more information on geospatial queries, see\n Geospatial Queries ."
 
     # Test that pages that start with an admonition don't use the admonition
     # as the preview content.
-    data = decode_all(ROOT_PATH.joinpath(Path("introduction.bson")).read_bytes())
-    document = Document(data).export()
+    document = setup_doc(ROOT_PATH, "introduction.bson")
     assert document["preview"] == "A record in MongoDB is a document, which is a data structure composed\nof field and value pairs. MongoDB documents are similar to JSON\nobjects. The values of fields may include other documents, arrays,\nand arrays of documents."
 
     # Test that page with no paragraphs has no preview
-    data = decode_all(ROOT_PATH.joinpath(Path("no-paragraphs.bson")).read_bytes())
-    document = Document(data).export()
+    document = setup_doc(ROOT_PATH, "no-paragraphs.bson")
     assert document["preview"] == None
 
+    # Test retrieving preview from metadata.
+    document = setup_doc(ROOT_PATH, "has-meta-description.bson")
+    assert document["preview"] == "Cluster-to-Cluster Sync provides continuous data synchronization or a one-time data migration between two MongoDB clusters in the same or hybrid environments."
 
 def test_noIndex() -> None:
     # Test no headings at all
-    data = decode_all(ROOT_PATH.joinpath(Path("no-title.bson")).read_bytes())
-    document = Document(data).export()
+    document = setup_doc(ROOT_PATH, "no-title.bson")
     assert document == None
 
     # Test :robots: None in meta
-    data = decode_all(ROOT_PATH.joinpath(Path("no-robots.bson")).read_bytes())
-    document = Document(data).export()
+    document = setup_doc(ROOT_PATH, "no-robots.bson")
     assert document == None
 
 def test_findCode() -> None:
     # Test code from regular code block, IO Code block
-    data = decode_all(ROOT_PATH.joinpath(Path("code-example.bson")).read_bytes())
-    document = Document(data).export()
+    document = setup_doc(ROOT_PATH, "code-example.bson")
     expected = [
                 {
                     "lang": "python",

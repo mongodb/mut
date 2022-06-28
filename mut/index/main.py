@@ -15,7 +15,7 @@ Usage:
                            [default: search-indexes]
 '''
 from docopt import docopt
-from .SnootyManifest import generate_manifest, get_ast_list
+from mut.index.SnootyManifest import generate_manifest, get_ast_list
 from mut.index.s3upload import upload_manifest_to_s3
 from datetime import datetime
 from json import dumps
