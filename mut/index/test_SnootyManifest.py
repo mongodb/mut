@@ -114,10 +114,10 @@ def test_findCode() -> None:
 def test_generate_manifest() -> None:
     # Test standard generation with two unindexable documents
     ast_source = [
-        str(ROOT_PATH.joinpath(Path("code-example.bson"))),
-        str(ROOT_PATH.joinpath(Path("introduction.bson"))),
-        str(ROOT_PATH.joinpath(Path("no-robots.bson"))),
-        str(ROOT_PATH.joinpath(Path("no-title.bson"))),
+        ROOT_PATH.joinpath(Path("code-example.bson")),
+        ROOT_PATH.joinpath(Path("introduction.bson")),
+        ROOT_PATH.joinpath(Path("no-robots.bson")),
+        ROOT_PATH.joinpath(Path("no-title.bson")),
     ]
     url = "www.mongodb.com/docs/test"
     includeInGlobalSearch = False

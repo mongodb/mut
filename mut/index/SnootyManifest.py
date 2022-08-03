@@ -202,7 +202,7 @@ def process_snooty_manifest_bson(path: Path) -> Optional[ManifestEntry]:
 
 
 def generate_manifest(
-    ast_source: List[str], url: str, includeInGlobalSearch: bool
+    ast_source: List[Path], url: str, includeInGlobalSearch: bool
 ) -> Manifest:
     """Process BSON files and compile a manifest."""
     manifest = Manifest(url, includeInGlobalSearch)
@@ -213,10 +213,10 @@ def generate_manifest(
         return manifest
 
 
-def get_ast_list(walk_dir: str) -> List[str]:
+def get_ast_list(walk_dir: str) -> List[Path]:
     """Get full list of BSON paths that need to be processed,
     get rid of files that don't need to be indexed, but exist as AST."""
-    ast_source_paths: List[str] = []
+    ast_source_paths: List[Path] = []
 
     for root, dirs, files in walk(walk_dir):
         for forbidden_name in set(
@@ -224,5 +224,5 @@ def get_ast_list(walk_dir: str) -> List[str]:
         ).intersection(dirs):
             dirs.remove(forbidden_name)
         for filename in files:
-            ast_source_paths.append(join(root, filename))
+            ast_source_paths.append(Path(join(root, filename)))
     return ast_source_paths
