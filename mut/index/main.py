@@ -14,13 +14,13 @@ Usage:
     -p, --prefix <prefix>  Name of the s3 prefix to attached to the manifest.
                            [default: search-indexes]
 """
-from docopt import docopt
+import docopt
 from mut.index.SnootyManifest import generate_manifest, get_ast_list
 from mut.index.s3upload import upload_manifest_to_s3
 from datetime import datetime
-from json import dumps
-from pprint import pprint
+import logging
 
+logger = logging.getLogger(__name__)
 
 def main() -> None:
     """Generate index files."""
@@ -30,9 +30,9 @@ def main() -> None:
     output = options["--output"]
     url = options["--url"]
     globally = options["--global"]
-    print("Getting AST list: {}".format(datetime.now()))
+    logger.info("Getting AST list: {}".format(datetime.now()))
     ast_source = get_ast_list(root)
-    print("staring manifest generation: {}".format(datetime.now()))
+    logger.info("staring manifest generation: {}".format(datetime.now()))
     manifest = generate_manifest(ast_source, url, globally).export()
 
     if options["upload"]:

@@ -1,28 +1,25 @@
-from unittest.result import STDERR_LINE
 from bson import decode_all
 from jsonpath_ng.ext import parse
 from os import walk
 from os.path import join
 from pathlib import Path
 from json import dumps
-from datetime import datetime
 from concurrent.futures import ProcessPoolExecutor
 import logging
 
-from typing import Any, Dict, Optional, List, Tuple, TypedDict
+from typing import Optional, List, Tuple, TypedDict
 
 logger = logging.getLogger(__name__)
 
 
 class ManifestEntry(TypedDict):
     slug: str
-    title: str
-    headings: Tuple[Optional[str], Optional[List[str]]]
+    title: Optional[str]
+    headings: Optional[List[str]]
     paragraphs: str
     code: dict
-    preview: str
+    preview: Optional[str]
     tags: list[str]
-
 
 class Document:
     """Return indexing data from a page's AST for search purposes."""
@@ -131,7 +128,7 @@ class Document:
 
         return robots, keywords, description
 
-    def get_noindex(self) -> bool:
+    def get_noindex(self) -> Tuple[bool, List[str]]:
         # TODO: determine what the index / noindex rules should be
         # with Product (DOP-)
         logger.debug("Determining indexability")
@@ -159,18 +156,17 @@ class Document:
                     self.slug, " ".join(self.reasons)
                 )
             )
-            return
+            return None
 
-        document = {
-            "slug": self.slug,
-            "title": self.title,
-            "headings": self.headings,
-            "paragraphs": self.paragraphs,
-            "code": self.code,
-            "preview": self.preview,
-            "tags": self.keywords,
-        }
-
+        document = ManifestEntry(
+            slug=self.slug,
+            title=self.title,
+            headings=self.headings,
+            paragraphs=self.paragraphs,
+            code=self.code,
+            preview=self.preview,
+            tags=self.keywords,
+        )
         return document
 
 
@@ -180,9 +176,9 @@ class Manifest:
     def __init__(self, url: str, includeInGlobalSearch: bool) -> None:
         self.url = url
         self.globally = includeInGlobalSearch
-        self.documents: List[Dict[str, Any]] = []
+        self.documents: List[ManifestEntry] = []
 
-    def add_document(self, document: Dict[str, Any]) -> None:
+    def add_document(self, document: ManifestEntry) -> None:
         """Add a document to the manifest"""
         if document:
             self.documents.append(document)
@@ -204,12 +200,13 @@ def process_snooty_manifest_bson(path: Path) -> Optional[ManifestEntry]:
     return document
 
 
-def generate_manifest(ast_source: str, url: str, includeInGlobalSearch: bool) -> str:
+def generate_manifest(ast_source: List[str], url: str, includeInGlobalSearch: bool) -> Manifest:
     """Process BSON files and compile a manifest."""
     manifest = Manifest(url, includeInGlobalSearch)
     with ProcessPoolExecutor() as executor:
         for bson_doc in executor.map(process_snooty_manifest_bson, ast_source):
-            manifest.add_document(bson_doc)
+            if bson_doc:
+                manifest.add_document(bson_doc)
         return manifest
 
 
@@ -219,9 +216,9 @@ def get_ast_list(walk_dir: str) -> List[str]:
     ast_source_paths: List[str] = []
 
     for root, dirs, files in walk(walk_dir):
-        for forbidden_name in set(
+        for forbidden_name in set([
             "images", "includes", "sharedinclude", ".DS_STORE"
-        ).intersection(dirs):
+        ]).intersection(dirs):
             dirs.remove(forbidden_name)
         for filename in files:
             ast_source_paths.append(join(root, filename))
