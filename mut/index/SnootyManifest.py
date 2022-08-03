@@ -11,7 +11,8 @@ import logging
 
 from typing import Any, Dict, Optional, List, Tuple, TypedDict
 
-logger=logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
+
 
 class ManifestEntry(TypedDict):
     slug: str
@@ -22,9 +23,10 @@ class ManifestEntry(TypedDict):
     preview: str
     tags: list[str]
 
-class Document():
-    '''Return indexing data from a page's AST for search purposes.'''
-  
+
+class Document:
+    """Return indexing data from a page's AST for search purposes."""
+
     def __init__(self, data) -> None:
 
         self.tree = data[0]
@@ -42,43 +44,43 @@ class Document():
     def find_paragraphs(self) -> str:
         logger.debug("Finding paragraphs")
         # NB: paragraphs include "paragraph" nodes within tables
-        jsonpath_expr = parse('$..children[?(@.type==\'paragraph\')]..value')
+        jsonpath_expr = parse("$..children[?(@.type=='paragraph')]..value")
         results = jsonpath_expr.find(self.tree)
-        
+
         # Appending to then joining an array is faster than repeatedly concatenating strings
         str_list = []
         for r in results:
             str_list.append(r.value)
-            
-        return ' '.join(str_list)
+
+        return " ".join(str_list)
 
     def find_code(self):
         logger.debug("Finding code")
-        jsonpath_expr = parse('$..children[?(@.type==\'code\')]')
+        jsonpath_expr = parse("$..children[?(@.type=='code')]")
         results = jsonpath_expr.find(self.tree)
         code_contents = []
         for r in results:
             lang = r.value.get("lang", None)
             code_contents.append({"lang": lang, "value": r.value["value"]})
-        
+
         return code_contents
 
     def find_headings(self) -> Tuple[Optional[str], Optional[List[str]]]:
         logger.debug("Finding headings and title")
         # Get all headings nodes
-        jsonpath_expr = parse('$..children[?(@.type==\'heading\')].children')
+        jsonpath_expr = parse("$..children[?(@.type=='heading')].children")
         results = jsonpath_expr.find(self.tree)
         if len(results) == 0:
             return None, None
         headings = []
-        limiting_expr = parse('$..value')
+        limiting_expr = parse("$..value")
         # Some headings consist of multiple text nodes, so we need to glue them together
         for r in results:
             heading = []
             parts = limiting_expr.find(r.value)
             for part in parts:
                 heading.append(part.value)
-            headings.append(''.join(heading))
+            headings.append("".join(heading))
         title = headings[0]
         headings.pop(0)
         return title, headings
@@ -91,31 +93,32 @@ class Document():
     def derive_preview(self) -> Optional[str]:
         logger.debug("Deriving document search preview")
         # Set preview to the meta description if one is specified.
-        if self.description: 
+        if self.description:
             return self.description
-        
+
         # Set preview to the first content paragraph on the page, excluding admonitions.
-        jsonpath_expr = parse('$..children[?(@.type==\'section\')].children[?(@.type==\'paragraph\')]')
+        jsonpath_expr = parse(
+            "$..children[?(@.type=='section')].children[?(@.type=='paragraph')]"
+        )
         results = jsonpath_expr.find(self.tree)
         if len(results) > 0:
-            limiting_expr = parse('$..value')
+            limiting_expr = parse("$..value")
             first = limiting_expr.find(results[0].value)
             str_list = []
             for f in first:
                 str_list.append(f.value)
-            return ' '.join(str_list)
+            return " ".join(str_list)
         # Cowardly give up and just don't provide a preview.
         else:
             return None
 
-        
     def find_metadata(self):
         logger.debug("Finding metadata")
         robots: str = True
         keywords: List[str] = None
         description: str = None
 
-        jsonpath_expr = parse('$..children[?(@.name==\'meta\')]..options')
+        jsonpath_expr = parse("$..children[?(@.name=='meta')]..options")
         results = jsonpath_expr.find(self.tree)
         if results:
             results = results[0].value
@@ -148,10 +151,14 @@ class Document():
         return noindex, reasons
 
     def export(self) -> Optional[ManifestEntry]:
-        '''Generate the manifest dictionary entry from the AST source.'''
+        """Generate the manifest dictionary entry from the AST source."""
 
         if self.noindex:
-            logger.info("Refusing to index {} because: {}".format(self.slug, ' '.join(self.reasons)))
+            logger.info(
+                "Refusing to index {} because: {}".format(
+                    self.slug, " ".join(self.reasons)
+                )
+            )
             return
 
         document = {
@@ -166,50 +173,56 @@ class Document():
 
         return document
 
+
 class Manifest:
-    '''Manifest to provide to Atlas search.'''
+    """Manifest to provide to Atlas search."""
+
     def __init__(self, url: str, includeInGlobalSearch: bool) -> None:
         self.url = url
         self.globally = includeInGlobalSearch
-        self.documents: List[Dict[str, Any]] = [] 
+        self.documents: List[Dict[str, Any]] = []
 
     def add_document(self, document: Dict[str, Any]) -> None:
-        '''Add a document to the manifest'''
+        """Add a document to the manifest"""
         if document:
             self.documents.append(document)
-    
+
     def export(self) -> str:
-        '''Return the manifest as json.'''
+        """Return the manifest as json."""
         manifest = {
             "url": self.url,
             "includeInGlobalSearch": self.globally,
-            "documents": self.documents
+            "documents": self.documents,
         }
         return dumps(manifest, indent=4)
 
+
 def process_snooty_manifest_bson(path: Path) -> Optional[ManifestEntry]:
-    '''Generates manifest info for a BSON document.'''
+    """Generates manifest info for a BSON document."""
     data = decode_all(path.read_bytes())
     document = Document(data).export()
     return document
 
+
 def generate_manifest(ast_source: str, url: str, includeInGlobalSearch: bool) -> str:
-    '''Process BSON files and compile a manifest.'''
+    """Process BSON files and compile a manifest."""
     manifest = Manifest(url, includeInGlobalSearch)
     with ProcessPoolExecutor() as executor:
         for bson_doc in executor.map(process_snooty_manifest_bson, ast_source):
             manifest.add_document(bson_doc)
         return manifest
-           
+
+
 def get_ast_list(walk_dir: str) -> List[str]:
-    '''Get full list of BSON paths that need to be processed,
-       get rid of files that don't need to be indexed, but exist as AST.'''
+    """Get full list of BSON paths that need to be processed,
+    get rid of files that don't need to be indexed, but exist as AST."""
     ast_source_paths: List[str] = []
 
     for root, dirs, files in walk(walk_dir):
-        for forbidden_name in set("images", "includes", "sharedinclude", ".DS_STORE").intersection(dirs):
+        for forbidden_name in set(
+            "images", "includes", "sharedinclude", ".DS_STORE"
+        ).intersection(dirs):
             dirs.remove(forbidden_name)
         for filename in files:
             ast_source_paths.append(join(root, filename))
     return ast_source_paths
-
