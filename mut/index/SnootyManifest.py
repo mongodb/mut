@@ -21,6 +21,7 @@ class ManifestEntry(TypedDict):
     preview: Optional[str]
     tags: list[str]
 
+
 class Document:
     """Return indexing data from a page's AST for search purposes."""
 
@@ -200,7 +201,9 @@ def process_snooty_manifest_bson(path: Path) -> Optional[ManifestEntry]:
     return document
 
 
-def generate_manifest(ast_source: List[str], url: str, includeInGlobalSearch: bool) -> Manifest:
+def generate_manifest(
+    ast_source: List[str], url: str, includeInGlobalSearch: bool
+) -> Manifest:
     """Process BSON files and compile a manifest."""
     manifest = Manifest(url, includeInGlobalSearch)
     with ProcessPoolExecutor() as executor:
@@ -216,9 +219,9 @@ def get_ast_list(walk_dir: str) -> List[str]:
     ast_source_paths: List[str] = []
 
     for root, dirs, files in walk(walk_dir):
-        for forbidden_name in set([
-            "images", "includes", "sharedinclude", ".DS_STORE"
-        ]).intersection(dirs):
+        for forbidden_name in set(
+            ["images", "includes", "sharedinclude", ".DS_STORE"]
+        ).intersection(dirs):
             dirs.remove(forbidden_name)
         for filename in files:
             ast_source_paths.append(join(root, filename))

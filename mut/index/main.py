@@ -22,6 +22,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 def main() -> None:
     """Generate index files."""
     print("Start time: {}".format(datetime.now()))
