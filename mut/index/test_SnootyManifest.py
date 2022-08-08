@@ -4,7 +4,7 @@ from pathlib import Path
 from mut.index.SnootyManifest import ManifestEntry, Document, generate_manifest
 
 
-ROOT_PATH = Path("/Users/allison/snooty/mut/mut/test_data_index/documents")
+ROOT_PATH = Path("../test_data_index/documents")
 
 
 def setup_doc(root_path: Path, file_path: str) -> ManifestEntry:
