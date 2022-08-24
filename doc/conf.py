@@ -14,6 +14,7 @@ from sphinx.errors import SphinxError
 try:
     tags
 except NameError:
+
     class Tags(object):
         def has(self, *args):
             return False
@@ -22,49 +23,51 @@ except NameError:
 
 # -- General configuration ----------------------------------------------------
 
-needs_sphinx = '1.0'
+needs_sphinx = "1.0"
 
 extensions = [
-    'sphinx.ext.extlinks',
-    'sphinx.ext.todo',
+    "sphinx.ext.extlinks",
+    "sphinx.ext.todo",
 ]
 
 locale_dirs = []
 gettext_compact = False
 
-templates_path = ['.templates']
+templates_path = [".templates"]
 exclude_patterns = []
 
-source_suffix = '.txt'
+source_suffix = ".txt"
 
-master_doc = 'index'
-language = 'en'
-project = 'mut'
-copyright = u'2008-{0}'.format(datetime.date.today().year)
-version = '0.1'
-release = '0.1'
+master_doc = "index"
+language = "en"
+project = "mut"
+copyright = "2008-{0}".format(datetime.date.today().year)
+version = "0.1"
+release = "0.1"
 
-rst_epilog = '\n'.join([
-    '.. |copy| unicode:: U+000A9',
-    '.. |ent-build| replace:: MongoDB Enterprise',
-    '.. |year| replace:: {0}'.format(datetime.date.today().year),
-])
+rst_epilog = "\n".join(
+    [
+        ".. |copy| unicode:: U+000A9",
+        ".. |ent-build| replace:: MongoDB Enterprise",
+        ".. |year| replace:: {0}".format(datetime.date.today().year),
+    ]
+)
 
-pygments_style = 'sphinx'
+pygments_style = "sphinx"
 
 extlinks = {
-    'issue': ('https://jira.mongodb.org/browse/%s', '' ),
-    'wiki': ('http://www.mongodb.org/display/DOCS/%s', ''),
-    'api': ('https://api.mongodb.org/%s', ''),
-    'manual': ('https://docs.mongodb.org/manual%s', ''),
-    'gettingstarted': ('https://docs.mongodb.org/getting-started%s', ''),
-    'ecosystem': ('https://docs.mongodb.org/ecosystem%s', ''),
-    'meta-driver': ('http://docs.mongodb.org/meta-driver/latest%s', ''),
-    'mms-docs': ('https://docs.cloud.mongodb.com%s', ''),
-    'mms-home': ('https://cloud.mongodb.com%s', ''),
-    'opsmgr': ('https://docs.opsmanager.mongodb.com/current%s', ''),
-    'about': ('https://www.mongodb.org/about%s', ''),
-    'products': ('https://www.mongodb.com/products%s', '')
+    "issue": ("https://jira.mongodb.org/browse/%s", ""),
+    "wiki": ("http://www.mongodb.org/display/DOCS/%s", ""),
+    "api": ("https://api.mongodb.org/%s", ""),
+    "manual": ("https://docs.mongodb.org/manual%s", ""),
+    "gettingstarted": ("https://docs.mongodb.org/getting-started%s", ""),
+    "ecosystem": ("https://docs.mongodb.org/ecosystem%s", ""),
+    "meta-driver": ("http://docs.mongodb.org/meta-driver/latest%s", ""),
+    "mms-docs": ("https://docs.cloud.mongodb.com%s", ""),
+    "mms-home": ("https://cloud.mongodb.com%s", ""),
+    "opsmgr": ("https://docs.opsmanager.mongodb.com/current%s", ""),
+    "about": ("https://www.mongodb.org/about%s", ""),
+    "products": ("https://www.mongodb.com/products%s", ""),
 }
 
 languages = [
@@ -85,17 +88,17 @@ languages = [
     ("ro", "Romanian"),
     ("ru", "Russian"),
     ("tr", "Turkish"),
-    ("uk", "Ukrainian")
+    ("uk", "Ukrainian"),
 ]
 
 # -- Options for HTML output ---------------------------------------------------
 
-html_theme = 'nature'
-html_title = 'Mut'
-htmlhelp_basename = 'MongoDBdoc'
+html_theme = "nature"
+html_title = "Mut"
+htmlhelp_basename = "MongoDBdoc"
 
 # html_logo = sconf.logo
-html_static_path = ['_static']
+html_static_path = ["_static"]
 
 html_copy_source = False
 html_use_smartypants = True
@@ -112,12 +115,15 @@ html_sidebars = {}
 def setup(app):
     # disable versioning for speed
     from sphinx.builders.gettext import I18nBuilder
-    I18nBuilder.versioning_method = 'none'
+
+    I18nBuilder.versioning_method = "none"
 
     def doctree_read(app, doctree):
         if not isinstance(app.builder, I18nBuilder):
             return
         from docutils import nodes
         from sphinx.versioning import add_uids
+
         list(add_uids(doctree, nodes.TextElement))
-    app.connect('doctree-read', doctree_read)
+
+    app.connect("doctree-read", doctree_read)
