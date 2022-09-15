@@ -112,7 +112,7 @@ def test_findCode() -> None:
 
 
 def test_generate_manifest() -> None:
-    # Test standard generation with two unindexable documents
+    # Test standard generation with two unindexable documents out of four
     ast_source = [
         ROOT_PATH.joinpath(Path("code-example.bson")),
         ROOT_PATH.joinpath(Path("introduction.bson")),
