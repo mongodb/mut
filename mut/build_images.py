@@ -54,24 +54,33 @@ def generate_svg(input_path: str, output_path: str) -> None:
 
     input_path = os.path.abspath(input_path)
     output_path = os.path.abspath(output_path)
-    with tempfile.NamedTemporaryFile() as tmp:
-        subprocess.check_call([inkscape,
-                               input_path,
-                               '--vacuum-defs',
-                               '--export-text-to-path',
-                               '--export-area-drawing',
-                               '--export-plain-svg', tmp.name],
-                              stdout=subprocess.DEVNULL,
-                              stderr=subprocess.DEVNULL)
+    with tempfile.NamedTemporaryFile(suffix='.svg') as tmp:
+        subprocess.check_call(
+            [
+                inkscape,
+                input_path,
+                "--vacuum-defs",
+                "--export-text-to-path",
+                "--export-area-drawing",
+                "--export-plain-svg",
+                "-o",
+                tmp.name,
+            ]
+        )
 
-        subprocess.check_call(['svgo',
-                               '-q',
-                               '--multipass',
-                               '-p', '1',
-                               '--enable=removeTitle',
-                               '--enable=removeViewBox',
-                               '-i', tmp.name,
-                               '-o', output_path])
+        subprocess.check_call(
+            [
+                "svgo",
+                "-q",
+                "--multipass",
+                "-p",
+                "1",
+                "-i",
+                tmp.name,
+                "-o",
+                output_path,
+            ]
+        )
 
 
 def main() -> None:
