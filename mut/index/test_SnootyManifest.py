@@ -78,6 +78,15 @@ def test_derivePreview() -> None:
         == "A record in MongoDB is a document, which is a data structure composed\nof field and value pairs. MongoDB documents are similar to JSON\nobjects. The values of fields may include other documents, arrays,\nand arrays of documents."
     )
 
+    # Test page that starts with code reference declaration
+
+    document = setup_doc(ROOT_PATH, "query/exists.bson")
+    assert(
+        document["preview"]
+        == "Syntax :  { field: { $exists: <boolean> } }"
+    )
+
+
     # Test that page with no paragraphs has no preview
     document = setup_doc(ROOT_PATH, "no-paragraphs.bson")
     assert document["preview"] == None

@@ -94,11 +94,21 @@ class Document:
         if self.description:
             return self.description
 
-        # Set preview to the first content paragraph on the page, excluding admonitions.
-        jsonpath_expr = parse(
-            "$..children[?(@.type=='section')].children[?(@.type=='paragraph')]"
+        # Set preview to the paragraph value that's a child of a 'target' element 
+        # (for reference pages that lead with a target definition)
+        jsonpath_expr_ref = parse(
+            "$..children[?(@.type=='target')].children[?(@.type=='paragraph')]"
         )
-        results = jsonpath_expr.find(self.tree)
+        results = jsonpath_expr_ref.find(self.tree)
+
+        if not len(results):
+            # Otherwise attempt to set preview to the first content paragraph on the page, 
+            # excluding admonitions.
+            jsonpath_expr = parse(
+                    "$..children[?(@.type=='section')].children[?(@.type=='paragraph')]"
+            )
+            results = jsonpath_expr.find(self.tree)
+
         if len(results) > 0:
             limiting_expr = parse("$..value")
             first = limiting_expr.find(results[0].value)
@@ -106,7 +116,7 @@ class Document:
             for f in first:
                 str_list.append(f.value)
             return " ".join(str_list)
-        # Cowardly give up and just don't provide a preview.
+        # Give up and just don't provide a preview.
         else:
             return None
 
