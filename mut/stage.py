@@ -185,7 +185,7 @@ def chunks(data: List[T], n: int) -> Iterable[List[T]]:
 
 
 def run_pool(
-    tasks: List[Callable[[None], None]], n_workers: int = 5, retries: int = 1
+    tasks: List[Callable[[None], None]], n_workers: int = 20, retries: int = 1
 ) -> None:
     """Run a list of tasks using a pool of threads."""
     assert retries >= 0
