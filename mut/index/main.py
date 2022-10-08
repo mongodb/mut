@@ -15,7 +15,7 @@ Usage:
                            [default: search-indexes]
 """
 from docopt import docopt
-from mut.index.SnootyManifest import generate_manifest, get_ast_list
+from mut.index.SnootyManifest import generate_manifest
 from mut.index.s3upload import upload_manifest_to_s3
 from datetime import datetime
 import logging
@@ -31,10 +31,8 @@ def main() -> None:
     output = options["--output"]
     url = options["--url"]
     globally = options["--global"]
-    logger.info("Getting AST list: {}".format(datetime.now()))
-    ast_source = get_ast_list(root)
     logger.info("staring manifest generation: {}".format(datetime.now()))
-    manifest = generate_manifest(ast_source, url, globally).export()
+    manifest = generate_manifest(root, url, globally).export()
 
     if options["upload"]:
         bucket = options["--bucket"]
