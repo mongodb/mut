@@ -223,10 +223,9 @@ def generate_manifest(
     manifest = Manifest(url, includeInGlobalSearch)
     
     with ZipFile(archive, 'r') as astfile:
-        with ProcessPoolExecutor() as executor:
-            for entry in executor.map(check_entry, astfile.infolist()):
-                if entry:
-                    manifest.add_document(process_snooty_manifest_bson(decode_all(astfile.read(entry))))
+        for entry in astfile.infolist():
+            if check_entry(entry):
+                manifest.add_document(process_snooty_manifest_bson(decode_all(astfile.read(entry))))
 
     return manifest
 
