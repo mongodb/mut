@@ -1,16 +1,14 @@
 from bson import decode_all
 from json import loads
 from pathlib import Path
+from os import getcwd
 from mut.index.SnootyManifest import ManifestEntry, Document, generate_manifest
 
-
-ROOT_PATH = Path("../test_data_index/documents")
-
+ROOT_PATH = Path(getcwd()).joinpath(Path("mut/test_data_index/documents"))
 
 def setup_doc(root_path: Path, file_path: str) -> ManifestEntry:
     data = decode_all(root_path.joinpath(Path(file_path)).read_bytes())
     document = Document(data).export()
-    assert document is not None
     return document
 
 
@@ -117,12 +115,13 @@ def test_findCode() -> None:
 
 
 def test_generate_manifest() -> None:
-    # Test standard generation with two unindexable documents out of four
-    ast_source_zipped = str(ROOT_PATH.joinpath(Path("zipped_data.zip")))
+    # Test standard generation with two unindexable documents out of five
+    ast_source_zipped = getcwd() + "/mut/test_data_index/snooty_manifest-zipped"
+
     url = "www.mongodb.com/docs/test"
     includeInGlobalSearch = False
 
     manifest = loads(
         generate_manifest(ast_source_zipped, url, includeInGlobalSearch).export()
     )
-    assert len(manifest["documents"]) == 2
+    assert len(manifest["documents"]) == 3
