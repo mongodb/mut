@@ -4,6 +4,7 @@ from jsonpath_ng.ext import parse
 from os.path import join
 from pathlib import Path
 from json import dumps
+
 import logging
 
 from typing import Optional, List, Tuple, TypedDict
@@ -93,7 +94,7 @@ class Document:
         if self.description:
             return self.description
 
-        # Set preview to the paragraph value that's a child of a 'target' element 
+        # Set preview to the paragraph value that's a child of a 'target' element
         # (for reference pages that lead with a target definition)
         jsonpath_expr_ref = parse(
             "$..children[?(@.type=='target')].children[?(@.type=='paragraph')]"
@@ -101,10 +102,10 @@ class Document:
         results = jsonpath_expr_ref.find(self.tree)
 
         if not len(results):
-            # Otherwise attempt to set preview to the first content paragraph on the page, 
+            # Otherwise attempt to set preview to the first content paragraph on the page,
             # excluding admonitions.
             jsonpath_expr = parse(
-                    "$..children[?(@.type=='section')].children[?(@.type=='paragraph')]"
+                "$..children[?(@.type=='section')].children[?(@.type=='paragraph')]"
             )
             results = jsonpath_expr.find(self.tree)
 
@@ -150,7 +151,7 @@ class Document:
             reasons.append("robots=None in meta directive")
 
         # If page has no title, do not index.
-        if self.title == None:
+        if self.title is None:
             noindex = True
             reasons.append("This page has 0 headings, not even the H1")
 
@@ -208,21 +209,27 @@ def process_snooty_manifest_bson(data) -> Optional[ManifestEntry]:
     document = Document(data).export()
     return document
 
+
 def check_entry(ast_entry: ZipInfo) -> Optional[ZipInfo]:
     filepath = Path(join(ast_entry.filename))
-    if "documents" in filepath.parts and not set(["images", "includes", "sharedinclude"]).intersection(filepath.parts):
+    if "documents" in filepath.parts and not set(
+        ["images", "includes", "sharedinclude"]
+    ).intersection(filepath.parts):
         return ast_entry
+    return None
 
-def generate_manifest(
-    archive: ZipFile, url: str, includeInGlobalSearch: bool
-) -> Manifest:
+
+def generate_manifest(archive: str, url: str, includeInGlobalSearch: bool) -> Manifest:
     """Process BSON files and compile a manifest."""
     manifest = Manifest(url, includeInGlobalSearch)
-    
-    with ZipFile(archive, 'r') as astfile:
+
+    with ZipFile(archive, "r") as astfile:
         for entry in astfile.infolist():
             if check_entry(entry):
-                manifest.add_document(process_snooty_manifest_bson(decode_all(astfile.read(entry))))
+                doc_to_add = process_snooty_manifest_bson(
+                    decode_all(astfile.read(entry))
+                )
+                if doc_to_add:
+                    manifest.add_document(doc_to_add)
 
     return manifest
-
