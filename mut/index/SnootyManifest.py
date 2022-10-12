@@ -1,15 +1,12 @@
-from xmlrpc.client import Boolean
 from zipfile import ZipFile, ZipInfo
 from bson import decode_all
 from jsonpath_ng.ext import parse
-from os import walk
 from os.path import join
 from pathlib import Path
 from json import dumps
-from concurrent.futures import ProcessPoolExecutor
 import logging
 
-from typing import Optional, List, Tuple, TypedDict, Iterator
+from typing import Optional, List, Tuple, TypedDict
 
 logger = logging.getLogger(__name__)
 
