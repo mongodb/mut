@@ -1,16 +1,14 @@
 from bson import decode_all
 from json import loads
 from pathlib import Path
+from os import getcwd
 from mut.index.SnootyManifest import ManifestEntry, Document, generate_manifest
 
-
-ROOT_PATH = Path("../test_data_index/documents")
-
+ROOT_PATH = Path.cwd() / Path("mut/test_data_index/documents")
 
 def setup_doc(root_path: Path, file_path: str) -> ManifestEntry:
     data = decode_all(root_path.joinpath(Path(file_path)).read_bytes())
     document = Document(data).export()
-    assert document is not None
     return document
 
 
@@ -81,15 +79,11 @@ def test_derivePreview() -> None:
     # Test page that starts with code reference declaration
 
     document = setup_doc(ROOT_PATH, "query/exists.bson")
-    assert(
-        document["preview"]
-        == "Syntax :  { field: { $exists: <boolean> } }"
-    )
-
+    assert document["preview"] == "Syntax :  { field: { $exists: <boolean> } }"
 
     # Test that page with no paragraphs has no preview
     document = setup_doc(ROOT_PATH, "no-paragraphs.bson")
-    assert document["preview"] == None
+    assert document["preview"] is None
 
     # Test retrieving preview from metadata.
     document = setup_doc(ROOT_PATH, "has-meta-description.bson")
@@ -102,11 +96,11 @@ def test_derivePreview() -> None:
 def test_noIndex() -> None:
     # Test no headings at all
     document = setup_doc(ROOT_PATH, "no-title.bson")
-    assert document == None
+    assert document is None
 
     # Test :robots: None in meta
     document = setup_doc(ROOT_PATH, "no-robots.bson")
-    assert document == None
+    assert document is None
 
 
 def test_findCode() -> None:
@@ -121,15 +115,13 @@ def test_findCode() -> None:
 
 
 def test_generate_manifest() -> None:
-    # Test standard generation with two unindexable documents out of four
-    ast_source = [
-        ROOT_PATH.joinpath(Path("code-example.bson")),
-        ROOT_PATH.joinpath(Path("introduction.bson")),
-        ROOT_PATH.joinpath(Path("no-robots.bson")),
-        ROOT_PATH.joinpath(Path("no-title.bson")),
-    ]
+    # Test standard generation with two unindexable documents out of five
+    ast_source_zipped = getcwd() + "/mut/test_data_index/snooty_manifest-zipped"
+
     url = "www.mongodb.com/docs/test"
     includeInGlobalSearch = False
 
-    manifest = loads(generate_manifest(ast_source, url, includeInGlobalSearch).export())
-    assert len(manifest["documents"]) == 2
+    manifest = loads(
+        generate_manifest(ast_source_zipped, url, includeInGlobalSearch).export()
+    )
+    assert len(manifest["documents"]) == 3

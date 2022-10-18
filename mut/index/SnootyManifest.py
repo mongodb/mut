@@ -1,10 +1,10 @@
+from zipfile import ZipFile, ZipInfo
 from bson import decode_all
 from jsonpath_ng.ext import parse
-from os import walk
 from os.path import join
 from pathlib import Path
 from json import dumps
-from concurrent.futures import ProcessPoolExecutor
+
 import logging
 
 from typing import Optional, List, Tuple, TypedDict
@@ -94,7 +94,7 @@ class Document:
         if self.description:
             return self.description
 
-        # Set preview to the paragraph value that's a child of a 'target' element 
+        # Set preview to the paragraph value that's a child of a 'target' element
         # (for reference pages that lead with a target definition)
         jsonpath_expr_ref = parse(
             "$..children[?(@.type=='target')].children[?(@.type=='paragraph')]"
@@ -102,10 +102,10 @@ class Document:
         results = jsonpath_expr_ref.find(self.tree)
 
         if not len(results):
-            # Otherwise attempt to set preview to the first content paragraph on the page, 
+            # Otherwise attempt to set preview to the first content paragraph on the page,
             # excluding admonitions.
             jsonpath_expr = parse(
-                    "$..children[?(@.type=='section')].children[?(@.type=='paragraph')]"
+                "$..children[?(@.type=='section')].children[?(@.type=='paragraph')]"
             )
             results = jsonpath_expr.find(self.tree)
 
@@ -151,7 +151,7 @@ class Document:
             reasons.append("robots=None in meta directive")
 
         # If page has no title, do not index.
-        if self.title == None:
+        if self.title is None:
             noindex = True
             reasons.append("This page has 0 headings, not even the H1")
 
@@ -204,35 +204,32 @@ class Manifest:
         return dumps(manifest, indent=4)
 
 
-def process_snooty_manifest_bson(path: Path) -> Optional[ManifestEntry]:
+def process_snooty_manifest_bson(data) -> Optional[ManifestEntry]:
     """Generates manifest info for a BSON document."""
-    data = decode_all(path.read_bytes())
     document = Document(data).export()
     return document
 
 
-def generate_manifest(
-    ast_source: List[Path], url: str, includeInGlobalSearch: bool
-) -> Manifest:
+def check_entry(ast_entry: ZipInfo) -> Optional[ZipInfo]:
+    filepath = Path(join(ast_entry.filename))
+    if "documents" in filepath.parts and not set(
+        ["images", "includes", "sharedinclude"]
+    ).intersection(filepath.parts):
+        return ast_entry
+    return None
+
+
+def generate_manifest(archive: str, url: str, includeInGlobalSearch: bool) -> Manifest:
     """Process BSON files and compile a manifest."""
     manifest = Manifest(url, includeInGlobalSearch)
-    with ProcessPoolExecutor() as executor:
-        for bson_doc in executor.map(process_snooty_manifest_bson, ast_source):
-            if bson_doc:
-                manifest.add_document(bson_doc)
-        return manifest
 
+    with ZipFile(archive, "r") as astfile:
+        for entry in astfile.infolist():
+            if check_entry(entry):
+                doc_to_add = process_snooty_manifest_bson(
+                    decode_all(astfile.read(entry))
+                )
+                if doc_to_add:
+                    manifest.add_document(doc_to_add)
 
-def get_ast_list(walk_dir: str) -> List[Path]:
-    """Get full list of BSON paths that need to be processed,
-    get rid of files that don't need to be indexed, but exist as AST."""
-    ast_source_paths: List[Path] = []
-
-    for root, dirs, files in walk(walk_dir):
-        for forbidden_name in set(
-            ["images", "includes", "sharedinclude", ".DS_STORE"]
-        ).intersection(dirs):
-            dirs.remove(forbidden_name)
-        for filename in files:
-            ast_source_paths.append(Path(join(root, filename)))
-    return ast_source_paths
+    return manifest
