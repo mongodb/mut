@@ -4,7 +4,7 @@ from pathlib import Path
 from os import getcwd
 from mut.index.SnootyManifest import ManifestEntry, Document, generate_manifest
 
-ROOT_PATH = Path(getcwd()).joinpath(Path("mut/test_data_index/documents"))
+ROOT_PATH = Path.cwd() / Path("mut/test_data_index/documents")
 
 def setup_doc(root_path: Path, file_path: str) -> ManifestEntry:
     data = decode_all(root_path.joinpath(Path(file_path)).read_bytes())
