@@ -19,7 +19,7 @@ class ManifestEntry(TypedDict):
     paragraphs: str
     code: dict
     preview: Optional[str]
-    tags: list[str]
+    tags: List[str]
 
 
 class Document:
