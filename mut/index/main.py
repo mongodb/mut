@@ -5,7 +5,7 @@ Usage:
                      [-g -s]
 
     -h, --help             List CLI prototype, arguments, and options.
-    <root>                 Path to the directory containing html files.
+    <root>                 Path to the Snooty manifest file.
     -o, --output <output>  File name for the output manifest json. (e.g. manual-v3.2.json)
     -u, --url <url>        Base url of the property.
     -g, --global           Includes the manifest when searching all properties.
