@@ -39,3 +39,7 @@ mut-index = 'mut.index.main:main'
 mut-intersphinx = 'mut.intersphinx:main'
 mut-publish = 'mut.stage:main'
 mut-redirects = 'mut.redirects.redirect_main:main'
+
+[tool.poetry.group.dev.dependencies]
+black = "^22.10.0"
+
