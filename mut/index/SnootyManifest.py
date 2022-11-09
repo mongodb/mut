@@ -1,7 +1,7 @@
 from zipfile import ZipFile, ZipInfo
 from bson import decode_all
 from jsonpath_ng.ext import parse
-from os.path import join
+from os.path import join, splitext
 from pathlib import Path
 from json import dumps
 
@@ -85,7 +85,7 @@ class Document:
 
     def derive_slug(self):
         logger.debug("Deriving slug")
-        page_id = self.tree["page_id"]
+        page_id = splitext(self.tree["filename"])[0]
         return page_id
 
     def derive_preview(self) -> Optional[str]:
