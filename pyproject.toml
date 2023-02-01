@@ -42,4 +42,5 @@ mut-redirects = 'mut.redirects.redirect_main:main'
 
 [tool.poetry.group.dev.dependencies]
 black = "^22.10.0"
+pytest = "^7.2.1"
 
