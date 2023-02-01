@@ -115,7 +115,7 @@ class Document:
             str_list = []
             for f in first:
                 str_list.append(f.value)
-            return " ".join(str_list)
+            return "".join(str_list)
         # Give up and just don't provide a preview.
         else:
             return None

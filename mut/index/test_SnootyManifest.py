@@ -73,7 +73,7 @@ def test_derivePreview() -> None:
     document = setup_doc(ROOT_PATH, "core/2dsphere.bson")
     assert (
         document["preview"]
-        == "A  2dsphere  index supports queries that calculate geometries on an\nearth-like sphere.  2dsphere  index supports all MongoDB geospatial\nqueries: queries for inclusion, intersection and proximity.\nFor more information on geospatial queries, see\n Geospatial Queries ."
+        == "A 2dsphere index supports queries that calculate geometries on an\nearth-like sphere. 2dsphere index supports all MongoDB geospatial\nqueries: queries for inclusion, intersection and proximity.\nFor more information on geospatial queries, see\nGeospatial Queries."
     )
 
     # Test that pages that start with an admonition don't use the admonition
@@ -87,7 +87,7 @@ def test_derivePreview() -> None:
     # Test page that starts with code reference declaration
 
     document = setup_doc(ROOT_PATH, "query/exists.bson")
-    assert document["preview"] == "Syntax :  { field: { $exists: <boolean> } }"
+    assert document["preview"] == "Syntax: { field: { $exists: <boolean> } }"
 
     # Test that page with no paragraphs has no preview
     document = setup_doc(ROOT_PATH, "no-paragraphs.bson")
