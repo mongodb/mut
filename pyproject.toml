@@ -21,7 +21,7 @@ docopt = '0.6.2'
 html5-parser = '0.4.9'
 idna = '2.10'
 jmespath = '0.10.0'
-lxml = '4.6.3'
+lxml = '^4.9.2'
 python-dateutil = '2.8.1'
 PyYAML = '5.4.1'
 requests = '2.25.1'
@@ -43,4 +43,3 @@ mut-redirects = 'mut.redirects.redirect_main:main'
 [tool.poetry.group.dev.dependencies]
 black = "^22.10.0"
 pytest = "^7.2.1"
-
