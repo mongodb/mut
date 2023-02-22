@@ -11,7 +11,7 @@ license = 'License :: OSI Approved :: Apache Software License'
 readme = 'README.rst'
 
 [tool.poetry.dependencies]
-python = '^3.8'
+python = '>=3.8,<3.12'
 boto3 = '1.16.57'
 botocore = '1.19.57'
 certifi = '2020.12.5'
@@ -43,3 +43,4 @@ mut-redirects = 'mut.redirects.redirect_main:main'
 [tool.poetry.group.dev.dependencies]
 black = "^22.10.0"
 pytest = "^7.2.1"
+pyinstaller = "^5.8.0"
