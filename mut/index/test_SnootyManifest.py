@@ -110,6 +110,10 @@ def test_noIndex() -> None:
     document = setup_doc(ROOT_PATH, "no-robots.bson")
     assert document is None
 
+    # Test :robots: noindex in meta
+    document = setup_doc(ROOT_PATH, "no-index.bson")
+    assert document is None
+
 
 def test_findCode() -> None:
     # Test code from regular code block, IO Code block
