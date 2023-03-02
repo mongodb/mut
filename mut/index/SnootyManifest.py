@@ -130,7 +130,7 @@ class Document:
         results = jsonpath_expr.find(self.tree)
         if results:
             results = results[0].value
-            if "robots" in results and results["robots"] == "None":
+            if "robots" in results and (results["robots"] == "None" or "noindex" in results["robots"]):
                 robots = False
             if "keywords" in results:
                 keywords = results["keywords"]
@@ -148,7 +148,7 @@ class Document:
         # If :robots: None in metadata, do not index
         if not self.robots:
             noindex = True
-            reasons.append("robots=None in meta directive")
+            reasons.append("robots=None or robots=noindex in meta directive")
 
         # If page has no title, do not index.
         if self.title is None:
