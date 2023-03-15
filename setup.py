@@ -5,12 +5,8 @@ import mut
 REQUIRES = [
     "boto3",
     "certifi",
-    "cssselect",
     "docopt",
-    "html5-parser",
-    "lxml",
     "PyYAML",
-    "requests",
 ]
 
 setup(
