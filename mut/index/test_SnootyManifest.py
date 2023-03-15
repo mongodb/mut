@@ -1,4 +1,4 @@
-from bson import decode_all
+from bson import decode_all # type: ignore
 from json import loads
 from pathlib import Path
 from os import getcwd
@@ -20,10 +20,15 @@ def test_findParagraphs() -> None:
 
 
 def test_deriveSlug() -> None:
+    # Test standard slug derivation
     document_with_slash = setup_doc(ROOT_PATH, "query/exists.bson")
     document_basic = setup_doc(ROOT_PATH, "introduction.bson")
     assert document_with_slash["slug"] == "reference/operator/query/exists"
     assert document_basic["slug"] == "introduction"
+
+    # Test slug derivation for main index page
+    index_document = setup_doc(ROOT_PATH, "index.bson")
+    assert index_document["slug"] == ""
 
 
 def test_findHeadings() -> None:
@@ -128,7 +133,7 @@ def test_findCode() -> None:
 
 def test_generate_manifest() -> None:
     # Test standard generation with two unindexable documents out of five
-    ast_source_zipped = getcwd() + "/mut/test_data_index/snooty_manifest-zipped"
+    ast_source_zipped = getcwd() + "/mut/test_data_index/snooty_manifest-zipped.zip"
 
     url = "www.mongodb.com/docs/test"
     includeInGlobalSearch = False
@@ -136,4 +141,4 @@ def test_generate_manifest() -> None:
     manifest = loads(
         generate_manifest(ast_source_zipped, url, includeInGlobalSearch).export()
     )
-    assert len(manifest["documents"]) == 3
+    assert len(manifest["documents"]) == 4
