@@ -8,7 +8,7 @@ version = '0.10.2'
 description = ''
 authors = ['Andrew Aldridge <i80and@foxquill.com>']
 license = 'License :: OSI Approved :: Apache Software License'
-readme = 'README.rst'
+readme = 'README.md'
 
 [tool.poetry.dependencies]
 python = '>=3.8,<3.12'
