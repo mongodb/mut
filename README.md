@@ -83,6 +83,8 @@ the changelog using the handy changelog generation button, and click "Publish re
 Creating the tag will (run the release workflow)[https://github.com/mongodb/mut/blob/master/.github/workflows/release.yml],
 building the stuff and (potentially ?) creating an extra draft release which you can then delete.
 
+Finally, update the version number in pyproject.toml.
+
 ### Generate the tag manually because you like commandline git
 
 If you're the sort of person who likes making your tags manually (like Allison): 
@@ -100,9 +102,4 @@ If you're the sort of person who likes making your tags manually (like Allison):
 2. Go to the releases page, find the newly-created release draft and fill out the
    release description, generate release notes, etc.
 
-3. Update the version of `mut` the workerpool pulls in by update its Dockerfile.
-
-
-
-
-Create a release tag of the format `v[0-9]x`. GitHub actions will do the rest and build your bundle.
+3. Finally, update the version number in pyproject.toml.
