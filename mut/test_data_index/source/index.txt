@@ -1,0 +1,6 @@
+===
+mut
+===
+
+This is the index page for our theoretical docs site.
+Test test test test testamajigger!

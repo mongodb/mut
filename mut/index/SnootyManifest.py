@@ -86,6 +86,8 @@ class Document:
     def derive_slug(self):
         logger.debug("Deriving slug")
         page_id = splitext(self.tree["filename"])[0]
+        if page_id == "index":
+            page_id = ""
         return page_id
 
     def derive_preview(self) -> Optional[str]:
