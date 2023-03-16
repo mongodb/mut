@@ -14,7 +14,7 @@ setup(
     name="mut",
     description="",
     version=mut.__version__,
-    python_requires=">=3.5",
+    python_requires=">=3.8",
     author="Andrew Aldridge",
     author_email="i80and@foxquill.com",
     license="Apache",
