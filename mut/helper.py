@@ -1,7 +1,5 @@
 """
-Usage: mut convert-redirects [...]
-       mut images [...]
-       mut intersphinx [...]
+Usage: mut images [...]
        mut publish [...]
        mut index [...]
 """
