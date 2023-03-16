@@ -1,6 +1,6 @@
 from zipfile import ZipFile, ZipInfo
-from bson import decode_all # type: ignore
-from jsonpath_ng.ext import parse # type: ignore
+from bson import decode_all
+from jsonpath_ng.ext import parse
 from os.path import join, splitext
 from pathlib import Path
 from json import dumps

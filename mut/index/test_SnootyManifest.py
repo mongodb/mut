@@ -1,4 +1,4 @@
-from bson import decode_all # type: ignore
+from bson import decode_all
 from json import loads
 from pathlib import Path
 from os import getcwd
