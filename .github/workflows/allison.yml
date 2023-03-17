@@ -3,7 +3,7 @@ name: Allison
 on:
   push:
     branches:
-      - 'DOP-3557-releases'
+      - 'DOP-3557-readme'
 
 jobs:
   test:
