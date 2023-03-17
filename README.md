@@ -59,7 +59,7 @@ If you do *not* have `poetry` installed, install it following
 3. Run `make test` and `make format` to check that the tests pass 
    and fix your formatting.
 
-4. Active a shell where the `mut` commands you just built are available by running:
+4. Active a shell where the `mut` commands you just built are available:
 
    ```
    poetry shell
