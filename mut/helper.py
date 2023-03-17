@@ -1,9 +1,8 @@
 """
-Usage: mut convert-redirects [...]
-       mut images [...]
-       mut intersphinx [...]
-       mut publish [...]
-       mut index [...]
+Usage: mut-index [...]
+       mut-images [...]
+       mut-publish [...]
+       mut-redirects [...]
 """
 
 import os.path
