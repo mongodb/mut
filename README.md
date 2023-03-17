@@ -39,8 +39,8 @@ from which you can install `mut` and its dependencies.
 python3 -m pip install path-to-your-downloaded.whl
 ```
 
-Alternatively, from v0.10.3, we will offer a pre-built `mut` bundle that includes
-*all the things* so you need simply (words).
+Alternatively, from v0.10.3, we offer a pre-built `mut` bundle that includes
+*all the things* so you need simply unzip the bundle and run the executable.
 
 ## Developing `mut`
 
@@ -57,8 +57,7 @@ If you do *not* have `poetry` installed, install it following
 2. Make your changes to the source code.
 
 3. Run `make test` and `make format` to check that the tests pass 
-   and fix your formatting. This will also install the prerequirements 
-   defined in pyproject.toml.
+   and fix your formatting.
 
 4. Active a shell where the `mut` commands you just built are available by running:
 
