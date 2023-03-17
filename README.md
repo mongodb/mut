@@ -46,7 +46,7 @@ Alternatively, from v0.10.3, we offer a pre-built `mut` bundle that includes
 
 To develop `mut` locally, ensure you have `poetry` installed by running `which poetry`.
 If you do *not* have `poetry` installed, install it following 
-(their instructions)[https://python-poetry.org/docs/].
+(their excellent instructions)[https://python-poetry.org/docs/].
 
 1. Set up the project's dependencies.
    
