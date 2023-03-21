@@ -33,9 +33,5 @@ dist/${PACKAGE_NAME}: build-dist ## Build a binary tarball
 
 package: dist/${PACKAGE_NAME}
 
-wheel:
-	poetry build
-	if [ -n "${GITHUB_OUTPUT}" ]; then echo "wheel_filename=mut-${VERSION}-py3-none-any.whl" >> "${GITHUB_OUTPUT}"; fi
-
 clean:
 	-rm -r dist mut-index.py mut-redirects.py mut-publish.py

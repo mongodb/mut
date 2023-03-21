@@ -26,21 +26,35 @@ To install `mut` for use with giza, follow the instructions on the writer setup 
 
 ### Modern `mut` (v0.10 and later)
 
-To use mut, you need python 3.8 or later.
+To use mut locally, you need python 3.8 or later.
 
-As of v0.10, each `mut` [release](https://github.com/mongodb/mut/releases) includes a python wheel 
-from which you can install `mut` and its dependencies.
+As of v0.10, each `mut` release builds with `poetry`. 
+If you do *not* have `poetry` installed, install it following 
+(their excellent instructions)[https://python-poetry.org/docs/].
+You should probably also `python3 -m pip install wheel` if you haven't.
 
-1. Download the `mut` release from the GitHub [releases](https://github.com/mongodb/mut/releases) page.
-
-2. Use `pip` to install `mut`:
+1. Check out the relevant tag (in this case `v0.10.2`):
 
 ```shell
-python3 -m pip install path-to-your-downloaded.whl
+git checkout v0.10.2
+```
+
+2. Build a wheel using `poetry build`.
+
+```shell
+poetry install # to make sure everything's set up
+poetry build   # to actually build it
+```
+
+3. Use `pip` to install the newly-generated `mut` wheel:
+
+```shell
+python3 -m pip install dist/whatever.whl
 ```
 
 Alternatively, from v0.10.3, we offer a pre-built `mut` bundle that includes
 *all the things* so you need simply unzip the bundle and run the executable.
+At present it only does this for Linux, though we'll probably change that at some point.
 
 ## Developing `mut`
 
