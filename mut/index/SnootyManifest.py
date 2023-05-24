@@ -20,6 +20,7 @@ class ManifestEntry(TypedDict):
     code: dict
     preview: Optional[str]
     tags: List[str]
+    facets: Optional[dict[str, any]]
 
 
 class Document:
@@ -36,6 +37,7 @@ class Document:
         self.title, self.headings = self.find_headings()
         self.slug = self.derive_slug()
         self.preview = self.derive_preview()
+        self.facets = self.derive_facets()
 
         self.noindex, self.reasons = self.get_noindex()
 
@@ -121,6 +123,14 @@ class Document:
         # Give up and just don't provide a preview.
         else:
             return None
+    
+    def derive_facets(self) -> Optional[dict[str, any]]:
+        logger.debug('finding facets')
+        try:
+            if self.tree['facets']:
+                return self.tree['facets']
+        except KeyError:
+            return None
 
     def find_metadata(self):
         logger.debug("Finding metadata")
@@ -179,6 +189,7 @@ class Document:
             code=self.code,
             preview=self.preview,
             tags=self.keywords,
+            facets=self.facets
         )
         return document
 

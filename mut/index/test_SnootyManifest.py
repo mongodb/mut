@@ -142,3 +142,15 @@ def test_generate_manifest() -> None:
         generate_manifest(ast_source_zipped, url, includeInGlobalSearch).export()
     )
     assert len(manifest["documents"]) == 4
+
+def test_derive_facets() -> None:
+    # Test facets derived from page
+    document = setup_doc(ROOT_PATH, "facet_example.bson")
+    expected = {
+        "genres": [
+            {
+                "name": "reference"
+            }
+        ]
+    }
+    assert document["facets"] == expected
