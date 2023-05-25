@@ -7,7 +7,7 @@ from json import dumps
 
 import logging
 
-from typing import Optional, List, Tuple, TypedDict
+from typing import Optional, List, Tuple, TypedDict, Dict
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +20,7 @@ class ManifestEntry(TypedDict):
     code: dict
     preview: Optional[str]
     tags: List[str]
-    facets: Optional[dict[str, any]]
+    facets: Optional[Dict[str, any]]
 
 
 class Document:
@@ -124,7 +124,7 @@ class Document:
         else:
             return None
     
-    def derive_facets(self) -> Optional[dict[str, any]]:
+    def derive_facets(self) -> Optional[Dict[str, any]]:
         logger.debug('finding facets')
         try:
             if self.tree['facets']:
