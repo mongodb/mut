@@ -7,7 +7,7 @@ from json import dumps
 
 import logging
 
-from typing import Optional, List, Tuple, TypedDict, Dict
+from typing import Optional, List, Tuple, TypedDict, Dict, Any
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +20,7 @@ class ManifestEntry(TypedDict):
     code: dict
     preview: Optional[str]
     tags: List[str]
-    facets: Optional[Dict[str, any]]
+    facets: Optional[Dict[str, Any]]
 
 
 class Document:
@@ -123,12 +123,12 @@ class Document:
         # Give up and just don't provide a preview.
         else:
             return None
-    
-    def derive_facets(self) -> Optional[Dict[str, any]]:
-        logger.debug('finding facets')
+
+    def derive_facets(self) -> Optional[Dict[str, Any]]:
+        logger.debug("finding facets")
         try:
-            if self.tree['facets']:
-                return self.tree['facets']
+            if self.tree["facets"]:
+                return self.tree["facets"]
         except KeyError:
             return None
 
@@ -142,7 +142,9 @@ class Document:
         results = jsonpath_expr.find(self.tree)
         if results:
             results = results[0].value
-            if "robots" in results and (results["robots"] == "None" or "noindex" in results["robots"]):
+            if "robots" in results and (
+                results["robots"] == "None" or "noindex" in results["robots"]
+            ):
                 robots = False
             if "keywords" in results:
                 keywords = results["keywords"]
@@ -189,7 +191,7 @@ class Document:
             code=self.code,
             preview=self.preview,
             tags=self.keywords,
-            facets=self.facets
+            facets=self.facets,
         )
         return document
 
