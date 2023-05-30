@@ -7,7 +7,7 @@ from json import dumps
 
 import logging
 
-from typing import Optional, List, Tuple, TypedDict
+from typing import Optional, List, Tuple, TypedDict, Dict, Any
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +20,7 @@ class ManifestEntry(TypedDict):
     code: dict
     preview: Optional[str]
     tags: List[str]
+    facets: Optional[Dict[str, Any]]
 
 
 class Document:
@@ -36,6 +37,7 @@ class Document:
         self.title, self.headings = self.find_headings()
         self.slug = self.derive_slug()
         self.preview = self.derive_preview()
+        self.facets = self.derive_facets()
 
         self.noindex, self.reasons = self.get_noindex()
 
@@ -122,6 +124,14 @@ class Document:
         else:
             return None
 
+    def derive_facets(self) -> Optional[Dict[str, Any]]:
+        logger.debug("finding facets")
+        try:
+            if self.tree["facets"]:
+                return self.tree["facets"]
+        except KeyError:
+            return None
+
     def find_metadata(self):
         logger.debug("Finding metadata")
         robots: str = True
@@ -132,7 +142,9 @@ class Document:
         results = jsonpath_expr.find(self.tree)
         if results:
             results = results[0].value
-            if "robots" in results and (results["robots"] == "None" or "noindex" in results["robots"]):
+            if "robots" in results and (
+                results["robots"] == "None" or "noindex" in results["robots"]
+            ):
                 robots = False
             if "keywords" in results:
                 keywords = results["keywords"]
@@ -179,6 +191,7 @@ class Document:
             code=self.code,
             preview=self.preview,
             tags=self.keywords,
+            facets=self.facets,
         )
         return document
 
