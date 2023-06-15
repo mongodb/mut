@@ -48,7 +48,7 @@ class AuthenticationInfo:
         username = os.environ.get("STAGING_USERNAME", None)
         is_enhanced = os.environ.get("ENHANCED", None)
 
-        if is_enhanced: return None
+        if is_enhanced == 'true': return None
         
         cfg = configparser.ConfigParser()
         cfg.read(path)
