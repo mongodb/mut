@@ -644,13 +644,19 @@ class Staging:
 
         auth = config.authentication
         self.changes = ChangeSet(config.verbose, config.deployed_url_prefix)
-        self.s3 = (
-            boto3.session.Session(
-                aws_access_key_id=auth.access_key, aws_secret_access_key=auth.secret_key
+        if auth:
+            self.s3 = (
+                boto3.session.Session(
+                    aws_access_key_id=auth.access_key, aws_secret_access_key=auth.secret_key
+                )
+                .resource("s3")
+                .Bucket(config.bucket)
             )
-            .resource("s3")
-            .Bucket(config.bucket)
-        )
+        else:
+            self.s3 = (
+                boto3.session.Session("s3")
+                .Bucket(config.bucket)
+            )
         self.collector = self.Collector(
             self.config.branch, self.config.all_subdirectories, self.namespace
         )

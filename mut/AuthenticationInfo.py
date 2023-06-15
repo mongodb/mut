@@ -46,7 +46,10 @@ class AuthenticationInfo:
         access_key = os.environ.get("AWS_ACCESS_KEY_ID", None)
         secret_key = os.environ.get("AWS_SECRET_ACCESS_KEY", None)
         username = os.environ.get("STAGING_USERNAME", None)
+        is_enhanced = os.environ.get("ENHANCED", None)
 
+        if is_enhanced: return None
+        
         cfg = configparser.ConfigParser()
         cfg.read(path)
 
