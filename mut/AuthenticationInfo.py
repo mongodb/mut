@@ -3,6 +3,7 @@ import logging
 import os
 import pwd
 from pathlib import Path
+from typing import Optional
 
 DEFAULT_CONFIG_PATH = Path("~/.config/giza-aws-authentication.conf").expanduser()
 SAMPLE_CONFIG = """[authentication]
@@ -40,7 +41,7 @@ class AuthenticationInfo:
         self.username = username
 
     @classmethod
-    def load(cls, path: Path = DEFAULT_CONFIG_PATH) -> "AuthenticationInfo":
+    def load(cls, path: Path = DEFAULT_CONFIG_PATH) -> Optional["AuthenticationInfo"]:
         """Returns an AuthenticationInfo instance giving any necessary S3 login
         information."""
         access_key = os.environ.get("AWS_ACCESS_KEY_ID", None)
