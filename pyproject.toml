@@ -4,7 +4,7 @@ build-backend = 'poetry.core.masonry.api'
 
 [tool.poetry]
 name = 'mut'
-version = '0.10.3'
+version = '0.10.5'
 description = ''
 authors = ['Andrew Aldridge <i80and@foxquill.com>']
 license = 'License :: OSI Approved :: Apache Software License'
