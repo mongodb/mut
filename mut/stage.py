@@ -644,19 +644,17 @@ class Staging:
 
         auth = config.authentication
         self.changes = ChangeSet(config.verbose, config.deployed_url_prefix)
-        if auth:
+        if auth.access_key and auth.secret_key:
             self.s3 = (
                 boto3.session.Session(
-                    aws_access_key_id=auth.access_key, aws_secret_access_key=auth.secret_key
+                    aws_access_key_id=auth.access_key,
+                    aws_secret_access_key=auth.secret_key,
                 )
                 .resource("s3")
                 .Bucket(config.bucket)
             )
         else:
-            self.s3 = (
-                boto3.session.Session("s3")
-                .Bucket(config.bucket)
-            )
+            self.s3 = boto3.session.Session().resource("s3").Bucket(config.bucket)
         self.collector = self.Collector(
             self.config.branch, self.config.all_subdirectories, self.namespace
         )
@@ -689,7 +687,7 @@ class Staging:
 
         redirects = {}  # type: Dict[str, str]
         if self.config.branch == "master":
-            for (src, dest) in translate_htaccess(htaccess_path):
+            for src, dest in translate_htaccess(htaccess_path):
                 redirects[self.normalize_key(src)] = dest
 
         # Ensure that the root ends with a trailing slash to make future

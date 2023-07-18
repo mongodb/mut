@@ -35,7 +35,9 @@ def create_config_framework(path: Path) -> None:
 class AuthenticationInfo:
     """Stores S3 authentication information."""
 
-    def __init__(self, access_key: str, secret_key: str, username: str) -> None:
+    def __init__(
+        self, access_key: Optional[str], secret_key: Optional[str], username: str
+    ) -> None:
         self.access_key = access_key
         self.secret_key = secret_key
         self.username = username
@@ -49,11 +51,18 @@ class AuthenticationInfo:
         username = os.environ.get("STAGING_USERNAME", None)
         is_enhanced = os.environ.get("ENHANCED", None)
 
-        if is_enhanced == "true":
-            return None
-
         cfg = configparser.ConfigParser()
         cfg.read(path)
+
+        # Get the user's preferred name; we use this as part of our S3 namespaces
+        if not username:
+            try:
+                username = cfg.get("personal", "username")
+            except (configparser.NoSectionError, configparser.NoOptionError):
+                username = pwd.getpwuid(os.getuid()).pw_name
+
+        if is_enhanced == "true":
+            return AuthenticationInfo(access_key, secret_key, username)
 
         # Load S3 authentication information
         try:
@@ -70,13 +79,6 @@ class AuthenticationInfo:
             print(SAMPLE_CONFIG)
             create_config_framework(path)
             raise ValueError("Missing authentication information")
-
-        # Get the user's preferred name; we use this as part of our S3 namespaces
-        if not username:
-            try:
-                username = cfg.get("personal", "username")
-            except (configparser.NoSectionError, configparser.NoOptionError):
-                username = pwd.getpwuid(os.getuid()).pw_name
 
         logger.info(
             'Authentication: access_key="%s", username="%s"', access_key, username
