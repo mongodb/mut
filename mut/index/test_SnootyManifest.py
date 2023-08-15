@@ -1,11 +1,8 @@
-import logging
 from bson import decode_all
 from json import loads
 from pathlib import Path
 from os import getcwd
 from mut.index.SnootyManifest import ManifestEntry, Document, generate_manifest
-
-LOGGER = logging.getLogger(__name__)
 
 ROOT_PATH = Path.cwd() / Path("mut/test_data_index/documents")
 
