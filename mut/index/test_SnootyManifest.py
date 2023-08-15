@@ -1,8 +1,11 @@
+import logging
 from bson import decode_all
 from json import loads
 from pathlib import Path
 from os import getcwd
 from mut.index.SnootyManifest import ManifestEntry, Document, generate_manifest
+
+LOGGER = logging.getLogger(__name__)
 
 ROOT_PATH = Path.cwd() / Path("mut/test_data_index/documents")
 
@@ -147,5 +150,10 @@ def test_generate_manifest() -> None:
 def test_derive_facets() -> None:
     # Test facets derived from page
     document = setup_doc(ROOT_PATH, "facet_example.bson")
-    expected = {"genres": [{"name": "reference"}]}
+    expected = {
+        "programming_language": ["cpp"],
+        "genre": ["reference"],
+        "target_product": ["atlas"],
+        "target_product>atlas>sub_product": ["search"]
+    }
     assert document["facets"] == expected

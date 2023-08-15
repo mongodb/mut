@@ -12,6 +12,27 @@ from typing import Optional, List, Tuple, TypedDict, Dict, Any
 logger = logging.getLogger(__name__)
 
 
+class Facet:
+    category: str
+    value: str
+    sub_facets: Optional[List["Facet"]] = None
+
+    def __init__(self, category: str, value: str, sub_facets: [List[any]]) -> None:
+        self.category = category
+        self.value = value
+        self.sub_facets = None
+
+        for sub_facet in sub_facets:
+            self.sub_facets = self.sub_facets or []
+            self.sub_facets.append(
+                Facet(
+                    category=sub_facet["category"],
+                    value=sub_facet["value"],
+                    sub_facets=sub_facet["sub_facets"] or [],
+                )
+            )
+
+
 class ManifestEntry(TypedDict):
     slug: str
     title: Optional[str]
@@ -20,14 +41,13 @@ class ManifestEntry(TypedDict):
     code: dict
     preview: Optional[str]
     tags: List[str]
-    facets: Optional[Dict[str, Any]]
+    facets: Optional[Dict[str, List[str]]]
 
 
 class Document:
     """Return indexing data from a page's AST for search purposes."""
 
     def __init__(self, data) -> None:
-
         self.tree = data[0]
 
         self.robots, self.keywords, self.description = self.find_metadata()
@@ -125,12 +145,40 @@ class Document:
             return None
 
     def derive_facets(self) -> Optional[Dict[str, Any]]:
-        logger.debug("finding facets")
+        """
+        Format facets for ManifestEntry from bson entry tree['facets'] if it exists
+        """
+        document_facets: Dict[str, List[str]] = {}
+        HIERARCHY_KEY = ">"
+
+        # recursive function to look within facets.sub_facets<facets[]>
+        def insert_key_values(facet: Facet, prefix=""):
+            key = prefix + facet.category
+            document_facets[key] = document_facets.get(key, [])
+            document_facets[key].append(facet.value)
+            if not facet.sub_facets:
+                return
+            for sub_facet in facet.sub_facets:
+                insert_key_values(
+                    sub_facet, key + HIERARCHY_KEY + facet.value + HIERARCHY_KEY
+                )
+
+        def create_facet(facet_entry: any):
+            facet = Facet(
+                        category=facet_entry["category"],
+                        value=facet_entry["value"],
+                        sub_facets=facet_entry["sub_facets"] or [],
+                    )
+            insert_key_values(facet)
+
         try:
             if self.tree["facets"]:
-                return self.tree["facets"]
+                for facet_entry in self.tree["facets"]:
+                    create_facet(facet_entry) 
         except KeyError:
             return None
+
+        return document_facets
 
     def find_metadata(self):
         logger.debug("Finding metadata")
