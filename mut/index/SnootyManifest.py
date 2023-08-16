@@ -17,7 +17,7 @@ class Facet:
     value: str
     sub_facets: Optional[List["Facet"]] = None
 
-    def __init__(self, category: str, value: str, sub_facets: [List[any]]) -> None:
+    def __init__(self, category: str, value: str, sub_facets: [List[object]]) -> None:
         self.category = category
         self.value = value
         self.sub_facets = None
@@ -152,7 +152,7 @@ class Document:
         HIERARCHY_KEY = ">"
 
         # recursive function to look within facets.sub_facets<facets[]>
-        def insert_key_values(facet: Facet, prefix=""):
+        def insert_key_values(facet: Facet, prefix: str=""):
             key = prefix + facet.category
             document_facets[key] = document_facets.get(key, [])
             document_facets[key].append(facet.value)
@@ -163,7 +163,7 @@ class Document:
                     sub_facet, key + HIERARCHY_KEY + facet.value + HIERARCHY_KEY
                 )
 
-        def create_facet(facet_entry: any):
+        def create_facet(facet_entry: object):
             facet = Facet(
                         category=facet_entry["category"],
                         value=facet_entry["value"],
