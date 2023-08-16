@@ -13,10 +13,6 @@ logger = logging.getLogger(__name__)
 
 
 class Facet:
-    category: str
-    value: str
-    sub_facets: Optional[List["Facet"]] = None
-
     def __init__(self, category: str, value: str, sub_facets: [List[object]]) -> None:
         self.category = category
         self.value = value
@@ -152,7 +148,7 @@ class Document:
         HIERARCHY_KEY = ">"
 
         # recursive function to look within facets.sub_facets<facets[]>
-        def insert_key_values(facet: Facet, prefix: str=""):
+        def insert_key_values(facet: Facet, prefix: str = ""):
             key = prefix + facet.category
             document_facets[key] = document_facets.get(key, [])
             document_facets[key].append(facet.value)
@@ -165,16 +161,16 @@ class Document:
 
         def create_facet(facet_entry: object):
             facet = Facet(
-                        category=facet_entry["category"],
-                        value=facet_entry["value"],
-                        sub_facets=facet_entry["sub_facets"] or [],
-                    )
+                category=facet_entry["category"],
+                value=facet_entry["value"],
+                sub_facets=facet_entry["sub_facets"] or [],
+            )
             insert_key_values(facet)
 
         try:
             if self.tree["facets"]:
                 for facet_entry in self.tree["facets"]:
-                    create_facet(facet_entry) 
+                    create_facet(facet_entry)
         except KeyError:
             return None
 

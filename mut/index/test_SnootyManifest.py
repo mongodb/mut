@@ -151,6 +151,6 @@ def test_derive_facets() -> None:
         "programming_language": ["cpp"],
         "genre": ["reference"],
         "target_product": ["atlas"],
-        "target_product>atlas>sub_product": ["search"]
+        "target_product>atlas>sub_product": ["search"],
     }
     assert document["facets"] == expected
