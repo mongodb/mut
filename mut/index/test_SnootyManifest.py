@@ -147,5 +147,10 @@ def test_generate_manifest() -> None:
 def test_derive_facets() -> None:
     # Test facets derived from page
     document = setup_doc(ROOT_PATH, "facet_example.bson")
-    expected = {"genres": [{"name": "reference"}]}
+    expected = {
+        "programming_language": ["cpp"],
+        "genre": ["reference"],
+        "target_product": ["atlas"],
+        "target_product>atlas>sub_product": ["search"],
+    }
     assert document["facets"] == expected
