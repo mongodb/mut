@@ -33,10 +33,10 @@ If you do *not* have `poetry` installed, install it following
 (their excellent instructions)[https://python-poetry.org/docs/].
 You should probably also `python3 -m pip install wheel` if you haven't.
 
-1. Check out the relevant tag (in this case `v0.10.2`):
+1. Check out the tag you want to build:
 
 ```shell
-git checkout v0.10.2
+git checkout <tag>
 ```
 
 2. Build a wheel using `poetry build`.
