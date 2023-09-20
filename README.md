@@ -102,7 +102,9 @@ Finally, update the version number in pyproject.toml.
 
 If you're the sort of person who likes making your tags manually (like Allison): 
 
-1. Create a tag and push it to master:
+1. First, update the version number in pyproject.toml.
+
+2. Create a tag and push it to master:
 
    ```shell
    git tag v0.10.3
@@ -112,7 +114,6 @@ If you're the sort of person who likes making your tags manually (like Allison):
    Creating the tag will (run the release workflow)[https://github.com/mongodb/mut/blob/master/.github/workflows/release.yml],
    building the stuff and creating a draft release on the (releases page)[https://github.com/mongodb/mut/releases].
 
-2. Go to the releases page, find the newly-created release draft and fill out the
+3. Go to the releases page, find the newly-created release draft and fill out the
    release description, generate release notes, etc.
 
-3. Finally, update the version number in pyproject.toml.
