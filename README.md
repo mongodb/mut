@@ -30,7 +30,7 @@ To use mut locally, you need python 3.8 or later.
 
 As of v0.10, each `mut` release builds with `poetry`. 
 If you do *not* have `poetry` installed, install it following 
-(their excellent instructions)[https://python-poetry.org/docs/].
+[their excellent instructions](https://python-poetry.org/docs/).
 You should probably also `python3 -m pip install wheel` if you haven't.
 
 1. Check out the tag you want to build:
@@ -60,7 +60,7 @@ At present it only does this for Linux, though we'll probably change that at som
 
 To develop `mut` locally, ensure you have `poetry` installed by running `which poetry`.
 If you do *not* have `poetry` installed, install it following 
-(their excellent instructions)[https://python-poetry.org/docs/].
+[their excellent instructions](https://python-poetry.org/docs/).
 
 1. Set up the project's dependencies.
    
@@ -89,11 +89,11 @@ If you do *not* have `poetry` installed, install it following
 
 ### Do it the easy way
 
-From the (releases page)[https://github.com/mongodb/mut/releases], click "Draft a new release".
+From the [releases page](https://github.com/mongodb/mut/releases), click "Draft a new release".
 Create a new tag in the tag dropdown, fill ou the release name and description, generate
 the changelog using the handy changelog generation button, and click "Publish release".
 
-Creating the tag will (run the release workflow)[https://github.com/mongodb/mut/blob/master/.github/workflows/release.yml],
+Creating the tag will [run the release workflow](https://github.com/mongodb/mut/blob/master/.github/workflows/release.yml),
 building the stuff and (potentially ?) creating an extra draft release which you can then delete.
 
 Finally, update the version number in pyproject.toml.
@@ -111,8 +111,8 @@ If you're the sort of person who likes making your tags manually (like Allison):
    git push origin master --tags
    ```
 
-   Creating the tag will (run the release workflow)[https://github.com/mongodb/mut/blob/master/.github/workflows/release.yml],
-   building the stuff and creating a draft release on the (releases page)[https://github.com/mongodb/mut/releases].
+   Creating the tag will [run the release workflow](https://github.com/mongodb/mut/blob/master/.github/workflows/release.yml),
+   building the stuff and creating a draft release on the [releases page](https://github.com/mongodb/mut/releases).
 
 3. Go to the releases page, find the newly-created release draft and fill out the
    release description, generate release notes, etc.
