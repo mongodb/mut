@@ -41,6 +41,9 @@ git checkout <tag>
 
 2. Build a wheel using `poetry build`.
 
+> [!NOTE]
+> You may need to add read privaleges to your *Users/\<your-username>/.pyenv/* folder.
+
 ```shell
 poetry install # to make sure everything's set up
 poetry build   # to actually build it
