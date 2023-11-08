@@ -119,7 +119,8 @@ class CacheControl:
 
     def __init__(self, stanzas: List[Tuple[List[str], str]]) -> None:
         self.stanzas: List[Tuple[List[re.Pattern[str]], str]] = [
-            ([re.compile(fnmatch.translate(pat)) for pat in stanza[0]], stanza[1])
+            ([re.compile(fnmatch.translate(pat))
+             for pat in stanza[0]], stanza[1])
             for stanza in stanzas
         ]
 
@@ -175,13 +176,13 @@ class SyncException(StagingException):
 
 
 def remove_beginning(beginning: str, s: str) -> str:
-    return s[len(beginning) :] if s.startswith(beginning) else s
+    return s[len(beginning):] if s.startswith(beginning) else s
 
 
 def chunks(data: List[T], n: int) -> Iterable[List[T]]:
     """Split a list into chunks of at most length n."""
     for i in range(0, len(data), n):
-        yield data[i : (i + n)]
+        yield data[i: (i + n)]
 
 
 def run_pool(
@@ -234,9 +235,11 @@ class ChangeSummary:
     def print(self) -> None:
         print("\nSummary\n=======")
 
-        files_deleted_string = "Files Deleted:     {}".format(self.files_deleted)
+        files_deleted_string = "Files Deleted:     {}".format(
+            self.files_deleted)
         if self.files_deleted > DELETION_WARNING_THRESHOLD:
-            files_deleted_string = util.color(files_deleted_string, ("red", "bright"))
+            files_deleted_string = util.color(
+                files_deleted_string, ("red", "bright"))
 
         for key in self.suspicious_files:
             logger.warn("Suspicious upload: %s", key)
@@ -281,7 +284,7 @@ class ChangeSet:
         flag = "C" if new_file else "M"
         key = key.lstrip("/")
 
-        if "master/master" in key:
+        if "master/master" in key or "main/main" in key:
             self.suspicious_files.append(key)
 
         self.commands_upload.append((flag, path, key))
@@ -311,7 +314,8 @@ class ChangeSet:
                 elif flag == "M":
                     summary.files_modified += 1
                 else:
-                    raise ValueError("Unknown upload flag {}".format(repr(flag)))
+                    raise ValueError(
+                        "Unknown upload flag {}".format(repr(flag)))
 
                 print("{}  {}".format(flag, key))
 
@@ -378,7 +382,8 @@ class ChangeSet:
             s3.upload_file(
                 src_path,
                 key,
-                ExtraArgs={"CacheControl": self.cache_control[key], **mimetype_headers},
+                ExtraArgs={
+                    "CacheControl": self.cache_control[key], **mimetype_headers},
                 Config=self.s3_config,
             )
             sys.stdout.write(".")
@@ -386,7 +391,8 @@ class ChangeSet:
         except botocore.exceptions.ClientError as err:
             raise SyncFileException(src_path, str(err)) from err
         except IOError as err:
-            logger.exception('IOError while uploading file "%s": %s', src_path, err)
+            logger.exception(
+                'IOError while uploading file "%s": %s', src_path, err)
 
     def __redirect(self, s3: Any, src: str, dest: str) -> None:
         """Thread worker helper to handle creating a redirect."""
@@ -397,7 +403,8 @@ class ChangeSet:
                 return
         except botocore.exceptions.ClientError as err:
             if int(err.response["Error"]["Code"]) != 404:
-                logger.exception("S3 error creating redirect from %s to %s", src, dest)
+                logger.exception(
+                    "S3 error creating redirect from %s to %s", src, dest)
 
         obj.put(WebsiteRedirectLocation=dest)
         sys.stdout.write(".")
@@ -641,6 +648,7 @@ class Staging:
 
     def __init__(self, config: Config) -> None:
         self.config = config
+        self.primary_branches = ["master", "main"]
 
         auth = config.authentication
         self.changes = ChangeSet(config.verbose, config.deployed_url_prefix)
@@ -686,7 +694,7 @@ class Staging:
             htaccess_path = os.path.join(root, ".htaccess")
 
         redirects = {}  # type: Dict[str, str]
-        if self.config.branch == "master":
+        if self.config.branch in self.primary_branches:
             for src, dest in translate_htaccess(htaccess_path):
                 redirects[self.normalize_key(src)] = dest
 
@@ -706,7 +714,8 @@ class Staging:
             if os.path.isfile(src_path) and os.path.basename(src_path) in os.listdir(
                 os.path.dirname(src_path)
             ):
-                logger.warn("Would ignore redirect that will mask file: %s", src)
+                logger.warn(
+                    "Would ignore redirect that will mask file: %s", src)
         #                del redirects[src]
 
         timer.lap("initial staging setup")
@@ -722,7 +731,8 @@ class Staging:
                 continue
 
             full_name = "/".join((self.namespace, src))
-            self.changes.upload(os.path.join(root, src), full_name, entry.new_file)
+            self.changes.upload(os.path.join(root, src),
+                                full_name, entry.new_file)
 
         timer.lap("S3 collection completed")
 
@@ -732,7 +742,7 @@ class Staging:
         #          redirects from symbolic links.
         #     Ramifications: Symbolic link redirects for non-master branches
         #                    will never be published.
-        if self.config.branch == "master":
+        if self.config.branch in self.primary_branches:
             self.sync_redirects(redirects)
 
         timer.lap("Sync redirects")
