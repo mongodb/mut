@@ -96,6 +96,7 @@ FileUpdate = NamedTuple(
 UPLOAD_CHUNK_SIZE = 1024 * 1024 * 8
 DELETION_WARNING_THRESHOLD = 10
 DELETION_DANGER_THRESHOLD = 350
+PRIMARY_BRANCHES = ["master", "main"]
 T = TypeVar("T")
 
 
@@ -269,6 +270,14 @@ class ChangeSet:
 
         self.cache_control = CacheControl([])
 
+    def get_target_key(str) -> str:
+        try:
+            target_value_index = PRIMARY_BRANCHES.index(str)
+            return f'{PRIMARY_BRANCHES[target_value_index]}/{PRIMARY_BRANCHES[target_value_index]}'
+        except ValueError:
+            print(f'{str} is not in primary branches')
+            return ''
+
     def delete(self, keys: List[str], flag: str = "D") -> None:
         """Request deletion of a list of keys."""
         for key in keys:
@@ -284,7 +293,7 @@ class ChangeSet:
         flag = "C" if new_file else "M"
         key = key.lstrip("/")
 
-        if "master/master" in key or "main/main" in key:
+        if self.get_target_key('master') in key or self.get_target_key('main') in key:
             self.suspicious_files.append(key)
 
         self.commands_upload.append((flag, path, key))
@@ -648,7 +657,6 @@ class Staging:
 
     def __init__(self, config: Config) -> None:
         self.config = config
-        self.primary_branches = ["master", "main"]
 
         auth = config.authentication
         self.changes = ChangeSet(config.verbose, config.deployed_url_prefix)
@@ -694,7 +702,7 @@ class Staging:
             htaccess_path = os.path.join(root, ".htaccess")
 
         redirects = {}  # type: Dict[str, str]
-        if self.config.branch in self.primary_branches:
+        if self.config.branch in PRIMARY_BRANCHES:
             for src, dest in translate_htaccess(htaccess_path):
                 redirects[self.normalize_key(src)] = dest
 
@@ -742,7 +750,7 @@ class Staging:
         #          redirects from symbolic links.
         #     Ramifications: Symbolic link redirects for non-master branches
         #                    will never be published.
-        if self.config.branch in self.primary_branches:
+        if self.config.branch in PRIMARY_BRANCHES:
             self.sync_redirects(redirects)
 
         timer.lap("Sync redirects")
