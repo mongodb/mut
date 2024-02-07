@@ -31,7 +31,6 @@ setup(
     entry_points={
         "console_scripts": [
             "mut = mut.helper:main",
-            "mut-convert-redirects = mut.convert_redirects:main",
             "mut-images = mut.build_images:main",
             "mut-index = mut.index.main:main",
             "mut-intersphinx = mut.intersphinx:main",
