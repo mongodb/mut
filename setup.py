@@ -7,8 +7,6 @@ REQUIRES = [
     "certifi",
     "cssselect",
     "docopt",
-    "html5-parser",
-    "lxml",
     "PyYAML",
     "requests",
 ]
