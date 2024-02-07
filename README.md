@@ -5,15 +5,15 @@ Copyright 2023 MongoDB Inc.
 
 `mut` provides a handful of tools used in MongoDB's documentation platform.
 
-* `mut-index` turns snooty-parser-generated abstract syntax trees into manifests
+- `mut-index` turns snooty-parser-generated abstract syntax trees into manifests
   that can be ingested into Atlas Search to power the docs' search.
-* `mut-redirects` generates redirects from our bespoke redirect definition format,
+- `mut-redirects` generates redirects from our bespoke redirect definition format,
   making it "easy" to ensure that readers never find themselves on a 404ing page
   when swapping versions or following old links
-* `mut-images` turns SVGs into PNGs I think?
-* `mut-stage` uploads files to S3 with minimal fuss for the user
+- `mut-images` turns SVGs into PNGs I think?
+- `mut-stage` uploads files to S3 with minimal fuss for the user
 
-`mut` is licensed under the Apache License, Version 2.0. 
+`mut` is licensed under the Apache License, Version 2.0.
 See the `LICENSE` file for details.
 
 ## Installation
@@ -28,8 +28,8 @@ To install `mut` for use with giza, follow the instructions on the writer setup 
 
 To use mut locally, you need python 3.8 or later.
 
-As of v0.10, each `mut` release builds with `poetry`. 
-If you do *not* have `poetry` installed, install it following 
+As of v0.10, each `mut` release builds with `poetry`.
+If you do _not_ have `poetry` installed, install it following
 [their excellent instructions](https://python-poetry.org/docs/).
 You should probably also `python3 -m pip install wheel` if you haven't.
 
@@ -42,7 +42,7 @@ git checkout <tag>
 2. Build a wheel using `poetry build`.
 
 > [!NOTE]
-> You may need to add read priveleges to your *Users/\<your-username>/.pyenv/* folder.
+> You may need to add read priveleges to your _Users/\<your-username>/.pyenv/_ folder.
 
 ```shell
 poetry install # to make sure everything's set up
@@ -56,37 +56,68 @@ python3 -m pip install dist/whatever.whl
 ```
 
 Alternatively, from v0.10.3, we offer a pre-built `mut` bundle that includes
-*all the things* so you need simply unzip the bundle and run the executable.
+_all the things_ so you need simply unzip the bundle and run the executable.
 At present it only does this for Linux, though we'll probably change that at some point.
 
 ## Developing `mut`
 
 To develop `mut` locally, ensure you have `poetry` installed by running `which poetry`.
-If you do *not* have `poetry` installed, install it following 
+If you do _not_ have `poetry` installed, install it following
 [their excellent instructions](https://python-poetry.org/docs/).
 
 1. Set up the project's dependencies.
-   
+
    ```
    poetry install
    ```
 
 2. Make your changes to the source code.
 
-3. Run `make test` and `make format` to check that the tests pass 
-   and fix your formatting.
-
-4. Active a shell where the `mut` commands you just built are available:
+3. Active a shell where the `mut` commands you just built are available:
 
    ```
    poetry shell
    ```
 
-5. When you're done testing, terminate your shell by running:
+4. When you're done terminate your shell by running:
 
    ```
    exit
    ```
+
+## Testing
+
+To access commands, ensure the shell is running. To activate it, run the following
+
+```bash
+poetry shell
+```
+
+### Older Method 🗑️
+
+To check that tests still pass after your changes to the source code run the following command.
+
+```bash
+poetry run pytest
+```
+
+Keep in mind this method will soon be deprecated in favor of `make test`.
+
+### Newer Method
+
+To check that tests still pass after your changes to the source code run the following command.
+
+```bash
+make test
+```
+
+## Formatting
+
+To fix your formatting run
+
+```bash
+make format
+```
 
 ## Releasing `mut`
 
@@ -103,7 +134,7 @@ Finally, update the version number in pyproject.toml.
 
 ### Generate the tag manually because you like commandline git
 
-If you're the sort of person who likes making your tags manually (like Allison): 
+If you're the sort of person who likes making your tags manually (like Allison):
 
 1. First, update the version number in pyproject.toml.
 
@@ -119,4 +150,3 @@ If you're the sort of person who likes making your tags manually (like Allison):
 
 3. Go to the releases page, find the newly-created release draft and fill out the
    release description, generate release notes, etc.
-
