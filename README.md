@@ -95,7 +95,7 @@ poetry shell
 
 ### Older Method 🗑️
 
-To check that tests still pass after your changes to the source code run the following command.
+To check that tests still pass after your changes to the source code, run the following command.
 
 ```bash
 poetry run pytest
@@ -105,7 +105,7 @@ Keep in mind this method will soon be deprecated in favor of `make test`.
 
 ### Newer Method
 
-To check that tests still pass after your changes to the source code run the following command.
+To check that tests still pass after your changes to the source code, run the following command.
 
 ```bash
 make test
