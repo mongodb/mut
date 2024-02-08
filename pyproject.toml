@@ -18,10 +18,8 @@ certifi = '2020.12.5'
 chardet = '4.0.0'
 cssselect = '1.1.0'
 docopt = '0.6.2'
-html5-parser = '0.4.9'
 idna = '2.10'
 jmespath = '0.10.0'
-lxml = '^4.9.2'
 python-dateutil = '2.8.1'
 PyYAML = "6.0.1"
 requests = '2.25.1'
@@ -33,7 +31,6 @@ jsonpath-ng = "^1.5.3"
 
 [tool.poetry.scripts]
 mut = 'mut.helper:main'
-mut-convert-redirects = 'mut.convert_redirects:main'
 mut-images = 'mut.build_images:main'
 mut-index = 'mut.index.main:main'
 mut-intersphinx = 'mut.intersphinx:main'
