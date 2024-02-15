@@ -1,4 +1,5 @@
 """Print a header summarizing the index arguments."""
+
 from typing import List
 
 

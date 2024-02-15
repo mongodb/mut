@@ -14,6 +14,7 @@ Usage:
     -p, --prefix <prefix>  Name of the s3 prefix to attached to the manifest.
                            [default: search-indexes]
 """
+
 from docopt import docopt
 from mut.index.SnootyManifest import generate_manifest
 from mut.index.s3upload import upload_manifest_to_s3

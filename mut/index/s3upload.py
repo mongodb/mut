@@ -1,4 +1,5 @@
 """Upload a json manifest to Amazon s3."""
+
 import boto3
 from botocore.exceptions import ClientError, ParamValidationError
 from typing import Any
