@@ -10,7 +10,7 @@ Copyright 2023 MongoDB Inc.
 - `mut-redirects` generates redirects from our bespoke redirect definition format,
   making it "easy" to ensure that readers never find themselves on a 404ing page
   when swapping versions or following old links
-- `mut-images` turns SVGs into PNGs I think?
+- `mut-images` bakes SVG files into minimized SVGs with no external font requirements.
 - `mut-stage` uploads files to S3 with minimal fuss for the user
 
 `mut` is licensed under the Apache License, Version 2.0.
