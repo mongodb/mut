@@ -270,6 +270,7 @@ class ChangeSet:
 
         self.cache_control = CacheControl([])
 
+    @staticmethod
     def get_target_key(str) -> str:
         try:
             target_value_index = PRIMARY_BRANCHES.index(str)
