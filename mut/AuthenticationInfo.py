@@ -43,7 +43,7 @@ class AuthenticationInfo:
         self.username = username
 
     @classmethod
-    def load(cls, path: Path = DEFAULT_CONFIG_PATH) -> Optional["AuthenticationInfo"]:
+    def load(cls, path: Path = DEFAULT_CONFIG_PATH) -> "AuthenticationInfo":
         """Returns an AuthenticationInfo instance giving any necessary S3 login
         information."""
         access_key = os.environ.get("AWS_ACCESS_KEY_ID", None)

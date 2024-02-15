@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class Facet:
-    def __init__(self, category: str, value: str, sub_facets: [List[object]]) -> None:
+    def __init__(self, category: str, value: str, sub_facets: List[Any]) -> None:
         self.category = category
         self.value = value
         self.sub_facets = None
@@ -159,7 +159,7 @@ class Document:
                     sub_facet, key + HIERARCHY_KEY + facet.value + HIERARCHY_KEY
                 )
 
-        def create_facet(facet_entry: object):
+        def create_facet(facet_entry: Any):
             facet = Facet(
                 category=facet_entry["category"],
                 value=facet_entry["value"],
@@ -176,11 +176,11 @@ class Document:
 
         return document_facets
 
-    def find_metadata(self):
+    def find_metadata(self) -> Tuple[bool, Any, Any]:
         logger.debug("Finding metadata")
-        robots: str = True
-        keywords: List[str] = None
-        description: str = None
+        robots: bool = True
+        keywords: Optional[List[str]] = None
+        description: Optional[str] = None
 
         jsonpath_expr = parse("$..children[?(@.name=='meta')]..options")
         results = jsonpath_expr.find(self.tree)
