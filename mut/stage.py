@@ -187,12 +187,12 @@ def chunks(data: List[T], n: int) -> Iterable[List[T]]:
 
 
 def run_pool(
-    tasks: List[Callable[[None], None]], n_workers: int = 20, retries: int = 1
+    tasks: List[Callable[[], None]], n_workers: int = 20, retries: int = 1
 ) -> None:
     """Run a list of tasks using a pool of threads."""
     assert retries >= 0
 
-    results = []  # type: List[Tuple[Callable[[None], None], BaseException]]
+    results = []  # type: List[Tuple[Callable[[], None], BaseException]]
     with concurrent.futures.ThreadPoolExecutor(max_workers=n_workers) as pool:
         futures = []
 
@@ -359,13 +359,13 @@ class ChangeSet:
             _, src_path, key = command
             changes.add(key)
             task = functools.partial(self.__upload, s3, src_path, key)
-            tasks.append(cast(Callable[[None], None], task))
+            tasks.append(cast(Callable[[], None], task))
 
         for redirect in self.commands_redirect:
             src, dest = redirect
             changes.add(src)
             task = functools.partial(self.__redirect, s3, src, dest)
-            tasks.append(cast(Callable[[None], None], task))
+            tasks.append(cast(Callable[[], None], task))
 
         run_pool(tasks)
 
@@ -800,7 +800,7 @@ class DeployStaging(Staging):
         """Upload the given path->url redirect mapping to the remote bucket."""
 
         logger.debug("Finding redirects to remove")
-        removed = []
+        removed: List[str] = []
         logger.warn("Attempting to remove:")
         for entry in self.s3.objects.all():
             # Make sure this is a redirect

@@ -3,7 +3,7 @@ name: CI
 on:
   push:
     branches:
-    - master
+    - main
     - 'v[0-9]*'
   pull_request:
 
@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         platform: [ubuntu-20.04, macos-latest]
-        python-version: ['3.8', '3.11']
+        python-version: ['3.8', '3.12']
     runs-on: ${{ matrix.platform }}
     steps:
     - uses: actions/checkout@v3
@@ -26,6 +26,8 @@ jobs:
       run: python3 -m pip install poetry
     - name: Install dependencies
       run: python3 -m poetry install
+    - name: Lint
+      run: make lint
     - name: Build package
       id: build_package
       run: make package
