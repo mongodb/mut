@@ -138,11 +138,11 @@ If you're the sort of person who likes making your tags manually (like Allison):
 
 1. First, update the version number in pyproject.toml.
 
-2. Create a tag and push it to master:
+2. Create a tag and push it to main:
 
    ```shell
    git tag v0.10.3
-   git push origin master --tags
+   git push origin main --tags
    ```
 
    Creating the tag will [run the release workflow](https://github.com/mongodb/mut/blob/master/.github/workflows/release.yml),
