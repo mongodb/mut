@@ -53,8 +53,12 @@ class RedirectContext:
         old_url_sub = self.rule_substitute(old_url, version)
         new_url_sub = self.rule_substitute(new_url, version)
 
+        # S3 redirects must either have an HTTP scheme *or* have an absolute path
         parsed_new_url = urllib.parse.urlparse(new_url_sub)
-        if parsed_new_url.scheme not in {"http", "https"}:
+        if parsed_new_url.scheme not in {
+            "http",
+            "https",
+        } and not parsed_new_url.path.startswith("/"):
             raise ValueError(
                 f"Redirect targets must be absolute HTTP URLs: '{new_url_sub}'"
             )
