@@ -14,6 +14,7 @@ import collections
 import os
 import re
 import sys
+import urllib.parse
 from typing import List, Optional, Dict, Tuple, Pattern, IO
 from docopt import docopt
 
@@ -52,6 +53,12 @@ class RedirectContext:
         old_url_sub = self.rule_substitute(old_url, version)
         new_url_sub = self.rule_substitute(new_url, version)
 
+        parsed_new_url = urllib.parse.urlparse(new_url_sub)
+        if parsed_new_url.scheme not in {"http", "https"}:
+            raise ValueError(
+                f"Redirect targets must be absolute HTTP URLs: '{new_url_sub}'"
+            )
+
         # reformatting the old url
         if len(old_url_sub) > 0:
             if old_url_sub[0] != "/":
@@ -60,7 +67,7 @@ class RedirectContext:
         new_rule = RuleDefinition(is_temp, version, old_url_sub, new_url_sub, False)
 
         # check for symlinks
-        if len(self.symlinks) > 0 and version is not "raw":
+        if len(self.symlinks) > 0 and version != "raw":
             for symlink in self.symlinks:
                 if version == symlink[1]:
                     self.generate_rule(is_temp, symlink[0], old_url, new_url, True)
@@ -332,7 +339,8 @@ def parse_line(
                     rc.generate_rule(is_temp, version, old_url, new_url)
 
 
-def parse_source_file(source_path: str, output: Optional[str]) -> None:
+def parse_source_file(source_path: str, output: Optional[str]) -> bool:
+    have_error = False
     version_regex = re.compile(r"([\[\(])([\w.\*]+)(?:-([\w.\*]+))?([\]\)](.))")
     url_regex = re.compile(r":(?:[ \t\f\v])(.*)(?:[ \t\f\v]->)(.*)")
 
@@ -345,7 +353,12 @@ def parse_source_file(source_path: str, output: Optional[str]) -> None:
         for line_num, line in enumerate(file, start=1):
             if not line or line.startswith("#"):
                 continue
-            parse_line(line, rc, line_num, version_regex, url_regex)
+
+            try:
+                parse_line(line, rc, line_num, version_regex, url_regex)
+            except ValueError as err:
+                have_error = True
+                print(f"{line_num}: {str(err)}", file=sys.stderr)
 
     # Remove unknown symlinks
     if root is not None:
@@ -368,6 +381,8 @@ def parse_source_file(source_path: str, output: Optional[str]) -> None:
         with open(output, "w") as f:
             write_to_file(rc.rules, f)
 
+    return have_error
+
 
 def main() -> None:
     """Main entry point for mut redirects to create .htaccess file."""
@@ -376,7 +391,8 @@ def main() -> None:
     output = options["--output"]
 
     # Parse source_path and write to file
-    parse_source_file(source_path, output)
+    if parse_source_file(source_path, output):
+        sys.exit(1)
 
 
 if __name__ == "__main__":
