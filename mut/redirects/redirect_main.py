@@ -60,7 +60,7 @@ class RedirectContext:
             "https",
         } and not parsed_new_url.path.startswith("/"):
             raise ValueError(
-                f"Redirect targets must be absolute HTTP URLs: '{new_url_sub}'"
+                f"Invalid redirect target: '{new_url_sub}'. Redirect targets must be absolute HTTP URLs."
             )
 
         # reformatting the old url
