@@ -124,7 +124,7 @@ make format
 ### Do it the easy way
 
 From the [releases page](https://github.com/mongodb/mut/releases), click "Draft a new release".
-Create a new tag in the tag dropdown, fill ou the release name and description, generate
+Create a new tag in the tag dropdown, fill out the release name and description, generate
 the changelog using the handy changelog generation button, and click "Publish release".
 
 Creating the tag will [run the release workflow](https://github.com/mongodb/mut/blob/master/.github/workflows/release.yml),
@@ -136,7 +136,7 @@ Finally, update the version number in pyproject.toml.
 
 If you're the sort of person who likes making your tags manually (like Allison):
 
-1. First, update the version number in pyproject.toml.
+1. First, update the version number in pyproject.toml and push the change to main.
 
 2. Create a tag and push it to main:
 
