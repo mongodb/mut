@@ -28,6 +28,8 @@ jobs:
       run: python3 -m poetry install
     - name: Lint
       run: make lint
+    - name: Test
+      run: make test
     - name: Build package
       id: build_package
       run: make package
