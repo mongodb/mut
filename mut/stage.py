@@ -40,7 +40,7 @@ mut-publish --version
 --deployed-url-prefix=prefix    print the full url where files were published to
 
 --json                          print published urls as json
---dry-run                       do not actually do anythinggi
+--dry-run                       do not actually do anything
 --verbose                       print more verbose debugging information
 --version                       show mut version
 --force-sync-redirects          force mut to sync redirects to S3 regardless of current branch
