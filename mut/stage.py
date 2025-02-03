@@ -40,10 +40,9 @@ mut-publish --version
 --deployed-url-prefix=prefix    print the full url where files were published to
 
 --json                          print published urls as json
---dry-run                       do not actually do anythinggi
+--dry-run                       do not actually do anything
 --verbose                       print more verbose debugging information
 --version                       show mut version
---force-sync-redirects          force mut to sync redirects to S3 regardless of current branch
 
 Environment Variables:
 MUT_CACHE_CONTROL               A value for the Cache-Control header to be attached to
@@ -477,8 +476,6 @@ class Config:
 
         self.verbose = False
 
-        self.force_sync_redirects = False
-
         self.deployed_url_prefix = ""
 
         self._authentication = (
@@ -699,7 +696,7 @@ class Staging:
             htaccess_path = os.path.join(root, ".htaccess")
 
         redirects = {}  # type: Dict[str, str]
-        if self.config.force_sync_redirects or self.config.branch in PRIMARY_BRANCHES:
+        if self.config.branch in PRIMARY_BRANCHES:
             for src, dest in translate_htaccess(htaccess_path):
                 redirects[self.normalize_key(src)] = dest
 
@@ -745,10 +742,10 @@ class Staging:
         #          redirects from symbolic links.
         #     Ramifications: Symbolic link redirects for non-master branches
         #                    will never be published.
-
-        if self.config.force_sync_redirects or self.config.branch in PRIMARY_BRANCHES:
-            timer.lap("Syncing redirects")
+        if self.config.branch in PRIMARY_BRANCHES:
             self.sync_redirects(redirects)
+
+        timer.lap("Sync redirects")
 
         # Remove from staging any files that our FileCollector thinks have been
         # deleted locally.
@@ -855,7 +852,6 @@ def main() -> None:
     all_subdirectories = bool(options.get("--all-subdirectories", False))
     dry_run = bool(options.get("--dry-run", False))
     verbose = bool(options.get("--verbose", False))
-    force_sync_redirects = bool(options.get("--force-sync-redirects", False))
 
     if verbose:
         logging.basicConfig(level=logging.INFO)
@@ -866,7 +862,6 @@ def main() -> None:
     config.verbose = verbose
     config.all_subdirectories = all_subdirectories
     config.redirect_path = redirect_path
-    config.force_sync_redirects = force_sync_redirects
 
     if deployed_url_prefix:
         config.deployed_url_prefix = deployed_url_prefix.rstrip("/")
@@ -876,8 +871,6 @@ def main() -> None:
     except re.error as err:
         logger.error("Error compiling regular expression: %s", str(err))
         sys.exit(1)
-
-    logger.info("Config:", config)
 
     if mode_stage:
         staging = Staging(config)
