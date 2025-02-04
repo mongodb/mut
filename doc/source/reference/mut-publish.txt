@@ -20,6 +20,7 @@ Usage
                       [--redirects=htaccess]
                       [--redirect-prefix=prefix]...
                       [--dry-run] [--verbose]
+                      [--force-sync-redirects]
 
 Options
 -------
@@ -35,3 +36,4 @@ Options
 .. include:: /includes/option/option-mut-publish-redirect-prefixes.rst
 .. include:: /includes/option/option-mut-publish-dry-run.rst
 .. include:: /includes/option/option-mut-publish-verbose.rst
+.. include:: /includes/option/option-mut-publish-force-sync-redirects.rst

@@ -89,4 +89,12 @@ inherit:
   name: verbose
   program: _shared
   file: options-shared.yaml
+---
+program: mut-publish
+name: force-sync-redirects
+directive: option
+description: |
+  Force redirects to sync with S3 regardless of current branch
+optional: true
+default: false
 ...

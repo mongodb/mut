@@ -19,6 +19,7 @@
                       [--deployed-url-prefix=prefix]
                       [--redirect-prefix=prefix]...
                       [--dry-run] [--verbose] [--json]
+                      [--force-sync-redirects]
 mut-publish --version
 
 -h --help                       show this help message
@@ -877,7 +878,7 @@ def main() -> None:
         logger.error("Error compiling regular expression: %s", str(err))
         sys.exit(1)
 
-    logger.info("Config:", config)
+    logger.info("Config:", vars(config))
 
     if mode_stage:
         staging = Staging(config)
