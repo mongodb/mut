@@ -6,6 +6,8 @@ on:
     - main
     - 'v[0-9]*'
   pull_request:
+    branches:
+      - main
 
 jobs:
   test:
