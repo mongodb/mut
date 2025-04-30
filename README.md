@@ -9,7 +9,8 @@ Copyright 2023 MongoDB Inc.
   that can be ingested into Atlas Search to power the docs' search.
 - `mut-redirects` generates redirects from our bespoke redirect definition format,
   making it "easy" to ensure that readers never find themselves on a 404ing page
-  when swapping versions or following old links
+  when swapping versions or following old links. To run `mut-redirects`, run
+  `mut-redirects config/redirects` within your content repo.
 - `mut-images` bakes SVG files into minimized SVGs with no external font requirements.
 - `mut-stage` uploads files to S3 with minimal fuss for the user
 
@@ -33,6 +34,8 @@ If you do _not_ have `poetry` installed, install it following
 [their excellent instructions](https://python-poetry.org/docs/).
 You should probably also `python3 -m pip install wheel` if you haven't.
 
+0. Clone ``mut`` (this repo) and ``cd`` into your local ``mut`` repository.
+
 1. Check out the tag you want to build:
 
 ```shell
@@ -42,7 +45,7 @@ git checkout <tag>
 2. Build a wheel using `poetry build`.
 
 > [!NOTE]
-> You may need to add read priveleges to your _Users/\<your-username>/.pyenv/_ folder.
+> You may need to add read privileges to your _Users/\<your-username>/.pyenv/_ folder.
 
 ```shell
 poetry install # to make sure everything's set up
